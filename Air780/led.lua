@@ -1,7 +1,9 @@
-local LED_NET = gpio.setup(27, 0, gpio.PULLUP)
+
+
+-- local LED_NET = gpio.setup(27, 0, gpio.PULLUP)
 
 local led_config = {
-    {name = 'NET', pin = 27}
+    "NET" = { pin = 27 },
 
 }
 
