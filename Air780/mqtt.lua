@@ -25,13 +25,17 @@ local function mqtt_handle(client, event, data, payload)
     elseif event == "recv" then
         log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
-        
+        mqtt_message(data, payload)
     elseif event == "sent" then
         log.info(tag, "sent", "pkgid", data)
     elseif event == "disconnect" then
         -- 非自动重连时,按需重启mqttc
         -- mqtt_client:connect()
     end
+end
+
+local function mqtt_message(topic, payload)
+    -- 查找订阅树
 end
 
 function mqtt_open()
