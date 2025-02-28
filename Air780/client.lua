@@ -21,22 +21,23 @@ end
 function Client:open()
     self.ctrl = socket.create(nil, function(ctrl, event, param)
         if param ~= 0 then
-            sys.publish("socket_disconnect")
+            --sys.publish("socket_disconnect")
             return
         end
+
         if event == socket.LINK then
         elseif event == socket.ON_LINE then
             -- 连接成功
             -- self.ready = true
-            sys.publish("CLIENT_READY_"..self.id)
+            sys.publish("CLIENT_READY_" .. self.id)
         elseif event == socket.EVENT then
-            sys.publish("CLIENT_DATA_"..self.id)
+            sys.publish("CLIENT_DATA_" .. self.id)
             --socket.rx(ctrl, rxbuf)
             --socket.wait(ctrl)
         elseif event == socket.TX_OK then
             socket.wait(ctrl) --等待新状态
         elseif event == socket.CLOSED then
-            sys.publish("CLIENT_CLOSE_"..self.id)
+            sys.publish("CLIENT_CLOSE_" .. self.id)
         end
     end)
 
@@ -49,16 +50,11 @@ function Client:open()
         socket.close()
         return false
     end
-    if ret then
-        -- 连接成功
-        return true
-    end
+    if ret then return true end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUtil(5000, "CLIENT_READY_"..self.id)
-    if not res then
-        return false
-    end
+    local res, data = sys.waitUtil(5000, "CLIENT_READY_" .. self.id)
+    if not res then return false end
 
     return true
 end
@@ -73,11 +69,7 @@ end
 function Client:read(len)
     local ok, data = socket.read(self.ctrl, len)
     socket.wait(self.ctrl) --等待新状态
-    if ok then
-        return data
-    else
-        return ""
-    end
+    if ok then return data else return "" end
 end
 
 -- 关闭串口

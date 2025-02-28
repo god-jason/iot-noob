@@ -112,7 +112,6 @@ end
 
 -- 订阅（检查重复订阅，只添加回调）
 function subscribe(filter, cb)
-
     local fs = string.split(filter, "/")
 
     --创建树枝
@@ -128,7 +127,7 @@ function subscribe(filter, cb)
 
     --注册回调
     if #sub.callbacks == 0 then
-        client:subscribe(filter)        
+        client:subscribe(filter)
     end
 
     table.insert(sub.callbacks, cb)
@@ -136,7 +135,6 @@ end
 
 -- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
 function unsubscribe(filter, cb)
-
     -- 取消全部订阅
     if cb == nil then
         client:unsubscribe(filter)
@@ -149,9 +147,7 @@ function unsubscribe(filter, cb)
     local sub = sub_tree
     for _, f in ipairs(fs) do
         local s = sub.children[f]
-        if s == nil then
-            return
-        end
+        if s == nil then return end
         sub = s
     end
 
