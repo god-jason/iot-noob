@@ -50,15 +50,16 @@ end)
 sys.subscribe("NTP_UPDATE", function()
     sntp_sync_ok = true
     -- 设置到RTC时钟芯片    
-    rtc_write()
+    rtc.write()
 end)
 
 -- TODO 初始化外设
-led_init() -- LED灯光
-lan_init() -- 以太网
-io_init() -- 输入输出
+rtc.init() -- 初始化时钟芯片
+led.init() -- LED灯光
+lan.init() -- 以太网
+io.init() -- 输入输出
 
--- gnss_init()
+-- gnss.init() --GPS定位
 
 
 -- TODO 启动网关系统程序

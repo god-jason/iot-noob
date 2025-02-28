@@ -2,9 +2,10 @@ local tag = "ADC"
 
 local i2c_id = 0
 local i2c_speed = i2c.FAST
+
 local pin_adc_power = 0 -- 供电
 
-function open()
+function init()
     -- 开启供电
     if pin_adc_power > 0 then
         gpio.setup(pin_adc_power, gpio.PULLUP)

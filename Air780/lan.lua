@@ -5,7 +5,7 @@ local spi_id, spi_speed, pin_scs, pin_int, pin_rst = 0, 25600000, 8, 1, 22 --EC6
 --local spi_id, spi_speed, pin_scs, pin_int, pin_rst = 0, 25600000, 8, 29, 30 --EC718
 --local spi_id, spi_speed, pin_scs, pin_int, pin_rst = 2, 20000000, 6, 6, 8 --ESP32
 
-function lan_init()
+function init()
 
     if w5500 == nil then
         while 1 do

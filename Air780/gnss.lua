@@ -3,14 +3,14 @@ local tag = "GNSS"
 local uart_id, uart_baudrate = 1, 115200
 
 -- 初始化
-function gnss_init()
+function init()
     uart.setup(uart_id, uart_baudrate)
     libgnss.bind(uart_id)
     --libgnss.debug(true) --GPS调试
 end
 
 -- 是否定位成功
-function gnss_valid()
+function isValid()
     return libgnss.isFix()
 end
 
@@ -31,7 +31,7 @@ end
     "sec":20,       // 秒,0-59
 }
 ]]
-function gnss_location()
+function get()
     if libgnss.isFix() then
         return true, libgnss.getRmc(2)
     end
