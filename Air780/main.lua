@@ -54,6 +54,11 @@ sys.subscribe("NTP_UPDATE", function()
 end)
 
 -- TODO 初始化外设
+led_init() -- LED灯光
+lan_init() -- 以太网
+io_init() -- 输入输出
+
+-- gnss_init()
 
 
 -- TODO 启动网关系统程序

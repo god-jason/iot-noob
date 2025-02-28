@@ -12,16 +12,55 @@ local config = {
     -- }
 }
 
-local mqtt_client = nil
+local client = nil
+
+local sub_tree = {
+    children = {}, -- topic->sub_tree
+    callbacks = {}
+}
+
+local function find_callback(node, topics, topic, payload)
+    --叶子节点，执行回调
+    if #topics == 0 then
+        for i, cb in ipairs(sub.callbacks) do
+            cb(topic, payload)
+        end
+        return
+    end
+
+    local sub = node.children["#"]
+    if sub ~= nil then
+        find_callback(node, {}, topic, payload)
+    end
+
+    local t = topics[1]
+    table.remove(topics, 1)
+
+    sub = node.children["+"]
+    if sub ~= nil then
+        find_callback(sub, topics, topic, payload)
+    end
+
+    sub = node.children[t]
+    if sub ~= nil then
+        find_callback(sub, topics, topic, payload)
+    end
+end
+
+-- 查找订阅树（bug，优先执行绝对订阅，+#）
+local function mqtt_message(topic, payload)
+    local ts = string.split(topic, "/")
+    find_callback(sub_tree, ts, topic, payload)
+end
 
 local function mqtt_handle(client, event, data, payload)
     -- 用户自定义代码
     log.info(tag, "event", event, client, data, payload)
     if event == "conack" then
         -- 联上了
-        -- sys.publish("mqtt_conack")
+        sys.publish("MQTT_CONACK")
         -- client:subscribe(sub_topic)--单主题订阅
-        -- mqtt_client:subscribe({[topic1]=1,[topic2]=1,[topic3]=1})--多主题订阅
+        -- client:subscribe({[topic1]=1,[topic2]=1,[topic3]=1})--多主题订阅
     elseif event == "recv" then
         log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
@@ -30,13 +69,10 @@ local function mqtt_handle(client, event, data, payload)
         log.info(tag, "sent", "pkgid", data)
     elseif event == "disconnect" then
         -- 非自动重连时,按需重启mqttc
-        -- mqtt_client:connect()
+        -- client:connect()
     end
 end
 
-local function mqtt_message(topic, payload)
-    -- 查找订阅树
-end
 
 function mqtt_open()
     if mqtt == nil then
@@ -44,41 +80,61 @@ function mqtt_open()
         return
     end
 
-    mqtt_client = mqtt.create(nil, mqtt.host, mqtt.port)
-    if mqtt_client == nil then
+    client = mqtt.create(nil, mqtt.host, mqtt.port)
+    if client == nil then
         log.info(tag, "create client failed")
         return
     end
 
-    mqtt_client:auth(mqtt.clienid, mqtt.username, mqtt.password) -- 鉴权
-    -- mqtt_client:keepalive(240) -- 默认值240s
-    mqtt_client:autoreconn(true, 3000) -- 自动重连机制
+    client:auth(mqtt.clienid, mqtt.username, mqtt.password) -- 鉴权
+    -- client:keepalive(240) -- 默认值240s
+    client:autoreconn(true, 3000)                           -- 自动重连机制
 
     if config.will ~= nil then
-        mqtt_client:will(config.will.topic, config.will.payload)
+        client:will(config.will.topic, config.will.payload)
     end
 
-    mqtt_client:connect()
+    -- 注册回调
+    client:on(mqtt_handle)
+
+    -- 连接
+    return client:connect()
 end
 
 function mqtt_close()
-    mqtt_client:close()
-    mqtt_client = nil
+    client:close()
+    client = nil
 end
 
 function mqtt_publish(topic, payload, qos)
-    return mqtt_client:publish(topic, payload, qos)
+    return client:publish(topic, payload, qos)
 end
 
+-- 订阅
 function mqtt_subscribe(filter, cb)
-    mqtt_client:subscribe(filter)
+    client:subscribe(filter)
 
+    local fs = string.split(filter, "/")
+
+    --创建树枝
+    local sub = sub_tree
+    for _, f in ipairs(fs) do
+        local s = sub.children[f]
+        if s == nil then
+            s = { children = {}, callbacks = {} }
+            sub.children[f] = s
+        end
+        sub = s
+    end
+
+    --注册回调
+    table.insert(sub.callbacks, cb)
 end
 
-function unsubscribe(topic, cb)
-    mqtt_client:subscribe(filter)
+function mqtt_unsubscribe(topic, cb)
+    client:subscribe(filter)
 end
 
-function ready()
-    return mqtt_client:ready()
+function mqtt_ready()
+    return client:ready()
 end
