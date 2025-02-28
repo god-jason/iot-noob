@@ -7,11 +7,14 @@
 
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
-local tag = "MAIN"
-
-log.info(tag, PROJECT, VERSION)
 
 _G.sys = require("sys")
+
+local tag = "MAIN"
+
+-- 开机检查
+log.info(tag, PROJECT, VERSION)
+log.info(tag, "last power reson", pm.lastReson())
 
 
 -- 看门狗守护
@@ -20,39 +23,41 @@ if wdt then
     sys.timerLoopStart(wdt.feed, 3000)
 end
 
-pm.lastReson()
-
 -- 检测内存使用
-sys.timerLoopStart(function()
-    collectgarbage()
-end, 10 * 1000)
-
---
+-- sys.timerLoopStart(function()
+--     collectgarbage()
+-- end, 10 * 1000)
 
 
+local sntp_sync_ok = false
 
+-- 网关成功
 sys.subscribe("IP_READY", function()
     log.info(tag, "IP_READY")
-    
+
     -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
-    socket.sntp()
-    --socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
-    --socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
-    --socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
+    if not sntp_sync_ok then
+        socket.sntp()
+        --socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
+        --socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
+        --socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号    
+    end
 
-
+    -- TODO
 
 end)
 
 sys.subscribe("NTP_UPDATE", function()
-    log.info(tag, "NTP_UPDATE", os.date())
-    -- TODO 设置到RTC时钟芯片
-
+    sntp_sync_ok = true
+    -- 设置到RTC时钟芯片    
+    rtc_write()
 end)
 
-sys.subscribe("NTP_ERROR", function()
-    log.info(tag, "NTP_ERROR")
-    socket.sntp()
-end)
+-- TODO 初始化外设
+
+
+-- TODO 启动网关系统程序
+
+
 
 sys.run()
