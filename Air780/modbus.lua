@@ -17,10 +17,13 @@ function Modbus:read(slave, code, addr, len)
     -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
     local crc = pack.pack('<h', crypto.crc16("MODBUS", data))
-    self.link.write(data .. crc)
-    local ret = self.link.read(2000)
-    if ret == "" or ret == nil then return false end
+    local ret = self.link:write(data .. crc)
+    if not ret then return false end
+    self.link:wait(self.timeout)
+    local ret, data = self.link:read()
+    if not ret then return false end    
     --TODO 解决分包问题
+
 end
 
 -- 写入数据
@@ -36,9 +39,11 @@ function Modbus:write(slave, code, addr, data)
     local data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16("MODBUS", data))
 
-    self.link.write(data .. crc)
-    local ret = self.link.read(self.timeout)
-    if ret == "" or ret == nil then return false end
+    local ret = self.link:write(data .. crc)
+    if not ret then return false end
+    self.link:wait(self.timeout)
+    local ret, data = self.link:read()
+    if not ret then return false end
 
     -- 判断成功与否
     local _, s, c = pack.unpack(ret, "b2")

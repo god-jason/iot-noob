@@ -1,3 +1,10 @@
+--- TCP客户端，类定义
+-- @module client
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi
+-- @release 2025.03.01
+
 local tag = "CLIENT"
 
 
@@ -6,20 +13,30 @@ local id = 0;
 --定义类
 Client = {}
 
-function Client:new(host, port)
+function Client:new(host, port, adapter)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
     obj.host = host
     obj.port = port
+    obj.adapter = socket.ETH0 --默认以太网卡
     obj.id = id
-    id = id + 1 --自增ID
+    id = id + 1               --自增ID
     return obj
 end
 
 -- 打开
 function Client:open()
-    self.ctrl = socket.create(nil, function(ctrl, event, param)
+    --使用可用网络
+    if self.adapter == nil then
+        local ok, adapter = socket.adapter()
+        if ok then
+            self.adapter = adapter
+        end
+    end
+
+    -- 创建socket
+    self.ctrl = socket.create(self.adapter, function(ctrl, event, param)
         if param ~= 0 then
             --sys.publish("socket_disconnect")
             return
@@ -65,11 +82,22 @@ function Client:write(data)
     socket.tx(self.ctrl, data)
 end
 
--- 读数据，可能为空
-function Client:read(len)
-    local ok, data = socket.read(self.ctrl, len)
-    socket.wait(self.ctrl) --等待新状态
-    if ok then return data else return "" end
+-- 等待数据
+function Client:wait(timeout)
+    return sys.waitUtil("CLIENT_DATA_" + self.id, timeout)
+end
+
+-- 读数据
+function Client:read()
+    -- 检测缓冲区是否有数据
+    local ok, len = socket.rx(self.ctrl)
+    if not ok then return false end
+    if len > 0 then
+        local ok, data = socket.read(self.ctrl, len)
+        socket.wait(self.ctrl) --等待新状态
+        return ok, data
+    end
+    return false
 end
 
 -- 关闭串口

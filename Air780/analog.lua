@@ -1,7 +1,18 @@
+--- ADC芯片接口
+-- @module analog
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi
+-- @release 2025.03.01
+-- 基于AD7616芯片开发，其他芯片需要做参数调整
+
 local tag = "ADC"
 
 local i2c_id = 0
 local i2c_speed = i2c.FAST
+local addr = 0x08 --地址
+local reg = 0x00 --寄存器地址
+
 
 local pin_adc_power = 0 -- 供电
 
@@ -28,7 +39,7 @@ end
 
 function read()
     -- 发送
-    local ret = i2c.send(i2c_id, 0x01, "read comand")
+    local ret = i2c.send(i2c_id, addr, "read comand")
 
     if ret == false then
         return ret
@@ -36,7 +47,7 @@ function read()
 
     sys.wait(100) --延迟等待
 
-    i2c.recv(i2c_id, 0x01, 10)
+    i2c.recv(i2c_id, addr, 10)
 
     -- 解析
 

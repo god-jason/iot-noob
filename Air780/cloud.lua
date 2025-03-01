@@ -80,13 +80,13 @@ function init()
         return
     end
 
-    client = mqtt.create(nil, mqtt.host, mqtt.port)
+    client = mqtt.create(nil, config.host, config.port)
     if client == nil then
         log.info(tag, "create client failed")
         return
     end
 
-    client:auth(mqtt.clienid, mqtt.username, mqtt.password) -- 鉴权
+    client:auth(config.clienid, config.username, config.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
     client:autoreconn(true, 3000)                           -- 自动重连机制
 

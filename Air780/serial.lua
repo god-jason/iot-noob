@@ -35,30 +35,38 @@ function Serial:open()
             uart.MSB, 1024, self.rs485_gpio)
     end
 
+    uart.on(self.id, 'receive', function(id, len)
+        sys.publish("SERIAL_DATA_" .. id)
+    end)
+
     log.info(tag, "open serial", self.id, ret)
     return ret == 0
 end
 
 -- 写数据
 function Serial:write(data)
-    return uart.write(self.id, data)
+    local len = uart.write(self.id, data)
+    return len > 0, len
 end
 
--- 读数据，可能为空
-function Serial:read(len)
-    return uart.read(self.id, len)
+-- 等待数据
+function Serial:wait(timeout)
+    return sys.waitUtil("SERIAL_DATA_" + self.id, timeout)
+end
+
+-- 读数据
+function Serial:read()
+    -- 检测缓冲区是否有数据
+    local len = uart.rxSize(self.id)
+    if len > 0 then
+        local data = uart.read(self.id, len)
+        return true, data
+    end
+    return false
 end
 
 -- 关闭串口
 function Serial:close()
     uart.close()
     log.info(tag, "close serial", self.id)
-end
-
--- 监听数据
-function Serial:watch(cb)
-    uart.on(self.id, 'receive', function(id, len)
-        local data = uart.read(id, len)
-        cb(data)
-    end)
 end
