@@ -1,11 +1,10 @@
 
 local tag = "GNSS"
-local uart_id, uart_baudrate = 1, 115200
 
 -- 初始化
 function init()
-    uart.setup(uart_id, uart_baudrate)
-    libgnss.bind(uart_id)
+    uart.setup(GNSS.uart, GNSS.baudrate)
+    libgnss.bind(GNSS.uart)
     --libgnss.debug(true) --GPS调试
 end
 

@@ -46,7 +46,7 @@ RTC = {
     read = { 0x00 },       -- 读指令
     write = { 0x00 },      -- 写指令
     registers = {          -- 寄存器
-        0x00, -- 首地址
+        0x00,              -- 首地址
         "second", "minute", "hour", "wday", "day", "month", "year",
     }
 }
@@ -75,4 +75,10 @@ BATTERY = {
     voltage = 12,              -- 电池电压
     empty = 11.2,              -- 空的电压
     full = 14.2,               -- 满的电压
+}
+
+-- GPS 定位
+GNSS = {
+    uart = 2,          -- 串口
+    baudrate = 115200, -- 速度
 }
