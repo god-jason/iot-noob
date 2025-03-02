@@ -16,7 +16,7 @@ end
 function Modbus:read(slave, code, addr, len)
     -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
-    local crc = pack.pack('<h', crypto.crc16("MODBUS", data))
+    local crc = pack.pack('<h', crypto.crc16_modbus(data))
     local ret = self.link:write(data .. crc)
     if not ret then return false end
     self.link:wait(self.timeout)
@@ -37,7 +37,7 @@ function Modbus:write(slave, code, addr, data)
     end
 
     local data = pack.pack("b2>H", slave, code, addr) .. data
-    local crc = pack.pack('<H', crypto.crc16("MODBUS", data))
+    local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
     local ret = self.link:write(data .. crc)
     if not ret then return false end

@@ -82,3 +82,10 @@ GNSS = {
     uart = 2,          -- 串口
     baudrate = 115200, -- 速度
 }
+
+-- SD/TF卡
+SD = {
+    spi = 1,         -- SPI
+    cs_pin = 2,      -- 片选GPIO
+    speed = 24000000 -- 速度，默认 10000000
+}
