@@ -1,10 +1,8 @@
 local tag = "OUTPUT"
 
-local outputs = {30, 31, 32}
-
 function set(index, value)
-    local pin = outputs[index]
-    gpio.set(pin, value)
-    log.info(tag, "output", index, value, pin)
+    local p = OUTPUTS[index]
+    gpio.set(p.pin, value)
+    log.info(tag, "output", index, value, p.pin)
 end
 

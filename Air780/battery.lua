@@ -1,20 +1,18 @@
 local tag = "BATTERY"
 
-local id = 0 --adc.CH_VBAT
-local zero = 11.2
-local full = 14.2
 
 function get()
-    adc.setRange(adc.ADC_RANGE_1_2) -- 0-1.2v
-    local ret = adc.open(id)
-    if not ret then        return false    end
-    local vbat = adc.get(id)
-    if vbat < 0 then        return false    end
+    adc.setRange(BATTERY.range) -- 0-1.2v
 
-    adc.close(id)
+    local ret = adc.open(BATTERY.adc)
+    if not ret then return false end
+    local vbat = adc.get(BATTERY.adc)
+    adc.close(BATTERY.adc)
+    if vbat < 0 then return false end
 
-    local voltage = full * vbat / 1024
-    local percent = (voltage - zero) /(full - zero) * 100
+    -- 计算电压和百分比
+    local voltage = BATTERY.full * vbat / 1024
+    local percent = (BATTERY.voltage - BATTERY.empty) / (BATTERY.full - BATTERY.empty) * 100
     log.info(tag, "get", vbat, voltage, percent)
 
     return true, percent

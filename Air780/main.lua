@@ -8,13 +8,16 @@
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
 
-_G.sys = require("sys")
-
-local tag = "MAIN"
-
 -- 开机检查
+local tag = "MAIN"
 log.info(tag, PROJECT, VERSION)
 log.info(tag, "last power reson", pm.lastReson())
+
+-- 引入sys，方便使用
+_G.sys = require("sys")
+
+-- 引入全局配置
+require("_board")
 
 
 -- 看门狗守护

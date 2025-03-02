@@ -8,48 +8,63 @@
 
 local tag = "ADC"
 
-local i2c_id = 0
-local i2c_speed = i2c.FAST
-local addr = 0x08 --地址
-local reg = 0x00 --寄存器地址
 
-
-local pin_adc_power = 0 -- 供电
 
 function init()
     -- 开启供电
-    if pin_adc_power > 0 then
-        gpio.setup(pin_adc_power, gpio.PULLUP)
+    if ADC.power_pin ~= nil then
+        gpio.setup(ADC.power_pin, gpio.PULLUP)
     end
 
     -- 初始化iic接口
-    local ret = i2c.setup(i2c_id, i2c_speed)
-    log.info(tag, "adc init result", ret)
+    local ret = spi.setup(ADC.spi, ADC.cs_pin)
+    if ret ~= 0 then
+        log.info(tag, "adc init failed", ret)
+        return
+    end
 
-    -- TODO 初始化指令
+    -- 使能
+    gpio.setup(ADC.enable_pin, gpio.PULLUP)
+
+    -- 初始化指令
+    spi.send(ADC.spi, ADC.init)
 end
 
 function close()
-    i2c.close(i2c_id)
+    spi.close(ADC.spi)
 
-    if pin_adc_power > 0 then
-        gpio.set(pin_adc_power, 0)
+    if ADC.power_pin ~= nil then
+        gpio.setup(ADC.power_pin, gpio.PULLDOWN)
     end
 end
 
 function read()
-    -- 发送
-    local ret = i2c.send(i2c_id, addr, "read comand")
+    -- 重置
+    gpio.setup(ADC.reset_pin, gpio.PULLUP)
 
-    if ret == false then
-        return ret
+    -- 发送读指令
+    spi.send(ADC.spi, ADC.read)
+    -- sys.wait(100) --延迟等待
+
+    local len = 2 * ADC.channels
+    if ADC.bits > 16 then
+        len = 2 * len
     end
 
-    sys.wait(100) --延迟等待
-
-    i2c.recv(i2c_id, addr, 10)
+    -- 读取数据
+    local data = spi.recv(ADC.spi, len)
+    if data == nil then return false end
 
     -- 解析
+    if ADC.bits > 16 then
+        local values = { pack.unpack(data, ">i" .. ADC.channels) }
+        table.remove(values, 1)
+        return true, values
+    else
+        local values = { pack.unpack(data, ">h" .. ADC.channels) }
+        table.remove(values, 1)
+        return true, values
+    end
 
     return true
 end
