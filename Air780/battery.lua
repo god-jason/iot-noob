@@ -2,6 +2,10 @@ local tag = "BATTERY"
 
 
 function get()
+    if not BATTERY.enable then
+        return false
+    end
+
     adc.setRange(BATTERY.range) -- 0-1.2v
 
     local ret = adc.open(BATTERY.adc)

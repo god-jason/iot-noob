@@ -69,6 +69,7 @@ OUTPUTS = {
 
 -- 电池定义
 BATTERY = {
+    enable = false,            -- 启用
     adc = 1,                   -- 内置ADC 0 1
     bits = 10,                 -- 精度，默认10->1023
     range = adc.ADC_RANGE_1_2, -- 范围
@@ -79,12 +80,14 @@ BATTERY = {
 
 -- GPS 定位
 GNSS = {
+    enable = false,    -- 启用
     uart = 2,          -- 串口
     baudrate = 115200, -- 速度
 }
 
 -- SD/TF卡
 SD = {
+    enable = false,  -- 启用
     spi = 1,         -- SPI
     cs_pin = 2,      -- 片选GPIO
     speed = 24000000 -- 速度，默认 10000000

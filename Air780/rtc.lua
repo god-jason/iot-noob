@@ -11,6 +11,10 @@ local function hex_to_bcd(data)
 end
 
 function init()
+    if not RTC.enable then
+        return
+    end
+
     -- 初始化iic接口
     i2c.setup(RTC.i2c, i2c.FAST)
 
@@ -24,6 +28,10 @@ function init()
 end
 
 function read()
+    if not RTC.enable then
+        return false
+    end
+
     -- 发送
     local ret = i2c.send(RTC.i2c, RTC.addr, RTC.registers[1]) -- 从秒开始读
     if ret == false then
@@ -61,6 +69,10 @@ function read()
 end
 
 function write()
+    if not RTC.enable then
+        return false
+    end
+
     -- local tm = socket.ntptm()
     local tm = os.date("*t")
 
@@ -86,5 +98,6 @@ function write()
     -- 写指令
     local ret = i2c.send(RTC.i2c, RTC.addr, data)
     log.info(tag, "write time", ret, json.encode(tm))
+    
     return ret
 end
