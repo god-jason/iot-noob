@@ -1,6 +1,8 @@
 local tag = "BATTERY"
 
-
+--- 获取电池电量
+--- @return boolean 成功与否
+--- @return number 百分比
 function get()
     if not BATTERY.enable then
         return false

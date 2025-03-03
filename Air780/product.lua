@@ -1,32 +1,59 @@
---[[
-{
-}
-]]
+local tag = "PRODUCT"
 
-local demo_poller = {
-    code = 3,
-    addr = 1002,
-    size = 54,
-    format = ">F20",
-    points = { "uan", "ubn", "ucn", "udn", "_", "_", "_", "_", "_", "_", "_", "_", "f" }
-}
+local cache = {}
 
-
---- 加载配置
+--- 加载产品配置
+--- @param id any 产品ID
+--- @param config any 配置文件
+--- @return boolean 成功
+--- @return table 配置内容
 function load(id, config)
+    -- 取缓存
+    if cache[id] == nil then
+        cache[id] = {}
+    end
+    if cache[id][config] ~= nil then
+        return true, cache[id][config]
+    end
+
+    -- 找文件
     local path = "/product/" .. id .. "/" .. config .. ".json"
     if SD.enable then
         path = "/sd" .. path
     end
 
+    -- 找不到，则下载
     if not io.exists(path) then
-        download(id, config)
+        local ret = download(id, config)
+        if not ret then
+            log.info(tag, "download failed", id, config)
+            cache[id][config] = false --下载失败
+            return false
+        end
     end
 
-    io.open(path, "r")
+    local size = io.fileSize(path)
+    if size > 20000 then
+        log.info(tag, "too large", path, size)
+        cache[id][config] = false
+        return false
+    end
+
+    local data = io.readFile(path)
+    local obj, ret, err = json.decode(data)
+    if ret == 1 then
+        return true, obj
+    else
+        log.info(tag, "parse failed", path, err)
+        cache[id][config] = false
+        return false, err
+    end
 end
 
--- 下载配置
+--- 下载产品配置
+--- @param id any 产品ID
+--- @param config any 配置文件
+--- @return boolean 成功
 function download(id, config)
     local dir = "/product/" .. id
     if SD.enable then
@@ -41,7 +68,10 @@ function download(id, config)
     local url = "http://iot.busycloud.cn/noob/product/" .. id .. "/" .. config .. ".json"
 
     -- 下载文件
-    local code, headers, body = http.request("GET", url, {}, "", { dst = path }).wait()
+    local code, headers, body = http.request("GET", url).wait()
+    if code == 200 then
+        return io.writeFile(path, body)
+    end
 
-    -- 
+    return false
 end
