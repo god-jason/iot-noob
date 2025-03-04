@@ -1,6 +1,7 @@
 local tag = "TAG"
+local sd  = {}
 
-function init()
+function sd.init()
     if not SD.enable then
         return false
     end
@@ -12,3 +13,5 @@ function init()
 
     fatfas.mount(fatfs.SPI, "SD", SD.spi, SD.cs_pin, SD.speed)
 end
+
+return sd

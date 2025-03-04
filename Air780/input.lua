@@ -1,6 +1,9 @@
 local tag = "INPUT"
 
-function init()
+local input = {}
+
+--- 初始化
+function input.init()
     for i, p in ipairs(INPUTS) do
         gpio.setup(p.pin, function(val)
             sys.publish("INPUT", i, val, p.pin)
@@ -9,6 +12,8 @@ function init()
     end
 end
 
-function get(index)
+function input.get(index)
     return gpio.get(INPUTS[index].pin)
 end
+
+return input

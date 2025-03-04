@@ -1,4 +1,5 @@
 local tag = "PRODUCT"
+local product  = {}
 
 local cache = {}
 
@@ -7,7 +8,7 @@ local cache = {}
 --- @param config any 配置文件
 --- @return boolean 成功
 --- @return table 配置内容
-function load(id, config)
+function product.load(id, config)
     -- 取缓存
     if cache[id] == nil then
         cache[id] = {}
@@ -54,7 +55,7 @@ end
 --- @param id any 产品ID
 --- @param config any 配置文件
 --- @return boolean 成功
-function download(id, config)
+function product.download(id, config)
     local dir = "/product/" .. id
     if SD.enable then
         dir = "/sd" .. dir
@@ -75,3 +76,5 @@ function download(id, config)
 
     return false
 end
+
+return product

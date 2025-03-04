@@ -1,15 +1,27 @@
 
 local tag = "GNSS"
+local gnss = {}
 
 -- 初始化
-function init()
+function gnss.init()
     uart.setup(GNSS.uart, GNSS.baudrate)
     libgnss.bind(GNSS.uart)
     --libgnss.debug(true) --GPS调试
+
+    sys.subscribe("GNSS_STATE", function(event, ticks)
+        -- event取值有
+        -- FIXED 定位成功
+        -- LOSE  定位丢失
+        -- ticks是事件发生的时间,一般可以忽略
+        log.info(tag, "state", event, ticks)
+        if event == "FIXED" then
+            sys.publish("GNSS_OK")
+        end
+    end)
 end
 
 -- 是否定位成功
-function isValid()
+function gnss.isValid()
     return libgnss.isFix()
 end
 
@@ -30,21 +42,12 @@ end
     "sec":20,       // 秒,0-59
 }
 ]]
-function get()
+function gnss.get()
     if libgnss.isFix() then
         return true, libgnss.getRmc(2)
     end
     return false
 end
 
-sys.subscribe("GNSS_STATE", function(event, ticks)
-    -- event取值有
-    -- FIXED 定位成功
-    -- LOSE  定位丢失
-    -- ticks是事件发生的时间,一般可以忽略
-    log.info(tag, "state", event, ticks)
-    if event == "FIXED" then
-        sys.publish("GNSS_OK")
-    end
-end)
 
+return gnss

@@ -70,3 +70,5 @@ function Serial:close()
     uart.close()
     log.info(tag, "close serial", self.id)
 end
+
+return Serial

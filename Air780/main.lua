@@ -1,9 +1,9 @@
 --- 主程序入口
--- @module main
--- @author 杰神
--- @license GPLv3
--- @copyright benyi
--- @release 2025.01.20
+--- @module main
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
@@ -53,11 +53,11 @@ end)
 sys.subscribe("NTP_UPDATE", function()
     sntp_sync_ok = true
     -- 设置到RTC时钟芯片    
-    rtc.write()
+    clock.write()
 end)
 
 -- TODO 初始化外设
-rtc.init() -- 初始化时钟芯片
+clock.init() -- 初始化时钟芯片
 led.init() -- LED灯光
 lan.init() -- 以太网
 io.init() -- 输入输出

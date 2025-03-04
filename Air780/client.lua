@@ -110,3 +110,5 @@ function Client:ready()
     local state, str = socket.state(self.ctrl)
     return state == 5 --在线状态
 end
+
+return Client

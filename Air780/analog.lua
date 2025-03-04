@@ -1,16 +1,16 @@
 --- ADC芯片接口
--- @module analog
--- @author 杰神
--- @license GPLv3
--- @copyright benyi
--- @release 2025.03.01
--- 基于AD7616芯片开发，其他芯片需要做参数调整
+--- @module analog
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.03.01
+--- 基于AD7616芯片开发，其他芯片需要做参数调整
 
 local tag = "ADC"
+local analog = {}
 
 
-
-function init()
+function analog.init()
     -- 开启供电
     if ADC.power_pin ~= nil then
         gpio.setup(ADC.power_pin, gpio.PULLUP)
@@ -30,7 +30,7 @@ function init()
     spi.send(ADC.spi, ADC.init)
 end
 
-function close()
+function analog.close()
     spi.close(ADC.spi)
 
     if ADC.power_pin ~= nil then
@@ -38,7 +38,7 @@ function close()
     end
 end
 
-function read()
+function analog.read()
     -- 重置
     gpio.setup(ADC.reset_pin, gpio.PULLUP)
 
@@ -68,3 +68,6 @@ function read()
 
     return true
 end
+
+
+return analog

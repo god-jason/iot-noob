@@ -1,5 +1,6 @@
 local tag = "NET"
 
+
 function status()
     local ret = mobile.scell()
     ret['csq'] = mobile.csq()

@@ -54,3 +54,5 @@ function Modbus:write(slave, code, addr, data)
 
     return true
 end
+
+return Modbus

@@ -1,9 +1,9 @@
 --- 电路板配置
--- @module main
--- @author 杰神
--- @license GPLv3
--- @copyright benyi
--- @release 2025.03.02
+--- @module main
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.03.02
 
 
 -- LED配置
@@ -91,4 +91,14 @@ SD = {
     spi = 1,         -- SPI
     cs_pin = 2,      -- 片选GPIO
     speed = 24000000 -- 速度，默认 10000000
+}
+
+LAN = {
+    enable = false, -- 启用
+    chip = "W5500", -- 型号
+    spi = 0,
+    speed = 25600000,
+    scs = 8,
+    int = 1,  --EC618 1 EC718 29
+    rst = 22, --EC618 22 EC718 30
 }
