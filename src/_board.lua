@@ -8,8 +8,8 @@
 
 -- LED配置
 LEDS = {
-    NET = { pin = 12 },
-
+    NET = 27,
+    LTE = 26,
 }
 
 
