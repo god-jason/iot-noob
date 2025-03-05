@@ -31,7 +31,7 @@ end
 
 -- 网络指示灯
 local netLed = require("netLed")
-netLed.setup(true, LEDS.NET, LEDS.LTE)
+netLed.setup(true, LEDS.net, LEDS.ready)
 
 -- 电源指示灯
 

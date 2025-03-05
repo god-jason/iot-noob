@@ -8,9 +8,9 @@
 
 -- LED配置
 LEDS = {
-    NET = 27,
-    LTE = 26,
-    POWER = 49, -- 待定
+    net = 27,
+    ready = 26,
+    power = 49, -- 待定
 }
 
 
