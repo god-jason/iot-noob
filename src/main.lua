@@ -33,6 +33,8 @@ end
 local netLed = require("netLed")
 netLed.setup(true, LEDS.NET, LEDS.LTE)
 
+-- 电源指示灯
+
 local sntp_sync_ok = false
 
 -- 联网成功
