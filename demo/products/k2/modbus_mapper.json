@@ -1,24 +1,18 @@
-[
-    {
-        "code": 3,
-        "addr": 16,
-        "desc": "0010H 整数",
-        "size": 2,
-        "points": [
-            {
-                "name": "t1",
-                "label": "1路温度",
-                "type": "int16",
-                "rate": 0.1,
-                "offset": 0
-            },
-            {
-                "name": "t2",
-                "label": "2路温度",
-                "type": "int16",
-                "rate": 0.1,
-                "offset": 1
-            }
-        ]
-    }
-]
+{
+    "holding_registers": [
+        {
+            "name": "t1",
+            "label": "1路温度",
+            "type": "int16",
+            "rate": 0.1,
+            "address": 0
+        },
+        {
+            "name": "t2",
+            "label": "2路温度",
+            "type": "int16",
+            "rate": 0.1,
+            "address": 1
+        }
+    ]
+}
