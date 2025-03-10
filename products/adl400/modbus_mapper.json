@@ -1,0 +1,187 @@
+[
+    {
+        "code": 3,
+        "addr": 2048,
+        "desc": "0800H 一次侧数据",
+        "size": 54,
+        "points": [
+            { "name": "uan", "label": "A相电压", "type": "float", "offset": 0 },
+            { "name": "ubn", "label": "B相电压", "type": "float", "offset": 2 },
+            { "name": "ucn", "label": "C相电压", "type": "float", "offset": 4 },
+            {
+                "name": "uab",
+                "label": "AB线电压",
+                "type": "float",
+                "offset": 6
+            },
+            {
+                "name": "ucb",
+                "label": "CB线电压",
+                "type": "float",
+                "offset": 8
+            },
+            {
+                "name": "uac",
+                "label": "AC线电压",
+                "type": "float",
+                "offset": 10
+            },
+            { "name": "ia", "label": "A相电流", "type": "float", "offset": 12 },
+            { "name": "ib", "label": "B相电流", "type": "float", "offset": 14 },
+            { "name": "ic", "label": "C相电流", "type": "float", "offset": 16 },
+            {
+                "name": "iz",
+                "label": "零序电流",
+                "type": "float",
+                "offset": 18
+            },
+            {
+                "name": "pa",
+                "label": "A相有功功率",
+                "type": "float",
+                "offset": 20
+            },
+            {
+                "name": "pb",
+                "label": "B相有功功率",
+                "type": "float",
+                "offset": 22
+            },
+            {
+                "name": "pc",
+                "label": "C相有功功率",
+                "type": "float",
+                "offset": 24
+            },
+            {
+                "name": "ps",
+                "label": "总有功功率",
+                "type": "float",
+                "offset": 26
+            },
+            {
+                "name": "qa",
+                "label": "A相无功功率",
+                "type": "float",
+                "offset": 28
+            },
+            {
+                "name": "qb",
+                "label": "B相无功功率",
+                "type": "float",
+                "offset": 30
+            },
+            {
+                "name": "qc",
+                "label": "C相无功功率",
+                "type": "float",
+                "offset": 32
+            },
+            {
+                "name": "qs",
+                "label": "总无功功率",
+                "type": "float",
+                "offset": 34
+            },
+            {
+                "name": "sa",
+                "label": "A相视在功率",
+                "type": "float",
+                "offset": 36
+            },
+            {
+                "name": "sb",
+                "label": "B相视在功率",
+                "type": "float",
+                "offset": 38
+            },
+            {
+                "name": "sc",
+                "label": "C相视在功率",
+                "type": "float",
+                "offset": 40
+            },
+            {
+                "name": "ss",
+                "label": "总视在功率",
+                "type": "float",
+                "offset": 42
+            },
+            {
+                "name": "pfa",
+                "label": "A相功率因数",
+                "type": "float",
+                "offset": 44
+            },
+            {
+                "name": "pfb",
+                "label": "B相功率因数",
+                "type": "float",
+                "offset": 46
+            },
+            {
+                "name": "pfc",
+                "label": "C相功率因数",
+                "type": "float",
+                "offset": 48
+            },
+            {
+                "name": "pfs",
+                "label": "总功率因数",
+                "type": "float",
+                "offset": 50
+            },
+            { "name": "f", "label": "频率", "type": "float", "offset": 52 }
+        ]
+    },
+    {
+        "code": 3,
+        "addr": 2114,
+        "desc": "0842H 电能",
+        "size": 52,
+        "points": [
+            {
+                "name": "e",
+                "label": "组合有功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 0
+            },
+            {
+                "name": "ep",
+                "label": "正向有功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 10
+            },
+            {
+                "name": "en",
+                "label": "正向有功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 20
+            },
+            {
+                "name": "eq",
+                "label": "组合无功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 30
+            },
+            {
+                "name": "eqp",
+                "label": "正向无功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 40
+            },
+            {
+                "name": "eqn",
+                "label": "正向无功总电能",
+                "type": "int32",
+                "rate": 0.1,
+                "offset": 50
+            }
+        ]
+    }
+]

@@ -1,6 +1,8 @@
 local tag = "MODBUS"
 
-Modbus = {}
+Modbus = {
+    devices = {}, --设备列表
+}
 
 
 function Modbus:new(link, timeout)
