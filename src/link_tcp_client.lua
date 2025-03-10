@@ -5,23 +5,25 @@
 -- @copyright benyi
 -- @release 2025.03.01
 
-local tag = "CLIENT"
+local tag = "tcp client"
 
 
 local id = 0;
 
 --定义类
-Client = {}
+local Client = {}
 
-function Client:new(host, port, adapter)
+require("links").register("tcp_client", Client)
+
+function Client:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    obj.host = host
-    obj.port = port
-    obj.adapter = socket.ETH0 --默认以太网卡
+    obj.host = opts.host
+    obj.port = opts.port
+    obj.adapter = opts.adapter or socket.ETH0 --默认以太网卡
     obj.id = id
-    id = id + 1               --自增ID
+    id = id + 1                              --自增ID
     return obj
 end
 
@@ -103,7 +105,7 @@ end
 -- 关闭串口
 function Client:close()
     socket.close(self.ctrl)
-    log.info(tag, "close client", self.id)
+    log.info(tag, "close", self.id)
 end
 
 function Client:ready()

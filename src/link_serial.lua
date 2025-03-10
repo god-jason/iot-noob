@@ -1,27 +1,28 @@
 local tag = "SERIAL"
 
 --定义类
-Serial = {}
+local Serial = {}
 
-function Serial:new(id, baud_rate, data_bits, stop_bits, parity, rs485_gpio)
+require("links").register("serial", Serial)
+
+function Serial:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    obj.id = id
-    obj.baud_rate = baud_rate
-    obj.data_bits = data_bits
-    obj.stop_bits = stop_bits
-    obj.baud_rate = baud_rate
-    if parity == 'N' or parity == 'n' then
+    obj.id = opts.id or 1
+    obj.baud_rate = opts.baud_rate or 9600
+    obj.data_bits = opts.data_bits or 8
+    obj.stop_bits = opts.stop_bits or 1
+    if opts.parity == 'N' or opts.parity == 'n' then
         obj.parity = uart.NONE
-    elseif parity == 'E' or parity == 'e' then
+    elseif opts.parity == 'E' or opts.parity == 'e' then
         obj.parity = uart.Even
-    elseif parity == 'O' or parity == 'o' then
+    elseif opts.parity == 'O' or opts.parity == 'o' then
         obj.parity = uart.Odd
     else
         obj.parity = uart.NONE
     end
-    obj.rs485_gpio = rs485_gpio
+    obj.rs485_gpio = opts.rs485_gpio
     return obj
 end
 
@@ -39,7 +40,7 @@ function Serial:open()
         sys.publish("SERIAL_DATA_" .. id)
     end)
 
-    log.info(tag, "open serial", self.id, ret)
+    log.info(tag, "open", self.id, ret)
     return ret == 0
 end
 
@@ -68,7 +69,7 @@ end
 -- 关闭串口
 function Serial:close()
     uart.close()
-    log.info(tag, "close serial", self.id)
+    log.info(tag, "close", self.id)
 end
 
 return Serial

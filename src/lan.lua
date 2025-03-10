@@ -56,7 +56,7 @@ function lan.ready()
     
     if LAN.chip == "w5500" then
         return lan.w5500_ready --没有底层接口
-    else if LAN.chip == "ch390" then
+    elseif LAN.chip == "ch390" then
         return netdrv.ready(socket.LWIP_ETH)
     else
         return false

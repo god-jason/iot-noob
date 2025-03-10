@@ -67,6 +67,18 @@ io.init() -- 输入输出
 
 -- gnss.init() --GPS定位
 
+--加载连接器
+require("link_serial")
+--require("link_tcp_client")
+
+--加载协议库
+require("protocol_modbus")
+--require("protocol_cjt188")
+--require("protocol_dlt645")
+--require("protocol_s7")
+
 -- TODO 启动网关系统程序
+
+
 
 sys.run()

@@ -1,16 +1,14 @@
-local tag = "MODBUS"
+local tag = "modbus"
 
-Modbus = {
-    devices = {}, --设备列表
-}
+local Modbus = {}
+require("protocols").register("modbus-rtu", Modbus)
 
-
-function Modbus:new(link, timeout)
+function Modbus:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
     obj.link = link
-    obj.timeout = timeout or 1000
+    obj.timeout = opts.timeout or 1000
     return obj
 end
 
@@ -23,9 +21,14 @@ function Modbus:read(slave, code, addr, len)
     if not ret then return false end
     self.link:wait(self.timeout)
     local ret, data = self.link:read()
-    if not ret then return false end    
-    --TODO 解决分包问题
+    if not ret then return false end
 
+    if #data < 5 then
+        
+    end
+
+
+    --TODO 解决分包问题
 end
 
 -- 写入数据
