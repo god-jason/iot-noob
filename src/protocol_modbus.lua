@@ -19,16 +19,34 @@ function Modbus:read(slave, code, addr, len)
     local crc = pack.pack('<h', crypto.crc16_modbus(data))
     local ret = self.link:write(data .. crc)
     if not ret then return false end
-    self.link:wait(self.timeout)
-    local ret, data = self.link:read()
-    if not ret then return false end
 
-    if #data < 5 then
-        
-    end
+    -- 解决分包问题
+    -- 循环读数据，直到读取到需要的长度
+    local buf = ""
+    local len = 5 --应该的包长
+    repeat
+        --TODO 是不是每次都要等待
+        ret = self.link:wait(self.timeout)
+        if not ret then
+            log.info(tag, "read timeout")
+            return false
+        end
 
+        local r, d = self.link:read()
+        if not r then return false end
+        buf = buf .. d
 
-    --TODO 解决分包问题
+        if #buf > 3 then
+            -- 取错误码
+            if string.byte(buf, 2) > 0x80 then
+                return false
+            end
+            --第一个字节为返回的字节数
+            len = 5 + string.byte(buf, 3) --重复转化了。。
+        end
+    until #buf >= len
+
+    return true, string.sub(buf, 4, len - 2)
 end
 
 -- 写入数据
@@ -46,18 +64,30 @@ function Modbus:write(slave, code, addr, data)
 
     local ret = self.link:write(data .. crc)
     if not ret then return false end
-    self.link:wait(self.timeout)
-    local ret, data = self.link:read()
-    if not ret then return false end
+    ret = self.link:wait(self.timeout)
+    if not ret then
+        log.info(tag, "write timeout")
+        return false
+    end
+
+    local r, d = self.link:read()
+    if not r then return false end
 
     -- 判断成功与否
-    local _, s, c = pack.unpack(ret, "b2")
-    if c > 0x80 then
-        log.info(tag, "error", c) --TODO 错误码
+    if string.byte(d, 2) > 0x80 then
         return false
     end
 
     return true
 end
+
+
+
+
+
+
+
+
+
 
 return Modbus
