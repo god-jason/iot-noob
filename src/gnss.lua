@@ -4,6 +4,10 @@ local gnss = {}
 
 -- 初始化
 function gnss.init()
+    if not GNSS.enable then
+        return
+    end
+    
     uart.setup(GNSS.uart, GNSS.baudrate)
     libgnss.bind(GNSS.uart)
     --libgnss.debug(true) --GPS调试

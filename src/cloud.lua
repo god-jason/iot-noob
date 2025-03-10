@@ -1,6 +1,9 @@
-local tag = "MQTT"
+local tag = "cloud"
+local cloud = {}
 
-local config = {
+local configs = require("configs")
+
+local default_config = {
     host = "iot.zgwit.com",
     port = 1883,
     clienid = mobile.getImei(),
@@ -74,21 +77,28 @@ local function on_event(client, event, data, payload)
 end
 
 
-function init()
+function cloud.open()
+
+    --加载配置
+    local ret, config = configs.load("cloud")
+    if not ret then
+        config = default_config
+    end
+
     if mqtt == nil then
         log.info(tag, "bsp does not have mqtt lib")
-        return
+        return false
     end
 
     client = mqtt.create(nil, config.host, config.port)
     if client == nil then
         log.info(tag, "create client failed")
-        return
+        return false
     end
 
     client:auth(config.clienid, config.username, config.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
-    client:autoreconn(true, 3000)                           -- 自动重连机制
+    client:autoreconn(true, 3000)                                 -- 自动重连机制
 
     if config.will ~= nil then
         client:will(config.will.topic, config.will.payload)
@@ -101,17 +111,17 @@ function init()
     return client:connect()
 end
 
-function close()
+function cloud.close()
     client:close()
     client = nil
 end
 
-function publish(topic, payload, qos)
+function cloud.publish(topic, payload, qos)
     return client:publish(topic, payload, qos)
 end
 
 -- 订阅（检查重复订阅，只添加回调）
-function subscribe(filter, cb)
+function cloud.subscribe(filter, cb)
     local fs = string.split(filter, "/")
 
     --创建树枝
@@ -134,7 +144,7 @@ function subscribe(filter, cb)
 end
 
 -- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
-function unsubscribe(filter, cb)
+function cloud.unsubscribe(filter, cb)
     -- 取消全部订阅
     if cb == nil then
         client:unsubscribe(filter)
@@ -162,6 +172,8 @@ function unsubscribe(filter, cb)
     end
 end
 
-function isReady()
+function cloud.isReady()
     return client:ready()
 end
+
+return cloud

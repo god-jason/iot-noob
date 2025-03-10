@@ -46,24 +46,25 @@ sys.subscribe("IP_READY", function()
         socket.sntp()
         -- socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
         -- socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
-        -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号    
+        -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
     end
-
     -- TODO 其他任务，比如连接云服务器等
-
+    
 end)
 
 sys.subscribe("NTP_UPDATE", function()
     sntp_sync_ok = true
-    -- 设置到RTC时钟芯片    
+    -- 设置到RTC时钟芯片
     clock.write()
 end)
 
 -- TODO 初始化外设
-clock.init() -- 初始化时钟芯片
-led.init() -- LED灯光
-lan.init() -- 以太网
-io.init() -- 输入输出
+require("clock").init() -- 初始化时钟芯片
+require("led").init()   -- LED灯光
+require("lan").init()   -- 以太网
+require("input").init() -- 输入
+require("sd").init()    -- SD卡
+require("gnss").init()  -- GPS定位
 
 -- gnss.init() --GPS定位
 
@@ -77,8 +78,7 @@ require("protocol_modbus")
 --require("protocol_dlt645")
 --require("protocol_s7")
 
--- TODO 启动网关系统程序
-
-
+-- 启动网关系统程序
+require("gateway").open()
 
 sys.run()
