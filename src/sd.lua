@@ -14,4 +14,8 @@ function sd.init()
     fatfas.mount(fatfs.SPI, "SD", SD.spi, SD.cs_pin, SD.speed)
 end
 
+function sd.format()
+    return io.mkfs("/sd")
+end
+
 return sd
