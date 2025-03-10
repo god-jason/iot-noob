@@ -1,23 +1,24 @@
 local tag = "modbus"
 
 
-local product = require("product")
-local points = require("point")
+local devices = require("devices")
+local products = require("products")
+local points = require("points")
 
 
 local Device = {}
 
-function Device:new(link, dev)
+function Device:new(master, dev)
     local obj = dev or {}
     setmetatable(obj, self)
     self.__index = self
-    obj.link = link
+    obj.master = master
     return obj
 end
 
 function Device:open()
-    self.mapper = product.load(self.product_id, "modbus_mapper")
-    self.poller = product.load(self.product_id, "modbus_poller")
+    self.mapper = products.load(self.product_id, "modbus_mapper")
+    self.poller = products.load(self.product_id, "modbus_poller")
 end
 
 function Device:find_point(key)
@@ -50,7 +51,7 @@ function Device:get(key)
     if not ret then return false end
     local feagure = points.feature[point.type]
     if not feagure then return false end
-    local res, data = self.line.read(self.slave, code, point.address, feagure.size)
+    local res, data = self.master:read(self.slave, code, point.address, feagure.size)
     if not res then return res end
 
     --解析数据
@@ -71,14 +72,14 @@ function Device:set(key, value)
     local pk = feagure.pack
     local data = pack.pack(be .. pk, value)
 
-    return self.line.write(self.slave, code, point.address, data)
+    return self.master:write(self.slave, code, point.address, data)
 end
 
 function Device:poll()
     local ret = false
     local values = {}
     for _, poller in ipairs(self.poller.pollers) do
-        local res, data = self.line.read(self.slave, poller.code, poller.address, poller.length)
+        local res, data = self.master:read(self.slave, poller.code, poller.address, poller.length)
         if res then
             if poller.code == 1 then
                 for _, point in ipairs(self.mapper.coils) do
@@ -233,16 +234,48 @@ function Modbus:write(slave, code, addr, data)
     return true
 end
 
-function Modbus:Load()
+function Modbus:open()
+    if self.opened then
+        log.info(tag, "already opened")
+        return
+    end
+    self.opened = true
 
+    --加载设备
+    local ret, ds = devices.load_by_link(self.link.id)
+    if not ret then return end
+
+    --启动设备
+    self.devices = {}
+    for _, d in ipairs(ds) do
+        local dev = Device:new(self, d)
+        self.devices[d.id] = dev
+        dev.open()
+    end
+
+    self.task = sys.taskInit(function() self:_polling() end)
 end
 
-function Modbus:poll()
-    for _, dev in pairs(self.devices) do
-        local ret, values = dev.poll()
-        if ret then
-            --TODO 发布MQTT消息
-            log.info(tag, dev.id, "values", values)
+function Modbus:close()
+    self.opened = false
+    self.devices = {}
+end
+
+function Modbus:_polling()
+    while self.opened do
+        for _, dev in pairs(self.devices) do
+            local ret, values = dev:poll()
+            if ret then
+                --TODO 发布MQTT消息
+                log.info(tag, dev.id, "values", values)
+            end
+        end
+
+        -- 轮询间隔
+        if self.poller_interval > 0 then
+            sys.wait(self.poller_interval * 1000)
+        else
+            sys.wait(60 * 1000)
         end
     end
 end
