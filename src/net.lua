@@ -1,17 +1,20 @@
+local netLed = require("netLed")
 local tag = "NET"
+local net = {}
 
+function net.init()
+    local led = gpio.setup(LEDS.net, 1, gpio.PULLUP)
+    netLed.setup(true, LEDS.net, 0) -- 780不再支持LTE灯    
+end
 
-function status()
+function net.status()
     local ret = mobile.scell()
     ret['csq'] = mobile.csq()
     return ret
 end
 
--- sys.subscribe("SIM_IND", function(status)
---     -- status的取值有:
---     -- RDY SIM卡就绪
---     -- NORDY 无SIM卡
---     -- SIM_PIN 需要输入PIN
---     -- GET_NUMBER 获取到电话号码(不一定有值)
---     log.info("sim status", status)
--- end)
+function net.ready()
+    return mobile.status() == 1 --网络已经注册
+end
+
+return net

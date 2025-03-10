@@ -96,7 +96,7 @@ SD = {
 
 LAN = {
     enable = false, -- 启用
-    chip = "W5500", -- 型号
+    chip = "W5500", -- 型号 w5500 ch390
     spi = 0,
     speed = 25600000,
     scs = 8,
