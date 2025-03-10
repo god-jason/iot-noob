@@ -253,6 +253,7 @@ function Modbus:open()
         dev.open()
     end
 
+    --开启轮询
     self.task = sys.taskInit(function() self:_polling() end)
 end
 
