@@ -64,13 +64,23 @@ end
 function Device:set(key, value)
     local ret, point, code = self:find_point(key)
     if not ret then return false end
-    local feagure = points.feature[point.type]
-    if not feagure then return false end
+
+    local data
 
     --编码数据
-    local be = point.be and ">" or "<"
-    local pk = feagure.pack
-    local data = pack.pack(be .. pk, value)
+    if code == 1 or code == 2 then
+        if value then
+            data = string.fromHex("FF00")
+        else
+            data = string.fromHex("0000")
+        end
+    else
+        local feagure = points.feature[point.type]
+        if not feagure then return false end
+        local be = point.be and ">" or "<"
+        local pk = feagure.pack
+        data = pack.pack(be .. pk, value)
+    end
 
     return self.master:write(self.slave, code, point.address, data)
 end
@@ -84,31 +94,21 @@ function Device:poll()
             if poller.code == 1 then
                 for _, point in ipairs(self.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local feagure = points.feature[point.type]
-                        if feagure then
-                            --编码数据
-                            local be = point.be and ">" or "<"
-                            local pk = feagure.pack
-                            local buf = string.sub(data, point.address - poller.address + 1) --lua索引从1开始...
-                            local _, value = pack.unpack(buf, be .. pk)
-                            values[point.name] = value
-                            return true
-                        end
+                        local offset = point.address - poller.address + 1
+                        local byte = string.byte(data, math.floor(offset / 8))
+                        local value = bit.isSet(byte, offset % 8)
+                        values[point.name] = value
+                        return true
                     end
                 end
             elseif poller.code == 2 then
                 for _, point in ipairs(self.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local feagure = points.feature[point.type]
-                        if feagure then
-                            --编码数据
-                            local be = point.be and ">" or "<"
-                            local pk = feagure.pack
-                            local buf = string.sub(data, point.address - poller.address + 1) --lua索引从1开始...
-                            local _, value = pack.unpack(buf, be .. pk)
-                            values[point.name] = value
-                            return true
-                        end
+                        local offset = point.address - poller.address + 1
+                        local byte = string.byte(data, math.floor(offset / 8))
+                        local value = bit.isSet(byte, offset % 8)
+                        values[point.name] = value
+                        return true
                     end
                 end
             elseif poller.code == 3 then
@@ -119,7 +119,7 @@ function Device:poll()
                             --编码数据
                             local be = point.be and ">" or "<"
                             local pk = feagure.pack
-                            local buf = string.sub(data, point.address - poller.address + 1) --lua索引从1开始...
+                            local buf = string.sub(data, (point.address - poller.address) * 2 + 1) --lua索引从1开始...
                             local _, value = pack.unpack(buf, be .. pk)
                             values[point.name] = value
                             return true
@@ -134,7 +134,7 @@ function Device:poll()
                             --编码数据
                             local be = point.be and ">" or "<"
                             local pk = feagure.pack
-                            local buf = string.sub(data, point.address - poller.address + 1) --lua索引从1开始...
+                            local buf = string.sub(data, (point.address - poller.address) * 2 + 1) --lua索引从1开始...
                             local _, value = pack.unpack(buf, be .. pk)
                             values[point.name] = value
                             return true
