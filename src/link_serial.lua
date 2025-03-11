@@ -1,3 +1,9 @@
+--- 串口类相关
+--- @module "Serial"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "Serial"
 
 --- 定义类

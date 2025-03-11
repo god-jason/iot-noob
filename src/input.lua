@@ -1,5 +1,10 @@
+--- IO输入相关
+--- @module "input"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "input"
-
 local input = {}
 
 local configs = require("configs")

@@ -1,3 +1,9 @@
+--- 配置文件相关
+--- @module "configs"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "configs"
 
 local configs = {}

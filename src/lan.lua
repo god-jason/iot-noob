@@ -1,3 +1,9 @@
+--- 网卡相关
+--- @module "lan"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "lan"
 
 local lan = {}

@@ -1,5 +1,11 @@
-local tag = "modbus"
+--- Modbus协议实现
+--- @module "Mobus"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 
+local tag = "modbus"
 
 local devices = require("devices")
 local products = require("products")

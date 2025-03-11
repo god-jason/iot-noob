@@ -1,3 +1,9 @@
+--- 设备相关
+--- @module "devices"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag     = "device"
 local devices = {}
 
@@ -8,7 +14,7 @@ local configs = require("configs")
 
 function devices.load_by_link(id)
     --TODO 更好的加载方式
-    
+
     return configs.load("devices/"..id)
 end
 

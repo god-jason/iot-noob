@@ -1,5 +1,5 @@
 --- TCP客户端，类定义
--- @module client
+-- @module "Client"
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi

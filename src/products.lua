@@ -1,3 +1,9 @@
+--- 产品相关
+--- @module "products"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "product"
 local products  = {}
 

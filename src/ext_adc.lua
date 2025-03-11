@@ -1,5 +1,5 @@
---- 外部cfg芯片接口
---- @module analog
+--- 外部adc芯片接口
+--- @module "ext_adc"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi

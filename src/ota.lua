@@ -1,3 +1,9 @@
+--- ota升级相关
+--- @module "ota"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "ota"
 local ota = {}
 

@@ -1,5 +1,5 @@
---- 主程序入口
---- @module "analog"
+--- 电池相关
+--- @module "battery"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi

@@ -1,5 +1,5 @@
 --- 网关程序入口
--- @module gateway
+-- @module "gateway"
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi

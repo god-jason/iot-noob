@@ -1,3 +1,9 @@
+--- 云平台
+--- @module "cloud"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "cloud"
 local cloud = {}
 

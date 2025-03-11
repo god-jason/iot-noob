@@ -1,3 +1,9 @@
+--- LED相关
+--- @module "led"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "led"
 local led = {}
 
