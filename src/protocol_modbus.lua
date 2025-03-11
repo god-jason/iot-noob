@@ -101,11 +101,8 @@ function Device:set(key, value)
             data = string.fromHex("0000")
         end
     else
-        local feagure = points.feature[point.type]
-        if not feagure then return false end
-        local be = point.be and ">" or "<"
-        local pk = feagure.pack
-        data = pack.pack(be .. pk, value)
+        ret, data = points.encode(point, value)
+        if not ret then return false end
     end
 
     return self.master:write(self.slave, code, point.address, data)

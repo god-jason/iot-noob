@@ -23,7 +23,11 @@ points.feagure = {
     float64 = { byte = 8, word = 4, pack = "d" }
 }
 
-
+---解析位数据
+---@param point table 点位信息
+---@param data string 数据
+---@param address integer 数据地址
+---@return any
 function points.parseBit(point, data, address)
     local offset = point.address - address + 1
     local byte = string.byte(data, math.floor(offset / 8))
@@ -31,6 +35,11 @@ function points.parseBit(point, data, address)
     return value
 end
 
+---解析字数据
+---@param point table 点位信息
+---@param data string 数据
+---@param address integer 数据地址
+---@return any
 function points.parseWord(point, data, address)
     local feagure = points.feature[point.type]
     if feagure then
@@ -44,6 +53,11 @@ function points.parseWord(point, data, address)
     return nil
 end
 
+---解析数据
+---@param point table 点位信息
+---@param data string 数据
+---@param address integer 数据地址
+---@return any
 function points.parse(point, data, address)
     local feagure = points.feature[point.type]
     if feagure then
@@ -57,7 +71,12 @@ function points.parse(point, data, address)
     return nil
 end
 
-function points.encode(point, value)    
+---编码数据
+---@param point table 点位信息
+---@param value any 数据
+---@return boolean 成功与否
+---@return string|nil
+function points.encode(point, value)
     local feagure = points.feature[point.type]
     if not feagure then return false end
     local be = point.be and ">" or "<"
@@ -65,7 +84,5 @@ function points.encode(point, value)
     data = pack.pack(be .. pk, value)
     return true, data
 end
-
-
 
 return points
