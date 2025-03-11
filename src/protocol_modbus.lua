@@ -276,7 +276,8 @@ function Modbus:open()
     for _, d in ipairs(ds) do
         local dev = Device:new(self, d)
         self.devices[d.id] = dev
-        dev.open()
+        --dev.open()
+        devices.set(d.id, dev)
     end
 
     --开启轮询
@@ -296,7 +297,7 @@ function Modbus:_polling()
             local ret, values = dev:poll()
             if ret then
                 log.info(tag, dev.id, "polling values", values)
-                
+
                 -- 向平台发布消息
                 cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
             end

@@ -10,6 +10,7 @@ local gateway = {}
 local configs = require("configs")
 local cloud = require("cloud")
 local links = require("links")
+local devices = require("devices")
 local ota = require("ota")
 
 -- 处理OTA升级
@@ -78,6 +79,40 @@ local function on_pipe_stop(topic, payload)
     link.watch(nil)
 end
 
+local function on_device_read(topic, payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    local dev = devices.get(data.id)
+    if not dev then
+        return
+    end
+
+    local ret, value = dev.get(data.key)
+    if ret then
+        cloud.publish("device/" .. data.id .. "/read", {
+            key = data.key,
+            value = value,
+        })
+    end
+end
+
+local function on_device_write(topic, payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    local dev = devices.get(data.id)
+    if not dev then
+        return
+    end
+
+    local ret = dev.set(data.key, data.value)
+end
+
 -- 上报设备信息
 local function report_info()
     local info = {
@@ -94,7 +129,6 @@ end
 
 -- 上报设备状态（周期执行）
 local function report_status()
-
     local total, used, top = rtos.meminfo()
     local ret, block_total, block_used, block_size = fs.fsstat()
 
@@ -122,7 +156,7 @@ function gateway.open()
     -- 连接云平台
     cloud.open()
 
-    sys.timerStart(report_info, 30000) -- 30秒上传信息
+    sys.timerStart(report_info, 30000)       -- 30秒上传信息
     sys.timerLoopStart(report_status, 60000) -- 60秒上传一次状态
 
     -- 订阅网关消息
@@ -131,13 +165,13 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/write", on_config_write)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
-
+    cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/device/write", on_device_write)
 end
 
 --- 关闭网关
 function gateway.close()
-    
-    
+
 end
 
 return gateway
