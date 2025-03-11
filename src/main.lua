@@ -32,9 +32,13 @@ end, 10 * 1000)
 
 local sntp_sync_ok = false
 
+local led = require("led")
+
 -- 联网成功
 sys.subscribe("IP_READY", function()
     log.info(tag, "IP_READY")
+    
+    led.on("net")
 
     -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
     if not sntp_sync_ok then

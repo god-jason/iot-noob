@@ -6,8 +6,14 @@ local products = require("products")
 local points = require("points")
 
 
+--- 设备类
+--- @class Device
 local Device = {}
 
+---创建设备
+---@param master Modbus 主站实例
+---@param dev table 设备参数
+---@return Device 实例
 function Device:new(master, dev)
     local obj = dev or {}
     setmetatable(obj, self)
@@ -16,11 +22,18 @@ function Device:new(master, dev)
     return obj
 end
 
+---打开设备
 function Device:open()
     self.mapper = products.load(self.product_id, "modbus_mapper")
     self.poller = products.load(self.product_id, "modbus_poller")
 end
 
+
+---查找点位
+---@param key string 点位名称
+---@return boolean 成功与否
+---@return table 点位
+---@return integer 功能码
 function Device:find_point(key)
     if not self.mapper then return false end
     for _, p in ipairs(self.mapper.coils) do
@@ -46,21 +59,35 @@ function Device:find_point(key)
     return false
 end
 
+
+---读取数据
+---@param key string 点位
+---@return boolean 成功与否
+---@return any
 function Device:get(key)
     local ret, point, code = self:find_point(key)
     if not ret then return false end
-    local feagure = points.feature[point.type]
-    if not feagure then return false end
-    local res, data = self.master:read(self.slave, code, point.address, feagure.size)
-    if not res then return res end
 
-    --解析数据
-    local be = point.be and ">" or "<"
-    local pk = feagure.pack
-    local _, val = pack.unpack(data, be .. pk)
-    return true, val
+    local data
+    if code == 1 or code == 2 then
+        ret, data = self.master:read(self.slave, code, point.address, 1)
+        if not ret then return false end
+        -- 直接判断返回值就行了 FF00 0000
+        return true, points.parseBit(point, data, point.address)
+    else
+        local feagure = points.feature[point.type]
+        if not feagure then return false end
+        ret, data = self.master:read(self.slave, code, point.address, feagure.size)
+        if not ret then return false end
+
+        return true, points.parseWord(point, data, point.address)
+    end
 end
 
+---读取数据
+---@param key string 点位
+---@param value any 值
+---@return boolean 成功与否
 function Device:set(key, value)
     local ret, point, code = self:find_point(key)
     if not ret then return false end
@@ -85,6 +112,10 @@ function Device:set(key, value)
     return self.master:write(self.slave, code, point.address, data)
 end
 
+
+---读取所有数据
+---@return boolean 成功与否
+---@return table|nil 值
 function Device:poll()
     local ret = false
     local values = {}
@@ -94,63 +125,47 @@ function Device:poll()
             if poller.code == 1 then
                 for _, point in ipairs(self.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local offset = point.address - poller.address + 1
-                        local byte = string.byte(data, math.floor(offset / 8))
-                        local value = bit.isSet(byte, offset % 8)
-                        values[point.name] = value
+                        values[point.name] = points.parseBit(point, data, poller.address)
                         return true
                     end
                 end
             elseif poller.code == 2 then
                 for _, point in ipairs(self.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local offset = point.address - poller.address + 1
-                        local byte = string.byte(data, math.floor(offset / 8))
-                        local value = bit.isSet(byte, offset % 8)
-                        values[point.name] = value
+                        values[point.name] = points.parseBit(point, data, poller.address)
                         return true
                     end
                 end
             elseif poller.code == 3 then
                 for _, point in ipairs(self.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local feagure = points.feature[point.type]
-                        if feagure then
-                            --编码数据
-                            local be = point.be and ">" or "<"
-                            local pk = feagure.pack
-                            local buf = string.sub(data, (point.address - poller.address) * 2 + 1) --lua索引从1开始...
-                            local _, value = pack.unpack(buf, be .. pk)
-                            values[point.name] = value
-                            return true
-                        end
+                        values[point.name] = points.parseWord(point, data, poller.address)
                     end
                 end
             elseif poller.code == 4 then
                 for _, point in ipairs(self.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        local feagure = points.feature[point.type]
-                        if feagure then
-                            --编码数据
-                            local be = point.be and ">" or "<"
-                            local pk = feagure.pack
-                            local buf = string.sub(data, (point.address - poller.address) * 2 + 1) --lua索引从1开始...
-                            local _, value = pack.unpack(buf, be .. pk)
-                            values[point.name] = value
-                            return true
-                        end
+                        values[point.name] = points.parseWord(point, data, poller.address)
                     end
                 end
             else
+                -- 暂不支持其他类型
             end
         end
     end
     return ret, values
 end
 
+---Modbus Master 类型
+---@class Modbus
 local Modbus = {}
+
 require("protocols").register("modbus-rtu", Modbus)
 
+---创建实例
+---@param link any 连接实例
+---@param opts table 协议参数
+---@return Modbus
 function Modbus:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
@@ -160,6 +175,12 @@ function Modbus:new(link, opts)
     return obj
 end
 
+
+---询问
+---@param request string 发送数据
+---@param len integer 期望长度
+---@return boolean 成功与否
+---@return string 返回数据
 function Modbus:ask(request, len)
     if not request then
         local ret = self.link:write(request)
@@ -195,6 +216,12 @@ function Modbus:ask(request, len)
 end
 
 -- 读取数据
+---@param slave integer 从站号
+---@param code integer 功能码
+---@param addr integer 地址
+---@param len integer 长度
+---@return boolean 成功与否
+---@return string 只有数据
 function Modbus:read(slave, code, addr, len)
     -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
@@ -216,6 +243,11 @@ function Modbus:read(slave, code, addr, len)
 end
 
 -- 写入数据
+---@param slave integer 从站号
+---@param code integer 功能码
+---@param addr integer 地址
+---@param data string 数据
+---@return boolean 成功与否
 function Modbus:write(slave, code, addr, data)
     if code == 1 then
         code = 5
@@ -234,6 +266,7 @@ function Modbus:write(slave, code, addr, data)
     return true
 end
 
+---打开主站
 function Modbus:open()
     if self.opened then
         log.info(tag, "already opened")
@@ -257,11 +290,14 @@ function Modbus:open()
     self.task = sys.taskInit(function() self:_polling() end)
 end
 
+--- 关闭
 function Modbus:close()
     self.opened = false
     self.devices = {}
 end
 
+
+--- 轮询
 function Modbus:_polling()
     while self.opened do
         for _, dev in pairs(self.devices) do

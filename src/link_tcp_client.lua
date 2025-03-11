@@ -7,7 +7,6 @@
 
 local tag = "tcp client"
 
-
 local id = 0;
 
 --定义类
@@ -105,7 +104,6 @@ end
 -- 关闭串口
 function Client:close()
     socket.close(self.ctrl)
-    log.info(tag, "close", self.id)
 end
 
 function Client:ready()

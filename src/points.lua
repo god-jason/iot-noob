@@ -23,4 +23,49 @@ points.feagure = {
     float64 = { byte = 8, word = 4, pack = "d" }
 }
 
+
+function points.parseBit(point, data, address)
+    local offset = point.address - address + 1
+    local byte = string.byte(data, math.floor(offset / 8))
+    local value = bit.isSet(byte, offset % 8)
+    return value
+end
+
+function points.parseWord(point, data, address)
+    local feagure = points.feature[point.type]
+    if feagure then
+        --编码数据
+        local be = point.be and ">" or "<"
+        local pk = feagure.pack
+        local buf = string.sub(data, (point.address - address) * 2 + 1) --lua索引从1开始...
+        local _, value = pack.unpack(buf, be .. pk)
+        return value
+    end
+    return nil
+end
+
+function points.parse(point, data, address)
+    local feagure = points.feature[point.type]
+    if feagure then
+        --编码数据
+        local be = point.be and ">" or "<"
+        local pk = feagure.pack
+        local buf = string.sub(data, point.address - address + 1) --lua索引从1开始...
+        local _, value = pack.unpack(buf, be .. pk)
+        return value
+    end
+    return nil
+end
+
+function points.encode(point, value)    
+    local feagure = points.feature[point.type]
+    if not feagure then return false end
+    local be = point.be and ">" or "<"
+    local pk = feagure.pack
+    data = pack.pack(be .. pk, value)
+    return true, data
+end
+
+
+
 return points

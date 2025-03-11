@@ -36,10 +36,10 @@ function led.init()
     --     v['gpio'] = gpio.setup(v.pin, gpio.PULLDOWN)
     -- end
 
-    -- 初始化网络灯
-    if config.pins.net then
-        require("netLed").setup(true, config.pins.net, 0)
-    end
+    -- 初始化网络灯 netLed库 有问题
+    -- if config.pins.net then
+    --     require("netLed").setup(true, config.pins.net, 0)
+    -- end
 end
 
 ---点亮LED
