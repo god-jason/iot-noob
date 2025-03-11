@@ -17,6 +17,7 @@ function gateway.open()
 
     -- 打开连接
     links.open()
+    
 end
 
 return gateway
