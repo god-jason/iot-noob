@@ -105,9 +105,11 @@ function Device:set(key, value)
         else
             data = string.fromHex("0000")
         end
+        code = 5
     else
         ret, data = points.encode(point, value)
         if not ret then return false end
+        code = 6
     end
 
     return self.master:write(self.slave, code, point.address, data)
