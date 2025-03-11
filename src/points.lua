@@ -1,7 +1,7 @@
 local points = {}
 
 -- 数据点类型
-points.feagure = {
+local feagure = {
     bool = { byte = 1, word = 1, pack = "b" },
     boolean = { byte = 1, word = 1, pack = "b" }, --按位去读
     char = { byte = 1, word = 1, pack = "c" },
@@ -22,6 +22,13 @@ points.feagure = {
     double = { byte = 8, word = 4, pack = "d" },
     float64 = { byte = 8, word = 4, pack = "d" }
 }
+
+---点位信息
+---@param type string 点位类型
+---@return table
+function points.feagure(type)
+    return feagure[type]
+end
 
 ---解析位数据
 ---@param point table 点位信息

@@ -75,7 +75,7 @@ function Device:get(key)
         -- 直接判断返回值就行了 FF00 0000
         return true, points.parseBit(point, data, point.address)
     else
-        local feagure = points.feature[point.type]
+        local feagure = points.feature(point.type)
         if not feagure then return false end
         ret, data = self.master:read(self.slave, code, point.address, feagure.word)
         if not ret then return false end
