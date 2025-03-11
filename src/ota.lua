@@ -1,26 +1,24 @@
 local tag = "ota"
+local ota = {}
 
-function ota_open()
-    local ret = fota.init()
+local function on_ota_download(result, prompt, head, body)
+    log.info("result", result)
+    if result then
+        log.info("ota download ok")
+        log.info("reboot after 5s")
+
+        -- TODO gateway.close()
+
+        -- 5秒后自动重启
+        sys.timerStart(rtos.reboot, 5000)
+        -- rtos.reboot() --重启
+    else
+        log.info("ota download failed")
+    end
 end
 
-function ota_write(buf, offset, length)
-    local ret, last, remain = fota.run(buf, offset, length)
-    return ret
+function ota.download(url)
+    http.request("GET", url, nil, nil, nil, 30000, on_ota_download, "/update.bin")
 end
 
-function ota_file(path)
-    local ret, last, remain = fota.file(path)
-    return
-end
-
-function ota_done()
-    local ret, done = fota.isDone()
-    return ret and done
-end
-
-function ota_finish()
-    local ret = fota.finish(true)
-    return ret
-end
-
+return ota
