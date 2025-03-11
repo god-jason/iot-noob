@@ -77,9 +77,8 @@ function Device:get(key)
     else
         local feagure = points.feature[point.type]
         if not feagure then return false end
-        ret, data = self.master:read(self.slave, code, point.address, feagure.size)
+        ret, data = self.master:read(self.slave, code, point.address, feagure.word)
         if not ret then return false end
-
         return true, points.parseWord(point, data, point.address)
     end
 end
