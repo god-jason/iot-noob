@@ -1,4 +1,4 @@
-local tag = "INPUT"
+local tag = "input"
 
 local input = {}
 

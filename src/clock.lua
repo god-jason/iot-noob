@@ -1,5 +1,5 @@
 -- 时钟芯片暂未选定
-local tag = "config"
+local tag = "clock"
 local clock = {}
 
 local function bcd_to_hex(data)

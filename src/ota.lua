@@ -1,4 +1,4 @@
-local tag = "OTA"
+local tag = "ota"
 
 function ota_open()
     local ret = fota.init()

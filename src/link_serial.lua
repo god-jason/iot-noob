@@ -1,4 +1,4 @@
-local tag = "SERIAL"
+local tag = "Serial"
 
 -- 定义类
 local Serial = {}
@@ -29,7 +29,6 @@ function Serial:open()
         sys.publish("SERIAL_DATA_" .. id)
     end)
 
-    log.info(tag, "open", self.id, ret)
     return ret
 end
 
@@ -51,7 +50,6 @@ end
 -- 关闭串口
 function Serial:close()
     serial.close(self.id)
-    log.info(tag, "close", self.id)
 end
 
 return Serial

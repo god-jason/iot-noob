@@ -1,4 +1,4 @@
-local tag = "config"
+local tag = "lan"
 
 local lan = {}
 

@@ -1,11 +1,6 @@
-local netLed = require("netLed")
-local tag = "NET"
+local tag = "net"
 local net = {}
 
-function net.init()
-    local led = gpio.setup(LEDS.net, 1, gpio.PULLUP)
-    netLed.setup(true, LEDS.net, 0) -- 780不再支持LTE灯    
-end
 
 function net.status()
     local ret = mobile.scell()

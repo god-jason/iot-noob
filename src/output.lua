@@ -1,4 +1,4 @@
-local tag = "OUTPUT"
+local tag = "output"
 local output = {}
 
 local configs = require("configs")
