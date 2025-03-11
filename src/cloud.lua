@@ -15,6 +15,9 @@ local default_config = {
     -- }
 }
 
+local config = {}
+
+
 local client = nil
 
 local sub_tree = {
@@ -23,7 +26,7 @@ local sub_tree = {
 }
 
 local function find_callback(node, topics, topic, payload)
-    --叶子节点，执行回调
+    -- 叶子节点，执行回调
     if #topics == 0 then
         for i, cb in ipairs(sub.callbacks) do
             cb(topic, payload)
@@ -77,13 +80,21 @@ local function on_event(client, event, data, payload)
 end
 
 
-function cloud.open()
+function cloud.init()
+    local ret
 
-    --加载配置
-    local ret, config = configs.load("cloud")
+    -- 加载配置
+    ret, config = configs.load(tag)
     if not ret then
+        -- 使用默认
         config = default_config
     end
+
+    log.info(tag, "init")
+
+end
+
+function cloud.open()
 
     if mqtt == nil then
         log.info(tag, "bsp does not have mqtt lib")
@@ -98,7 +109,7 @@ function cloud.open()
 
     client:auth(config.clienid, config.username, config.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
-    client:autoreconn(true, 3000)                                 -- 自动重连机制
+    client:autoreconn(true, 3000) -- 自动重连机制
 
     if config.will ~= nil then
         client:will(config.will.topic, config.will.payload)
@@ -124,18 +135,21 @@ end
 function cloud.subscribe(filter, cb)
     local fs = string.split(filter, "/")
 
-    --创建树枝
+    -- 创建树枝
     local sub = sub_tree
     for _, f in ipairs(fs) do
         local s = sub.children[f]
         if s == nil then
-            s = { children = {}, callbacks = {} }
+            s = {
+                children = {},
+                callbacks = {}
+            }
             sub.children[f] = s
         end
         sub = s
     end
 
-    --注册回调
+    -- 注册回调
     if #sub.callbacks == 0 then
         client:subscribe(filter)
     end
@@ -153,15 +167,17 @@ function cloud.unsubscribe(filter, cb)
 
     local fs = string.split(filter, "/")
 
-    --创建树枝
+    -- 创建树枝
     local sub = sub_tree
     for _, f in ipairs(fs) do
         local s = sub.children[f]
-        if s == nil then return end
+        if s == nil then
+            return
+        end
         sub = s
     end
 
-    --删除回调
+    -- 删除回调
     for i, c in ipairs(sub.callbacks) do
         if c == cb then
             table.remove(sub.callbacks, i)

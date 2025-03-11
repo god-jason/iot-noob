@@ -5,9 +5,9 @@ local configs = {}
 function configs.load(name)
     -- 找文件
     local path = "/" .. name .. ".json"
-    if SD.enable then
-        path = "/sd" .. path
-    end
+    -- if SD.enable then
+    --     path = "/sd" .. path
+    -- end
 
     -- 找不到，则下载
     if not io.exists(path) then return false end
@@ -38,9 +38,9 @@ function configs.save(name, data)
 
     -- 找文件
     local path = "/" .. name .. ".json"
-    if SD.enable then
-        path = "/sd" .. path
-    end
+    -- if SD.enable then
+    --     path = "/sd" .. path
+    -- end
 
     -- 删除历史(到底需不需要)，另外，是否需要备份
     if io.exists(path) then

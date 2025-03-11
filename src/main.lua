@@ -49,7 +49,7 @@ sys.subscribe("IP_READY", function()
         -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
     end
     -- TODO 其他任务，比如连接云服务器等
-    
+
 end)
 
 sys.subscribe("NTP_UPDATE", function()
@@ -58,25 +58,25 @@ sys.subscribe("NTP_UPDATE", function()
     clock.write()
 end)
 
--- TODO 初始化外设
+-- 初始化外设
+require("sd").init() -- SD卡
 require("clock").init() -- 初始化时钟芯片
-require("led").init()   -- LED灯光
-require("lan").init()   -- 以太网
+require("led").init() -- LED灯光
+require("lan").init() -- 以太网
 require("input").init() -- 输入
-require("sd").init()    -- SD卡
-require("gnss").init()  -- GPS定位
+require("gnss").init() -- GPS定位
 
 -- gnss.init() --GPS定位
 
---加载连接器
+-- 加载连接器
 require("link_serial")
---require("link_tcp_client")
+-- require("link_tcp_client")
 
---加载协议库
+-- 加载协议库
 require("protocol_modbus")
---require("protocol_cjt188")
---require("protocol_dlt645")
---require("protocol_s7")
+-- require("protocol_cjt188")
+-- require("protocol_dlt645")
+-- require("protocol_s7")
 
 -- 启动网关系统程序
 require("gateway").open()

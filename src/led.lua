@@ -1,26 +1,52 @@
--- local LED_NET = gpio.setup(27, 0, gpio.PULLUP)
+local tag = "led"
+local led = {}
 
-local led_config = {
-    NET = { pin = 27 },
+local configs = require("configs")
+
+local default_config = {
+    enable = true,
+    pins = {
+        net = 27,
+        ready = 26
+        -- power = 49 -- 待定
+    }
 }
 
-function init()
+local config = {}
+
+function led.init()
+    local ret
+
+    -- 加载配置
+    ret, config = configs.load(tag)
+    if not ret then
+        -- 使用默认
+        config = default_config
+    end
+
+    if not config.enable then
+        return
+    end
+
+    log.info(tag, "init")
+
     -- 读取GPIO配置表
-    for k, v in pairs(led_config) do
-        v['gpio'] = gpio.setup(v.pin, gpio.PULLDOWN)
-    end   
-end
+    -- for k, v in pairs(config.pins) do
+    --     v['gpio'] = gpio.setup(v.pin, gpio.PULLDOWN)
+    -- end
 
-function init(id)
-    local led = led_config[id]
-    if led ~= nil then
-        led['gpio'](1)
+    -- 初始化网络灯
+    if config.pins.net then
+        require("netLed").setup(true, config.pins.net, 0)
     end
 end
 
-function close(id)
-    local led = led_config[id]
-    if led ~= nil then
-        led['gpio'](0)
-    end
+function led.on(id)
+    gpio.set(config.pins[id], gpio.PULLUP)
 end
+
+function led.off(id)
+    gpio.set(config.pins[id], gpio.PULLDOWN)
+end
+
+return led

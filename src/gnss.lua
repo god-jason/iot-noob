@@ -1,25 +1,46 @@
-
-local tag = "GNSS"
+local tag = "gnss"
 local gnss = {}
 
--- 初始化
+local configs = require("configs")
+
+local default_config = {
+    enable = false, -- 启用
+    uart = 2, -- 串口
+    baudrate = 115200 -- 速度
+}
+
+local config = {}
+
 function gnss.init()
-    if not GNSS.enable then
+    local ret
+
+    -- 加载配置
+    ret, config = configs.load(tag)
+    if not ret then
+        -- 使用默认
+        config = default_config
+    end
+
+    if not config.enable then
         return
     end
-    
-    uart.setup(GNSS.uart, GNSS.baudrate)
-    libgnss.bind(GNSS.uart)
-    --libgnss.debug(true) --GPS调试
 
-    sys.subscribe("GNSS_STATE", function(event, ticks)
+    log.info(tag, "init")
+
+    -- 初始化
+
+    uart.setup(config.uart, config.baudrate)
+    libgnss.bind(config.uart)
+    -- libgnss.debug(true) --GPS调试
+
+    sys.subscribe("config_STATE", function(event, ticks)
         -- event取值有
         -- FIXED 定位成功
         -- LOSE  定位丢失
         -- ticks是事件发生的时间,一般可以忽略
         log.info(tag, "state", event, ticks)
         if event == "FIXED" then
-            sys.publish("GNSS_OK")
+            sys.publish("config_OK")
         end
     end)
 end
@@ -53,5 +74,8 @@ function gnss.get()
     return false
 end
 
+function gnss.close()
+
+end
 
 return gnss

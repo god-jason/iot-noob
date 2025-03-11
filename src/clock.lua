@@ -1,5 +1,5 @@
 -- 时钟芯片暂未选定
-local tag = "RTC"
+local tag = "config"
 local clock = {}
 
 local function bcd_to_hex(data)
@@ -10,40 +10,69 @@ local function hex_to_bcd(data)
     return bit.lshift(math.floor(data / 10), 4) + data % 10
 end
 
+local configs = require("configs")
+
+local default_config = {
+    enable = true,
+    chip = "SD3077", -- 型号
+    i2c = 1, -- iic总线
+    addr = 0x64, -- 站号 0x64: SD3077, 0x68 SD3231
+    init = {0x0E, 0x04}, -- 初始化 关闭clock输出
+    read = {0x00}, -- 读指令
+    write = {0x00}, -- 写指令
+    registers = { -- 寄存器
+    0x00, -- 首地址
+    "second", "minute", "hour", "wday", "day", "month", "year"}
+
+}
+
+local config = {}
+
 function clock.init()
-    if not RTC.enable then
+    local ret
+
+    -- 加载配置
+    ret, config = configs.load(tag)
+    if not ret then
+        -- 使用默认
+        config = default_config
+    end
+
+    if not config.enable then
         return
     end
 
+    log.info(tag, "init")
+
     -- 初始化iic接口
-    i2c.setup(RTC.i2c, i2c.FAST)
+    i2c.setup(config.i2c, i2c.FAST)
 
     -- 初始化指令
-    if RTC.init ~= nil and #RTC.init > 0 then
-        i2c.send(RTC.i2c, RTC.addr, RTC.init)
+    if config.init ~= nil and #config.init > 0 then
+        i2c.send(config.i2c, config.addr, config.init)
     end
 
-    -- 读取RTC芯片时钟
+    -- 读取config芯片时钟
     sys.timerStart(read, 500)
 end
 
 function clock.read()
-    if not RTC.enable then
+    if not config.enable then
         return false
     end
 
     -- 发送
-    local ret = i2c.send(RTC.i2c, RTC.addr, RTC.registers[1]) -- 从秒开始读
+    local ret = i2c.send(config.i2c, config.addr, config.registers[1]) -- 从秒开始读
     if ret == false then
         return ret
     end
 
     -- 读取
-    local data = i2c.recv(RTC.i2c, RTC.addr, 7)
+    local data = i2c.recv(config.i2c, config.addr, 7)
 
     -- 解析
     local time = {}
-    for i, v in ipairs(RTC.registers) do
+    for i, v in ipairs(config.registers) do
         if v == "year" then
             time.year = bcd_to_hex(data:byte(i - 1)) + 2000
         elseif v == "month" then
@@ -69,15 +98,15 @@ function clock.read()
 end
 
 function clock.write()
-    if not RTC.enable then
+    if not config.enable then
         return false
     end
 
     -- local tm = socket.ntptm()
     local tm = os.date("*t")
 
-    local data = { RTC.registers[1] }
-    for i, v in ipairs(RTC.registers) do
+    local data = { config.registers[1] }
+    for i, v in ipairs(config.registers) do
         if v == "year" then
             table.insert(data, hex_to_bcd(tm.year - 2000))
         elseif v == "month" then
@@ -96,7 +125,7 @@ function clock.write()
     end
 
     -- 写指令
-    local ret = i2c.send(RTC.i2c, RTC.addr, data)
+    local ret = i2c.send(config.i2c, config.addr, data)
     log.info(tag, "write time", ret, json.encode(tm))
 
     return ret

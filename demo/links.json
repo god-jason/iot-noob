@@ -1,0 +1,14 @@
+[
+    {
+        "id": "test",
+        "type":"serial",
+        "options": {
+            "id": 1,
+            "baud_rate": 9600,
+            "data_bits":8,
+            "stop_bits":1,
+            "parity": "N"
+        },
+        "protocol": "modbus"
+    }
+]
