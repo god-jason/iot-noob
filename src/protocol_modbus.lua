@@ -4,6 +4,7 @@ local tag = "modbus"
 local devices = require("devices")
 local products = require("products")
 local points = require("points")
+local cloud = require("cloud")
 
 
 --- 设备类
@@ -27,7 +28,6 @@ function Device:open()
     self.mapper = products.load(self.product_id, "modbus_mapper")
     self.poller = products.load(self.product_id, "modbus_poller")
 end
-
 
 ---查找点位
 ---@param key string 点位名称
@@ -58,7 +58,6 @@ function Device:find_point(key)
     end
     return false
 end
-
 
 ---读取数据
 ---@param key string 点位
@@ -107,7 +106,6 @@ function Device:set(key, value)
 
     return self.master:write(self.slave, code, point.address, data)
 end
-
 
 ---读取所有数据
 ---@return boolean 成功与否
@@ -170,7 +168,6 @@ function Modbus:new(link, opts)
     obj.timeout = opts.timeout or 1000
     return obj
 end
-
 
 ---询问
 ---@param request string 发送数据
@@ -292,15 +289,16 @@ function Modbus:close()
     self.devices = {}
 end
 
-
 --- 轮询
 function Modbus:_polling()
     while self.opened do
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
             if ret then
-                --TODO 发布MQTT消息
-                log.info(tag, dev.id, "values", values)
+                log.info(tag, dev.id, "polling values", values)
+                
+                -- 向平台发布消息
+                cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
             end
         end
 
