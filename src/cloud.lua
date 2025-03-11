@@ -4,9 +4,10 @@ local cloud = {}
 local configs = require("configs")
 
 local default_config = {
+    id = "test",
     host = "iot.zgwit.com",
     port = 1883,
-    clienid = mobile.getImei(),
+    clienid = "test",
     username = "",
     password = ""
     -- will = { -- 遗嘱消息
@@ -17,9 +18,9 @@ local default_config = {
 
 local config = {}
 
-
 local client = nil
 
+local subs = {}
 local sub_tree = {
     children = {}, -- topic->sub_tree
     callbacks = {}
@@ -67,6 +68,12 @@ local function on_event(client, event, data, payload)
         sys.publish("MQTT_CONACK")
         -- client:subscribe(sub_topic)--单主题订阅
         -- client:subscribe({[topic1]=1,[topic2]=1,[topic3]=1})--多主题订阅
+
+        -- 恢复订阅
+        for filter, cnt in pairs(subs) do
+            client:subscribe(filter)
+        end
+
     elseif event == "recv" then
         log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
@@ -79,7 +86,6 @@ local function on_event(client, event, data, payload)
     end
 end
 
-
 function cloud.init()
     local ret
 
@@ -88,10 +94,17 @@ function cloud.init()
     if not ret then
         -- 使用默认
         config = default_config
+        -- 默认使用imei号作为网关ID
+        config.id = mobile.imei()
+        config.clienid = mobile.imei()
     end
 
     log.info(tag, "init")
 
+end
+
+function cloud.id()
+    return config.id
 end
 
 function cloud.open()
@@ -128,11 +141,21 @@ function cloud.close()
 end
 
 function cloud.publish(topic, payload, qos)
+     -- 转为json格式
+    if type(payload) ~= "string" then
+        payload = json.encode(payload)
+    end
     return client:publish(topic, payload, qos)
 end
 
 -- 订阅（检查重复订阅，只添加回调）
 function cloud.subscribe(filter, cb)
+    if not subs[filter] then
+        subs[filter] = 1
+    else
+        subs[filter] = subs[filter] + 1
+    end
+
     local fs = string.split(filter, "/")
 
     -- 创建树枝
@@ -159,6 +182,10 @@ end
 
 -- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
 function cloud.unsubscribe(filter, cb)
+    if subs[filter] then
+        subs[filter] = subs[filter] - 1
+    end
+
     -- 取消全部订阅
     if cb == nil then
         client:unsubscribe(filter)
