@@ -5,7 +5,7 @@ local configs = require("configs")
 
 local default_config = {
     id = "test",
-    host = "iot.zgwit.com",
+    host = "git.zgwit.com",
     port = 1883,
     clienid = "test",
     username = "",
@@ -62,7 +62,7 @@ end
 
 local function on_event(client, event, data, payload)
     -- 用户自定义代码
-    log.info(tag, "event", event, client, data, payload)
+    --log.info(tag, "event", event, client, data, payload)
     if event == "conack" then
         -- 联上了
         sys.publish("MQTT_CONACK")
@@ -75,11 +75,11 @@ local function on_event(client, event, data, payload)
         end
 
     elseif event == "recv" then
-        log.info(tag, "topic", data, "payload", payload)
+        --log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
         on_message(data, payload)
     elseif event == "sent" then
-        log.info(tag, "sent", "pkgid", data)
+        --log.info(tag, "sent", "pkgid", data)
     elseif event == "disconnect" then
         -- 非自动重连时,按需重启mqttc
         -- client:connect()

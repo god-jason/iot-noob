@@ -15,8 +15,6 @@ log.info(tag, "last power reson", pm.lastReson())
 -- 引入sys，方便使用
 _G.sys = require("sys")
 
--- 引入全局配置
-require("_board")
 
 -- 看门狗守护
 if wdt then
@@ -24,14 +22,11 @@ if wdt then
     sys.timerLoopStart(wdt.feed, 3000)
 end
 
--- 检测内存使用
--- sys.timerLoopStart(function()
---     collectgarbage()
--- end, 10 * 1000)
+--检测内存使用
+sys.timerLoopStart(function()
+    collectgarbage()
+end, 10 * 1000)
 
--- 网络指示灯
-local netLed = require("netLed")
-netLed.setup(true, LEDS.net, LEDS.ready)
 
 -- 电源指示灯
 
@@ -55,7 +50,7 @@ end)
 sys.subscribe("NTP_UPDATE", function()
     sntp_sync_ok = true
     -- 设置到RTC时钟芯片
-    clock.write()
+    require("clock").write()
 end)
 
 -- 初始化外设

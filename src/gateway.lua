@@ -102,7 +102,7 @@ end
 
 function gateway.open()
     -- 打开连接
-    links.open()
+    links.load()
 
     -- 连接云平台
     cloud.open()
