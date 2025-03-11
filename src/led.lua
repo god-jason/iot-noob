@@ -14,6 +14,7 @@ local default_config = {
 
 local config = {}
 
+--- LED初始化
 function led.init()
     local ret
 
@@ -41,10 +42,14 @@ function led.init()
     end
 end
 
+---点亮LED
+---@param id string 名称
 function led.on(id)
     gpio.set(config.pins[id], gpio.PULLUP)
 end
 
+---关闭LED
+---@param id string 名称
 function led.off(id)
     gpio.set(config.pins[id], gpio.PULLDOWN)
 end

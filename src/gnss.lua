@@ -11,6 +11,8 @@ local default_config = {
 
 local config = {}
 
+
+--- 初始化GPS
 function gnss.init()
     local ret
 
@@ -50,7 +52,9 @@ function gnss.isValid()
     return libgnss.isFix()
 end
 
--- 获取GPS定位
+--- 获取GPS定位
+--- @return boolean 成功与否
+--- @return table
 --[[
 {
     "course":0,
@@ -74,6 +78,7 @@ function gnss.get()
     return false
 end
 
+--- 关闭GPS
 function gnss.close()
 
 end

@@ -12,6 +12,7 @@ local default_config = {
 
 local config = {}
 
+--- 初始化SD卡
 function sd.init()
     local ret
 
@@ -37,6 +38,8 @@ function sd.init()
 
 end
 
+---格式化SD卡
+---@return boolean 成功与否
 function sd.format()
     if not config.enable then
         return false

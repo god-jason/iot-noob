@@ -20,6 +20,8 @@ local default_config = {
 
 local config = {}
 
+
+--- 初始化输入
 function input.init()
     local ret
 
@@ -45,6 +47,9 @@ function input.init()
     end
 end
 
+
+--- 获取输入状态
+--- @return integer 1高电平，0低电平
 function input.get(index)
     return gpio.get(config.pins[index].pin)
 end

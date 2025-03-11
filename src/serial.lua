@@ -17,6 +17,7 @@ local default_config = {
 
 local config = {}
 
+--- 串口初始化
 function serial.init()
     local ret
 
@@ -34,6 +35,13 @@ function serial.init()
     log.info(tag, "init")
 end
 
+---打开串口
+---@param id integer ID
+---@param baud_rate integer 波特率
+---@param data_bits integer 数据位
+---@param stop_bits integer 停止位
+---@param parity string 检验位 N E O
+---@return boolean 成功与否
 function serial.open(id, baud_rate, data_bits, stop_bits, parity)
 
     if not config.enable then
@@ -64,6 +72,10 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     return ret == 0
 end
 
+---写入串口数据
+---@param data string 写入数据
+---@return boolean 成功与否
+---@return integer|nil 写入的长度
 function serial.write(data)
     if not config.enable then
         return false
@@ -78,7 +90,11 @@ function serial.write(data)
     return len > 0, len
 end
 
-function serial.read()
+---读取串口数据
+---@param id integer ID号 
+---@return boolean 成功与否
+---@return string|nil 内容
+function serial.read(id)
     if not config.enable then
         return false
     end
@@ -96,6 +112,10 @@ function serial.read()
     return false
 end
 
+---监听串口数据
+---@param id integer ID号 
+---@param cb function 回调
+---@return boolean 成功与否
 function serial.watch(id, cb)
     if not config.enable then
         return false
@@ -110,6 +130,9 @@ function serial.watch(id, cb)
     return true
 end
 
+---关闭串口
+---@param id integer ID号 
+---@return boolean 成功与否
 function serial.close(id)
     if not config.enable then
         return false

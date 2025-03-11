@@ -1,3 +1,9 @@
+--- 主程序入口
+--- @module "analog"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.01.20
 local tag = "battery"
 local battery = {}
 
@@ -16,6 +22,7 @@ local default_config = {
 
 local config = {}
 
+--- 电池初始化
 function battery.init()
     local ret
 

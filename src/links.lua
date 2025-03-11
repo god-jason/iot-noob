@@ -9,11 +9,18 @@ local protocols = require("protocols")
 
 local cache = {}
 
-
+--- 注册连接类
+--- @param type string 类型
+--- @param class table 类
 function links.register(type, class)
     factory[type] = class
 end
 
+---创建连接实例
+---@param type string 类型
+---@param opts table 参数
+---@return boolean 成功与否
+---@return table|nil 连接实例
 function links.create(type, opts)
     local f = factory[type]
     if not f then
@@ -22,6 +29,7 @@ function links.create(type, opts)
     return true, f:new(opts)
 end
 
+--- 加载实例
 function links.load()
     local ret, data = configs.load("links")
     if not ret then return false end

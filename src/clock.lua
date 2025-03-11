@@ -28,6 +28,7 @@ local default_config = {
 
 local config = {}
 
+--- rtc时钟芯片初始化
 function clock.init()
     local ret
 
@@ -53,9 +54,13 @@ function clock.init()
     end
 
     -- 读取config芯片时钟
-    sys.timerStart(read, 500)
+    sys.timerStart(clock.read, 500)
 end
 
+
+--- 读取芯片时钟
+--- @return boolean 成功与否
+--- @return table {year,mon,day,wday,hour,min,sec}
 function clock.read()
     if not config.enable then
         return false
@@ -97,6 +102,8 @@ function clock.read()
     return true, time
 end
 
+--- 写入芯片时钟
+--- @return boolean 成功与否
 function clock.write()
     if not config.enable then
         return false

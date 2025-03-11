@@ -1,24 +1,34 @@
 local tag = "ota"
 local ota = {}
 
+--- 下载回调
 local function on_ota_download(result, prompt, head, body)
     log.info("result", result)
     if result then
-        log.info("ota download ok")
-        log.info("reboot after 5s")
+        log.info(tag, "download success")
+        log.info(tag, "reboot after 5s")
 
-        -- TODO gateway.close()
+        -- TODO gateway.close() 可以发布全局消息以解耦
+        
 
         -- 5秒后自动重启
         sys.timerStart(rtos.reboot, 5000)
         -- rtos.reboot() --重启
     else
-        log.info("ota download failed")
+        log.info(tag, "download failed")
     end
 end
 
+
+---下载文件(阻塞执行的)
+---@param url string 下载链接
+---@return boolean 成功与否
 function ota.download(url)
-    http.request("GET", url, nil, nil, nil, 30000, on_ota_download, "/update.bin")
+    log.info(tag, "download", url)
+    local code, headers, body = http.request("GET", url, nil, nil, nil, 30000, on_ota_download, "/update.bin")
+    log.info(tag, "download result", code, body)
+    -- 阻塞执行的
+    return code == 2000
 end
 
 return ota

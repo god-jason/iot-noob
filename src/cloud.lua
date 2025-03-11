@@ -18,14 +18,19 @@ local default_config = {
 
 local config = {}
 
+-- mqtt连接
 local client = nil
 
+
+-- 订阅历史
 local subs = {}
+-- 订阅树
 local sub_tree = {
     children = {}, -- topic->sub_tree
     callbacks = {}
 }
 
+--- 查询订阅树
 local function find_callback(node, topics, topic, payload)
     -- 叶子节点，执行回调
     if #topics == 0 then
@@ -54,12 +59,13 @@ local function find_callback(node, topics, topic, payload)
     end
 end
 
--- 查找订阅树（bug，优先执行绝对订阅，+#）
+-- 事件响应（优先执行绝对订阅，+#）
 local function on_message(topic, payload)
     local ts = string.split(topic, "/")
     find_callback(sub_tree, ts, topic, payload)
 end
 
+--- mqtt事件处理
 local function on_event(client, event, data, payload)
     -- 用户自定义代码
     --log.info(tag, "event", event, client, data, payload)
@@ -73,7 +79,6 @@ local function on_event(client, event, data, payload)
         for filter, cnt in pairs(subs) do
             client:subscribe(filter)
         end
-
     elseif event == "recv" then
         --log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
@@ -86,6 +91,7 @@ local function on_event(client, event, data, payload)
     end
 end
 
+-- 平台初始化，加载配置
 function cloud.init()
     local ret
 
@@ -100,15 +106,17 @@ function cloud.init()
     end
 
     log.info(tag, "init")
-
 end
 
+--- 获取ID
+--- @return string ID号，一般是IMEI
 function cloud.id()
     return config.id
 end
 
+---打开平台
+---@return boolean 成本与否
 function cloud.open()
-
     if mqtt == nil then
         log.info(tag, "bsp does not have mqtt lib")
         return false
@@ -122,7 +130,7 @@ function cloud.open()
 
     client:auth(config.clienid, config.username, config.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
-    client:autoreconn(true, 3000) -- 自动重连机制
+    client:autoreconn(true, 3000)                                 -- 自动重连机制
 
     if config.will ~= nil then
         client:will(config.will.topic, config.will.payload)
@@ -135,20 +143,28 @@ function cloud.open()
     return client:connect()
 end
 
+--- 关闭平台（不太需要）
 function cloud.close()
     client:close()
-    client = nil
+    --client = nil
 end
 
+--- 发布消息
+---@param topic string 主题
+---@param payload string|table 数据，支持string,table
+---@param qos integer|nil 质量
+---@return integer 消息id
 function cloud.publish(topic, payload, qos)
-     -- 转为json格式
+    -- 转为json格式
     if type(payload) ~= "string" then
         payload = json.encode(payload)
     end
     return client:publish(topic, payload, qos)
 end
 
--- 订阅（检查重复订阅，只添加回调）
+--- 订阅（检查重复订阅，只添加回调）
+--- @param filter string 主题
+--- @param cb function 回调
 function cloud.subscribe(filter, cb)
     if not subs[filter] then
         subs[filter] = 1
@@ -180,7 +196,9 @@ function cloud.subscribe(filter, cb)
     table.insert(sub.callbacks, cb)
 end
 
--- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
+--- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
+--- @param filter string 主题
+--- @param cb function|nil 回调
 function cloud.unsubscribe(filter, cb)
     if subs[filter] then
         subs[filter] = subs[filter] - 1
@@ -215,6 +233,8 @@ function cloud.unsubscribe(filter, cb)
     end
 end
 
+--- 云服务器连接状态
+--- @return boolean 状态
 function cloud.isReady()
     return client:ready()
 end

@@ -1,11 +1,16 @@
 local tag = "Serial"
 
--- 定义类
+--- 定义类
+--- @class Serial
 local Serial = {}
 
 require("links").register("serial", Serial)
 local serial = require("serial")
 
+
+---创建串口实例
+---@param opts table
+---@return table
 function Serial:new(opts)
     local obj = {}
     setmetatable(obj, self)
@@ -18,7 +23,8 @@ function Serial:new(opts)
     return obj
 end
 
--- 打开
+--- 打开
+--- @return boolean 成功与否
 function Serial:open()
     local ret = serial.open(self.id, self.baud_rate, self.data_bits, self.stop_bits, self.parity)
     if not ret then
@@ -32,17 +38,23 @@ function Serial:open()
     return ret
 end
 
--- 写数据
+--- 写数据
+--- @param data string 数据
+--- @return boolean 成功与否
 function Serial:write(data)
     return serial.write(self.id, data)
 end
 
 -- 等待数据
+--- @param timeout integer 超时 ms
+--- @return boolean 成功与否
 function Serial:wait(timeout)
     return sys.waitUtil("SERIAL_DATA_" + self.id, timeout)
 end
 
 -- 读数据
+--- @return boolean 成功与否
+--- @return string|nil 数据
 function Serial:read()
     return serial.read(self.id)
 end

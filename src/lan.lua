@@ -16,6 +16,7 @@ local default_config = {
 
 local config = {}
 
+--- 以太网初始化
 function lan.init()
     local ret
 
@@ -69,6 +70,8 @@ function lan.init()
 
 end
 
+-- 以太网是否可用
+--- @return boolean
 function lan.ready()
     if not config.enable then
         return false

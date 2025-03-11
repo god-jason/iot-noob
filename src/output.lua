@@ -19,6 +19,8 @@ local default_config = {
 
 local config = {}
 
+
+--- 初始化输出
 function output.init()
     local ret
 
@@ -36,6 +38,9 @@ function output.init()
     log.info(tag, "init")
 end
 
+--- 设置输出
+--- @param index string 名称
+--- @param value integer 1 0
 function output.set(index, value)
     if not config.enable then
         return

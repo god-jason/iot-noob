@@ -7,7 +7,7 @@ local cache = {}
 --- @param id any 产品ID
 --- @param config any 配置文件
 --- @return boolean 成功
---- @return table 配置内容
+--- @return table|nil 配置内容
 function products.load(id, config)
     -- 取缓存
     if cache[id] == nil then

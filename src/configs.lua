@@ -2,6 +2,10 @@ local tag = "configs"
 
 local configs = {}
 
+---加载配置文件，自动解析json
+---@param name string 文件名，不带.json后缀
+---@return boolean 成功与否
+---@return table|nil
 function configs.load(name)
     -- 找文件
     local path = "/" .. name .. ".json"
@@ -12,11 +16,12 @@ function configs.load(name)
     -- 找不到，则下载
     if not io.exists(path) then return false end
 
-    local size = io.fileSize(path)
-    if size > 20000 then
-        log.info(tag, "too large", path, size)
-        return false
-    end
+    -- 限制文件大小（780EPM已经到1MB了，不太需要）
+    -- local size = io.fileSize(path)
+    -- if size > 20000 then
+    --     log.info(tag, "too large", path, size)
+    --     return false
+    -- end
 
     local data = io.readFile(path)
     local obj, ret, err = json.decode(data)
@@ -28,12 +33,13 @@ function configs.load(name)
     end
 end
 
+---保存配置文件，自动编码json
+---@param name string 文件名，不带.json后缀
+---@param data table|string 内容
+---@return boolean 成功与否
 function configs.save(name, data)
-
-    local str = json.encode(data)
-    if str == nil then
-        log.info(tag, "encode failed", path, err, data)
-        return false
+    if type(data) ~= "string" then
+        data = json.encode(data)
     end
 
     -- 找文件
@@ -49,6 +55,5 @@ function configs.save(name, data)
 
     return io.writeFile(path, data)
 end
-
 
 return configs

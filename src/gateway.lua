@@ -12,14 +12,17 @@ local cloud = require("cloud")
 local links = require("links")
 local ota = require("ota")
 
+-- 处理OTA升级
 local function on_ota(topic, payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
     end
-    ota.download(data.url)
+    -- ota.download(data.url)
+    sys.taskInit(ota.download, data.url)
 end
 
+-- 处理配置读取
 local function on_config_read(topic, payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
@@ -29,17 +32,24 @@ local function on_config_read(topic, payload)
     if not r then
         return
     end
-    cloud.publish("gateway/" .. cloud.id() .. "/config", c)
+    cloud.publish("gateway/" .. cloud.id() .. "/config", {
+        name = data.name,
+        content = c
+    })
 end
 
+-- 处理配置写入
 local function on_config_write(topic, payload)
     local data, ret = json.decode(payload)
-    if ret == 0 then
+    if ret ~= 1 then
+        -- 解析失败
         return
     end
     configs.save(data.name, data.content)
 end
 
+
+-- 开始透传
 local function on_pipe_start(topic, payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
@@ -55,6 +65,8 @@ local function on_pipe_start(topic, payload)
     end)
 end
 
+
+-- 结束透传
 local function on_pipe_stop(topic, payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
@@ -66,6 +78,7 @@ local function on_pipe_stop(topic, payload)
     link.watch(nil)
 end
 
+-- 上报设备信息
 local function report_info()
     local info = {
         bsp = rtos.bsp(),
@@ -79,6 +92,7 @@ local function report_info()
     cloud.publish("gateway/" .. cloud.id() .. "/info", info)
 end
 
+-- 上报设备状态（周期执行）
 local function report_status()
 
     local total, used, top = rtos.meminfo()
@@ -100,6 +114,7 @@ local function report_status()
     cloud.publish("gateway/" .. cloud.id() .. "/status", status)
 end
 
+--- 打开网关
 function gateway.open()
     -- 打开连接
     links.load()
@@ -117,6 +132,12 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
 
+end
+
+--- 关闭网关
+function gateway.close()
+    
+    
 end
 
 return gateway

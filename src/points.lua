@@ -1,6 +1,6 @@
 local points = {}
 
-
+-- 数据点类型
 points.feagure = {
     bool = { byte = 1, word = 1, pack = "b" },
     boolean = { byte = 1, word = 1, pack = "b" }, --按位去读

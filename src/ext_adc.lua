@@ -27,6 +27,7 @@ local default_config = {
 
 local config = {}
 
+-- ADC芯片初始化
 function ext_adc.init()
     local ret
 
@@ -62,6 +63,8 @@ function ext_adc.init()
     spi.send(config.spi, config.init)
 end
 
+
+--- 关闭ADC芯片
 function ext_adc.close()
     spi.close(config.spi)
 
@@ -70,6 +73,8 @@ function ext_adc.close()
     end
 end
 
+
+--- 读取ADC数据
 function ext_adc.read()
     -- 重置
     gpio.setup(config.reset_pin, gpio.PULLUP)
