@@ -10,9 +10,9 @@ local gnss = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = false, -- 启用
+    enable = true, -- 启用
     uart = 2, -- 串口
-    baudrate = 115200 -- 速度
+    baud_rate = 115200 -- 速度
 }
 
 local config = {}

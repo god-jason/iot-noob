@@ -12,11 +12,11 @@ local function ls_dir(path)
     if not ret then return end
 
     for _, e in ipairs(data) do
-        fn = path .. e.name
-        if e.type == "dir" then
-            ls_dir(fn)
+        local fn = path .. e.name
+        if e.type == 1 then
+            ls_dir(fn.."/")
         else
-            log.info(tag, fn, io.fileSize(fn))
+            log.info(tag, fn, e.size)
         end
     end
 end
@@ -28,9 +28,9 @@ local function remove_all(path)
     if not ret then return end
 
     for _, e in ipairs(data) do
-        fn = path .. e.name
-        if e.type == "dir" then
-            remove_all(fn)
+        local fn = path .. e.name
+        if e.type == 1 then
+            remove_all(fn.."/")
             io.rmdir(fn)
             log.info(tag, "remove", fn)
         else

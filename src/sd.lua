@@ -10,7 +10,7 @@ local sd = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = false, -- 启用
+    enable = true, -- 启用
     spi = 1, -- SPI
     cs_pin = 2, -- 片选GPIO
     speed = 24000000 -- 速度，默认 10000000
@@ -18,7 +18,7 @@ local default_config = {
 
 local config = {}
 
---- 初始化SD卡
+--- 初始化config卡
 function sd.init()
     local ret
 
@@ -35,16 +35,16 @@ function sd.init()
 
     log.info(tag, "init")
 
-    spi.setup(SD.spi, 255, 0, 0, 8, 4000000)
+    spi.setup(config.spi, 255, 0, 0, 8, 4000000)
 
-    gpio.setup(SD.cs_pin, 1)
+    gpio.setup(config.cs_pin, 1)
     -- fatfs.debug(1)
 
-    fatfas.mount(fatfs.SPI, "SD", SD.spi, SD.cs_pin, SD.speed)
+    fatfas.mount(fatfs.SPI, "SD", config.spi, config.cs_pin, config.speed)
 
 end
 
----格式化SD卡
+---格式化config卡
 ---@return boolean 成功与否
 function sd.format()
     if not config.enable then

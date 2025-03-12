@@ -11,7 +11,7 @@ local ext_adc = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = false,
+    enable = true,
     chip = "AD7616", -- 型号
     spi = 2, -- spi总线
     cs_pin = 10, -- spi片选引脚

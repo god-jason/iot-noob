@@ -11,7 +11,7 @@ local battery = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = false, -- 启用
+    enable = true, -- 启用
     adc = 1, -- 内置ADC 0 1
     bits = 10, -- 精度，默认10->1023
     range = adc.ADC_RANGE_1_2, -- 范围
