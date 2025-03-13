@@ -11,7 +11,7 @@ local lan = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = true, -- 启用
+    enable = false, -- 启用 (默认CORE不带驱动，需要重新编译固件)
     chip = "w5500", -- 型号 w5500 ch390
     spi = 0,
     speed = 25600000,
@@ -42,10 +42,8 @@ function lan.init()
     if config.chip == "w5500" then
 
         if w5500 == nil then
-            while 1 do
-                log.info(tag, "当前固件未包含w5500库")
-                sys.wait(1000)
-            end
+            log.error(tag, "当前固件未包含w5500库")
+            return
         end
 
         -- 初始化SPI和5500
@@ -57,7 +55,7 @@ function lan.init()
         -- w5500.config("192.168.1.122", "255.255.255.0", "192.168.1.1", string.fromHex("102a3b4c5d6e")) --mac地址
 
         w5500.bind(socket.ETH0)
-        --lan.w5500_ready = true
+        -- lan.w5500_ready = true
     elseif config.chip == "ch390" then
 
         netdrv.setup(socket.LWIP_ETH)

@@ -7,11 +7,13 @@
 local tag = "gateway"
 local gateway = {}
 
+local battery = require("battery")
 local configs = require("configs")
 local cloud = require("cloud")
 local links = require("links")
 local devices = require("devices")
 local ota = require("ota")
+local gnss = require("gnss")
 
 -- 处理OTA升级
 local function on_ota(topic, payload)
@@ -49,7 +51,6 @@ local function on_config_write(topic, payload)
     configs.save(data.name, data.content)
 end
 
-
 -- 开始透传
 local function on_pipe_start(topic, payload)
     local data, ret = json.decode(payload)
@@ -65,7 +66,6 @@ local function on_pipe_start(topic, payload)
         cloud.publish("gateway/" .. cloud.id() .. "/" .. data.link .. "/up", data)
     end)
 end
-
 
 -- 结束透传
 local function on_pipe_stop(topic, payload)
@@ -94,7 +94,7 @@ local function on_device_read(topic, payload)
     if ret then
         cloud.publish("device/" .. data.id .. "/read", {
             key = data.key,
-            value = value,
+            value = value
         })
     end
 end
@@ -129,22 +129,40 @@ end
 
 -- 上报设备状态（周期执行）
 local function report_status()
-    local total, used, top = rtos.meminfo()
-    local ret, block_total, block_used, block_size = fs.fsstat()
 
     local status = {
-        net = mobile.scell(),
-        mem = {
-            total = total,
-            used = used,
-            top = top
-        },
-        fs = {
-            total = block_total * block_size,
-            used = block_used * block_size,
-            block = block_size,
-        }
+        net = mobile.scell()
     }
+
+    --内存使用信息
+    local total, used, top = rtos.meminfo()
+    status.mem = {
+        total = total,
+        used = used,
+        top = top
+    }
+
+    --文件系统使用
+    local ret, block_total, block_used, block_size = fs.fsstat()
+    status.fs = {
+        total = block_total * block_size,
+        used = block_used * block_size,
+        block = block_size
+    }
+
+    -- 电池使用
+    local ret2, percent = battery.get()
+    if ret2 then
+        status.battery = percent
+    end
+
+    -- GPS定位
+    local ret3, location = gnss.get()
+    if ret2 then
+        status.location = location
+    end
+
+
     cloud.publish("gateway/" .. cloud.id() .. "/status", status)
 end
 
@@ -156,7 +174,7 @@ function gateway.open()
     -- 连接云平台
     cloud.open()
 
-    sys.timerStart(report_info, 30000)       -- 30秒上传信息
+    sys.timerStart(report_info, 30000) -- 30秒上传信息
     sys.timerLoopStart(report_status, 60000) -- 60秒上传一次状态
 
     -- 订阅网关消息

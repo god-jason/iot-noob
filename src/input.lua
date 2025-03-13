@@ -10,7 +10,7 @@ local input = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = true,
+    enable = false,
     pins = {{
         pin = 27,
         name = "X1"

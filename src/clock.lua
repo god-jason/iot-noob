@@ -18,7 +18,7 @@ end
 local configs = require("configs")
 
 local default_config = {
-    enable = true,
+    enable = false,
     chip = "SD3077", -- 型号
     i2c = 1, -- iic总线
     addr = 0x64, -- 站号 0x64: SD3077, 0x68 SD3231

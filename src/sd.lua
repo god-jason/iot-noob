@@ -10,7 +10,7 @@ local sd = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = true, -- 启用
+    enable = false, -- 启用 (默认配置有问题，会直接宕机)
     spi = 1, -- SPI
     cs_pin = 2, -- 片选GPIO
     speed = 24000000 -- 速度，默认 10000000

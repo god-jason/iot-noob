@@ -59,6 +59,7 @@ end)
 
 -- 初始化外设
 require("sd").init() -- SD卡
+require("battery").init() -- 电池
 require("clock").init() -- 初始化时钟芯片
 require("led").init() -- LED灯光
 require("lan").init() -- 以太网

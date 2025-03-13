@@ -7,17 +7,14 @@
 local tag = "battery"
 local battery = {}
 
-
 local configs = require("configs")
 
 local default_config = {
     enable = true, -- 启用
-    adc = 1, -- 内置ADC 0 1
-    bits = 10, -- 精度，默认10->1023
-    range = adc.ADC_RANGE_1_2, -- 范围
-    voltage = 12, -- 电池电压
-    empty = 11.2, -- 空的电压
-    full = 14.2 -- 满的电压
+    vbat = 3800, -- 供电电压mV（合宙的推荐设计是4.2）
+    voltage = 12000, -- 电池电压
+    empty = 11200, -- 空的电压
+    full = 14200 -- 满的电压
 }
 
 local config = {}
@@ -37,31 +34,36 @@ function battery.init()
         return
     end
 
-    log.info(tag, "init")
+    adc.open(adc.CH_VBAT)
+    local vbat = adc.get(adc.CH_VBAT)
+    adc.close(adc.CH_VBAT)
+
+    log.info(tag, "init", vbat) --测试值 3835
 end
 
 --- 获取电池电量
 --- @return boolean 成功与否
---- @return number 百分比
+--- @return table 百分比
 function battery.get()
     if not config.enable then
         return false
     end
 
-    adc.setRange(config.range) -- 0-1.2v
-
-    local ret = adc.open(config.adc)
-    if not ret then return false end
-    local vbat = adc.get(config.adc)
-    adc.close(config.adc)
-    if vbat < 0 then return false end
-
+    -- adc.setRange(config.range) -- 0-1.2v
+    adc.open(adc.CH_VBAT)
+    local vbat = adc.get(adc.CH_VBAT)
+    adc.close(adc.CH_VBAT)
+        
     -- 计算电压和百分比
-    local voltage = config.full * vbat / 1024
-    local percent = (config.voltage - config.empty) / (config.full - config.empty) * 100
+    local voltage = config.voltage * vbat / config.vbat
+    local percent = (voltage - config.empty) / (config.full - config.empty) * 100
     log.info(tag, "get", vbat, voltage, percent)
 
-    return true, percent
+    return true, {
+        vbat = vbat,
+        voltage = voltage,
+        percent = percent,
+    }
 end
 
 return battery

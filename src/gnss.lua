@@ -11,6 +11,7 @@ local configs = require("configs")
 
 local default_config = {
     enable = true, -- 启用
+    debug = false,
     uart = 2, -- 串口
     baud_rate = 115200 -- 速度
 }
@@ -33,24 +34,30 @@ function gnss.init()
         return
     end
 
-    log.info(tag, "init")
+    log.info(tag, "init", json.encode(config))
+
+    -- 给内置GPS芯片上电
+    pm.power(pm.GPS, true)
 
     -- 初始化
+    libgnss.clear() -- 清空数据,兼初始化
 
-    uart.setup(config.uart, config.baudrate)
+    uart.setup(config.uart, config.baud_rate)
     libgnss.bind(config.uart)
-    -- libgnss.debug(true) --GPS调试
+    --libgnss.bind(config.uart, uart.VUART_0) --调试原始数据
+    libgnss.debug(config.debug) --GPS调试
 
-    sys.subscribe("config_STATE", function(event, ticks)
+    sys.subscribe("GNSS_STATE", function(event, ticks)
         -- event取值有
         -- FIXED 定位成功
         -- LOSE  定位丢失
         -- ticks是事件发生的时间,一般可以忽略
         log.info(tag, "state", event, ticks)
         if event == "FIXED" then
-            sys.publish("config_OK")
+            sys.publish("GNSS_OK")
         end
     end)
+
 end
 
 -- 是否定位成功
@@ -78,8 +85,17 @@ end
 }
 ]]
 function gnss.get()
+    log.info(tag, "get", libgnss.getIntLocation())
+    -- log.info(tag, json.encode(libgnss.getRmc(2)))
+
     if libgnss.isFix() then
-        return true, libgnss.getRmc(2)
+        local lat, lng, speed = libgnss.getIntLocation()
+        return true, {
+            langitude = lng,
+            latitude = lat,
+            speed = speed,
+        }
+        -- return true, libgnss.getRmc(2)
     end
     return false
 end
