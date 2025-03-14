@@ -319,7 +319,7 @@ function Modbus:_polling()
         end
 
         -- 轮询间隔
-        if self.poller_interval > 0 then
+        if self.poller_interval ~= nil and self.poller_interval > 0 then
             sys.wait(self.poller_interval * 1000)
         else
             sys.wait(60 * 1000)
