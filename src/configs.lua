@@ -69,21 +69,25 @@ function configs.save(name, data)
     local path = "/" .. name .. ".json"
     local zip -- 压缩引擎
 
+    os.remove(path)
+
     -- 大于一个block-size（flash 4k）
     if #data > 4096 then
         if fastlz then
             path = path .. ".flz"
             zip = fastlz
+            os.remove(path)
         elseif miniz then
             path = path .. ".mz"
             zip = miniz
+            os.remove(path)
         end
     end
 
     -- 删除历史(到底需不需要)，另外，是否需要备份
-    if io.exists(path) then
-        os.remove(path)
-    end
+    -- if io.exists(path) then
+    --     os.remove(path)
+    -- end
 
     -- 压缩
     if zip then
