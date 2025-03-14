@@ -1,11 +1,11 @@
---- 高度接口
---- @module "debug"
+--- 测试接口
+--- @module "test"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.12
-local tag = "debug"
-local debug = {}
+local tag = "test"
+local test = {}
 
 local function ls_dir(path)
     local ret, data = io.lsdir(path, 50, 0)
@@ -40,14 +40,14 @@ local function remove_all(path)
     end
 end
 
-function debug.walk()
+function test.walk()
     ls_dir("/")
 end
 
-function debug.clear()
+function test.clear()
     -- io.rmdir("/")
     remove_all("/")
 end
 
 
-return debug
+return test

@@ -23,10 +23,10 @@ function configs.load(name)
     -- 找不到原始文件，则找压缩文件
     if io.exists(path) then
         -- 找到了未压缩的文件
-    elseif io.exists(path2) then
+    elseif fastlz and io.exists(path2) then
         zip = fastlz
         path = path2
-    elseif io.exists(path3) then
+    elseif miniz and io.exists(path3) then
         zip = miniz
         path = path3
     else

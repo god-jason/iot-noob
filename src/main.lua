@@ -57,6 +57,9 @@ sys.subscribe("NTP_UPDATE", function()
     require("clock").write()
 end)
 
+-- 测试
+require("test").walk()
+
 -- 初始化外设
 require("sd").init() -- SD卡
 require("battery").init() -- 电池

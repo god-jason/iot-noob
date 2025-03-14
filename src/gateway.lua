@@ -17,6 +17,7 @@ local gnss = require("gnss")
 
 -- 处理OTA升级
 local function on_ota(topic, payload)
+    log.info(tag, "on_ota", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -27,6 +28,7 @@ end
 
 -- 处理配置读取
 local function on_config_read(topic, payload)
+    log.info(tag, "on_config_read", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -43,6 +45,7 @@ end
 
 -- 处理配置写入
 local function on_config_write(topic, payload)
+    log.info(tag, "on_config_write", payload)
     local data, ret = json.decode(payload)
     if ret ~= 1 then
         -- 解析失败
@@ -53,6 +56,7 @@ end
 
 -- 开始透传
 local function on_pipe_start(topic, payload)
+    log.info(tag, "on_pipe_start", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -69,6 +73,7 @@ end
 
 -- 结束透传
 local function on_pipe_stop(topic, payload)
+    log.info(tag, "on_pipe_stop", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -80,6 +85,7 @@ local function on_pipe_stop(topic, payload)
 end
 
 local function on_device_read(topic, payload)
+    log.info(tag, "on_device_read", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -100,6 +106,7 @@ local function on_device_read(topic, payload)
 end
 
 local function on_device_write(topic, payload)
+    log.info(tag, "on_device_write", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
@@ -115,6 +122,7 @@ end
 
 -- 上报设备信息
 local function report_info()
+    log.info(tag, "report_info")
     local info = {
         bsp = rtos.bsp(),
         version = rtos.version(),
@@ -129,6 +137,7 @@ end
 
 -- 上报设备状态（周期执行）
 local function report_status()
+    log.info(tag, "report_status")
 
     local status = {
         net = mobile.scell()

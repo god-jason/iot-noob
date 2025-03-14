@@ -40,7 +40,7 @@ local sub_tree = {
 local function find_callback(node, topics, topic, payload)
     -- 叶子节点，执行回调
     if #topics == 0 then
-        for i, cb in ipairs(sub.callbacks) do
+        for i, cb in ipairs(node.callbacks) do
             cb(topic, payload)
         end
         return
@@ -67,6 +67,7 @@ end
 
 -- 事件响应（优先执行绝对订阅，+#）
 local function on_message(topic, payload)
+    log.info(tag, "on_message", topic, payload)
     local ts = string.split(topic, "/")
     find_callback(sub_tree, ts, topic, payload)
 end
