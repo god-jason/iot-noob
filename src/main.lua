@@ -58,7 +58,7 @@ sys.subscribe("NTP_UPDATE", function()
 end)
 
 -- 测试
-require("test").walk()
+require("utils").walk("/")
 
 -- 初始化外设
 require("sd").init() -- SD卡

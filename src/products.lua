@@ -9,7 +9,7 @@ local products = {}
 
 local configs = require("configs")
 
-local cache = {}
+local product_configs = {}
 
 --- 加载产品配置
 --- @param id any 产品ID
@@ -18,11 +18,11 @@ local cache = {}
 --- @return table|nil 配置内容
 function products.load_config(id, config)
     -- 取缓存
-    if cache[id] == nil then
-        cache[id] = {}
+    if product_configs[id] == nil then
+        product_configs[id] = {}
     end
-    if cache[id][config] ~= nil then
-        return true, cache[id][config]
+    if product_configs[id][config] ~= nil then
+        return true, product_configs[id][config]
     end
 
     -- 加载配置文件
@@ -34,7 +34,7 @@ function products.load_config(id, config)
     end
 
     -- 缓存
-    cache[id][config] = data
+    product_configs[id][config] = data
 
     return true, data
 end
