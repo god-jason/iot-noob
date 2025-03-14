@@ -103,6 +103,23 @@ function configs.save(name, data)
     return io.writeFile(path, data)
 end
 
+
+---删除配置文件
+---@param name string 文件名，不带.json后缀
+function configs.delete(name)
+    log.info(tag, "delete", name)
+
+    -- 找文件
+    local path = "/" .. name .. ".json"
+
+    os.remove(path)
+
+    if fastlz then
+        path = path .. ".flz"
+        os.remove(path)
+    end
+end
+
 ---下载配置文件，要求是.json或.json.flz格式
 ---@param name string 文件名，不带.json后缀
 ---@param url string 从http服务器下载

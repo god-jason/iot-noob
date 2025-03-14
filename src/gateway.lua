@@ -43,12 +43,21 @@ end
 
 -- 处理配置写入
 local function on_config_write(topic, payload)
-    log.info(tag, "on_config_write", payload)
+    log.info(tag, "on_config_write", topic, payload)
 
     local base = "gateway/" .. cloud.id() .. "/config/write/"
     local config = string.sub(topic, #base + 1)
 
     configs.save(config, payload)
+end
+
+local function on_config_delete(topic, payload)
+    log.info(tag, "on_config_delete", topic)
+
+    local base = "gateway/" .. cloud.id() .. "/config/delete/"
+    local config = string.sub(topic, #base + 1)
+
+    configs.delete(config)
 end
 
 local function on_config_download(topic, payload)
@@ -196,6 +205,7 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/ota", on_ota)
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/read/#", on_config_read)
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/write/#", on_config_write)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/delete/#", on_config_delete)
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/download", on_config_download)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
