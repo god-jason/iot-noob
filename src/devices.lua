@@ -8,14 +8,32 @@ local tag     = "device"
 local devices = {}
 
 local _devices = {}
+local _raw = {}
 
 
 local configs = require("configs")
 
-function devices.load_by_link(link)
-    --TODO 更好的加载方式
+--- 加载所有设备
+function devices.load()    
+    local ret, data = configs.load("devices")
+    if not ret then
+        return false
+    end
+    log.info(tag, "load", data)
+    _raw = data
+end
 
-    return configs.load("devices/"..link)
+--- 过滤某连接的设备
+---@param link_id string
+---@return table[] 设备列表
+function devices.load_by_link(link_id)
+    local ds = {}
+    for _, dev in ipairs(_raw) do
+        if dev.link_id == link_id then
+            table.insert(ds, dev)
+        end
+    end
+    return ds
 end
 
 

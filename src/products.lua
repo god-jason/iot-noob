@@ -5,7 +5,9 @@
 --- @copyright benyi
 --- @release 2025.01.20
 local tag = "product"
-local products  = {}
+local products = {}
+
+local configs = require("configs")
 
 local cache = {}
 
@@ -14,7 +16,7 @@ local cache = {}
 --- @param config any 配置文件
 --- @return boolean 成功
 --- @return table|nil 配置内容
-function products.load(id, config)
+function products.load_config(id, config)
     -- 取缓存
     if cache[id] == nil then
         cache[id] = {}
@@ -23,64 +25,27 @@ function products.load(id, config)
         return true, cache[id][config]
     end
 
-    -- 找文件
-    local path = "/product/" .. id .. "/" .. config .. ".json"
-    if SD.enable then
-        path = "/sd" .. path
-    end
-
-    -- 找不到，则下载
-    if not io.exists(path) then
-        local ret = download(id, config)
-        if not ret then
-            log.info(tag, "download failed", id, config)
-            cache[id][config] = false --下载失败
-            return false
-        end
-    end
-
-    local size = io.fileSize(path)
-    if size > 20000 then
-        log.info(tag, "too large", path, size)
-        cache[id][config] = false
+    -- 加载配置文件
+    local name = "product/" .. id .. "/" .. config
+    local ret, data = configs.load(name)
+    if not ret then
+        -- products.download(id, config)
         return false
     end
 
-    local data = io.readFile(path)
-    local obj, ret, err = json.decode(data)
-    if ret == 1 then
-        return true, obj
-    else
-        log.info(tag, "parse failed", path, err)
-        cache[id][config] = false
-        return false, err
-    end
+    -- 缓存
+    cache[id][config] = data
+
+    return true, data
 end
 
 --- 下载产品配置
 --- @param id any 产品ID
 --- @param config any 配置文件
---- @return boolean 成功
 function products.download(id, config)
-    local dir = "/product/" .. id
-    if SD.enable then
-        dir = "/sd" .. dir
-    end
-    if not io.exists(dir) then
-        io.mkdir(dir)
-    end
-    local path = dir .. "/" .. config .. ".json"
-    os.remove(path) --先删除
-
-    local url = "http://iot.busycloud.cn/noob/product/" .. id .. "/" .. config .. ".json"
-
-    -- 下载文件
-    local code, headers, body = http.request("GET", url).wait()
-    if code == 200 then
-        return io.writeFile(path, body)
-    end
-
-    return false
+    local name = "product/" .. id .. "/" .. config
+    local url = "http://iot.busycloud.cn/product/" .. id .. "/" .. config .. ".json"
+    configs.download(name, url)
 end
 
 return products

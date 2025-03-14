@@ -136,6 +136,21 @@ local function on_device_write(topic, payload)
     local ret = dev.set(data.key, data.value)
 end
 
+local function on_device_action(topic, payload)
+    log.info(tag, "on_device_action", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    local dev = devices.get(data.id)
+    if not dev then
+        return
+    end
+    
+
+end
+
 -- 上报设备信息
 local function report_info()
     log.info(tag, "report_info")
@@ -192,6 +207,9 @@ end
 
 --- 打开网关
 function gateway.open()
+    -- 加载设备
+    devices.load()
+
     -- 打开连接
     links.load()
 
@@ -211,6 +229,17 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/write", on_device_write)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/device/action", on_device_action)
+
+    -- 订阅系统消息
+    sys.subscribe("DEVICE_VALUES", function(dev, values)
+        cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
+    end)
+    sys.subscribe("DEVICE_EVENT", function(dev, event)
+        cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/event", event)
+    end)
+
+
 end
 
 --- 关闭网关

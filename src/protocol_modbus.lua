@@ -4,14 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-
 local tag = "modbus"
 
 local devices = require("devices")
 local products = require("products")
 local points = require("points")
 local cloud = require("cloud")
-
 
 --- 设备类
 --- @class Device
@@ -31,8 +29,9 @@ end
 
 ---打开设备
 function Device:open()
-    self.mapper = products.load(self.product_id, "modbus_mapper")
-    self.poller = products.load(self.product_id, "modbus_poller")
+    local ret
+    ret, self.mapper = products.load_config(self.product_id, "modbus_mapper")
+    ret, self.poller = products.load_config(self.product_id, "modbus_poller")
 end
 
 ---查找点位
@@ -40,8 +39,10 @@ end
 ---@return boolean 成功与否
 ---@return table 点位
 ---@return integer 功能码
-function Device:find_point(key)
-    if not self.mapper then return false end
+function Device:_find_point(key)
+    if not self.mapper then
+        return false
+    end
     for _, p in ipairs(self.mapper.coils) do
         if p.name == key then
             return true, p, 1
@@ -70,20 +71,28 @@ end
 ---@return boolean 成功与否
 ---@return any
 function Device:get(key)
-    local ret, point, code = self:find_point(key)
-    if not ret then return false end
+    local ret, point, code = self:_find_point(key)
+    if not ret then
+        return false
+    end
 
     local data
     if code == 1 or code == 2 then
         ret, data = self.master:read(self.slave, code, point.address, 1)
-        if not ret then return false end
+        if not ret then
+            return false
+        end
         -- 直接判断返回值就行了 FF00 0000
         return true, points.parseBit(point, data, point.address)
     else
         local feagure = points.feature(point.type)
-        if not feagure then return false end
+        if not feagure then
+            return false
+        end
         ret, data = self.master:read(self.slave, code, point.address, feagure.word)
-        if not ret then return false end
+        if not ret then
+            return false
+        end
         return true, points.parseWord(point, data, point.address)
     end
 end
@@ -93,12 +102,14 @@ end
 ---@param value any 值
 ---@return boolean 成功与否
 function Device:set(key, value)
-    local ret, point, code = self:find_point(key)
-    if not ret then return false end
+    local ret, point, code = self:_find_point(key)
+    if not ret then
+        return false
+    end
 
     local data
 
-    --编码数据
+    -- 编码数据
     if code == 1 or code == 2 then
         if value then
             data = string.fromHex("FF00")
@@ -108,7 +119,9 @@ function Device:set(key, value)
         code = 5
     else
         ret, data = points.encode(point, value)
-        if not ret then return false end
+        if not ret then
+            return false
+        end
         code = 6
     end
 
@@ -190,14 +203,16 @@ end
 function Modbus:ask(request, len)
     if not request then
         local ret = self.link:write(request)
-        if not ret then return false end
+        if not ret then
+            return false
+        end
     end
 
     -- 解决分包问题
     -- 循环读数据，直到读取到需要的长度
     local buf = ""
     repeat
-        --TODO 应该不是每次都要等待
+        -- TODO 应该不是每次都要等待
         local ret = self.link:wait(self.timeout)
         if not ret then
             log.info(tag, "read timeout")
@@ -205,7 +220,9 @@ function Modbus:ask(request, len)
         end
 
         local r, d = self.link:read()
-        if not r then return false end
+        if not r then
+            return false
+        end
         buf = buf .. d
 
         if #buf > 3 then
@@ -234,14 +251,18 @@ function Modbus:read(slave, code, addr, len)
     local crc = pack.pack('<h', crypto.crc16_modbus(data))
 
     local ret, buf = self:ask(data .. crc, 7)
-    if not ret then return false end
+    if not ret then
+        return false
+    end
 
-    --先取字节数
+    -- 先取字节数
     local cnt = string.byte(3)
     local len = 5 + cnt
     if #buf < len then
         local r, d = self:ask(nil, len - #buf)
-        if not r then return false end
+        if not r then
+            return false
+        end
         buf = buf .. d
     end
 
@@ -257,17 +278,27 @@ end
 function Modbus:write(slave, code, addr, data)
     if code == 1 then
         code = 5
-        if data then data = 0xFF00 else data = 0x0000 end
+        if data then
+            data = 0xFF00
+        else
+            data = 0x0000
+        end
     elseif code == 3 then
         -- data = pack.pack('>H', data) --大端数据
-        if #data > 2 then code = 16 else code = 6 end
+        if #data > 2 then
+            code = 16
+        else
+            code = 6
+        end
     end
 
     local data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
     local ret, buf = self:ask(data .. crc, 7)
-    if not ret then return false end
+    if not ret then
+        return false
+    end
 
     return true
 end
@@ -280,21 +311,25 @@ function Modbus:open()
     end
     self.opened = true
 
-    --加载设备
+    -- 加载设备
     local ret, ds = devices.load_by_link(self.link.id)
-    if not ret then return end
+    if not ret then
+        return
+    end
 
-    --启动设备
+    -- 启动设备
     self.devices = {}
     for _, d in ipairs(ds) do
         local dev = Device:new(self, d)
         self.devices[d.id] = dev
-        --dev.open()
+        -- dev.open()
         devices.set(d.id, dev)
     end
 
-    --开启轮询
-    self.task = sys.taskInit(function() self:_polling() end)
+    -- 开启轮询
+    self.task = sys.taskInit(function()
+        self:_polling()
+    end)
 end
 
 --- 关闭
@@ -314,7 +349,8 @@ function Modbus:_polling()
             if ret then
                 -- log.info(tag, dev.id, "polling values", values)
                 -- 向平台发布消息
-                cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
+                -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
+                sys.publish("DEVICE_VALUES", dev, values)
             end
         end
 

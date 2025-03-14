@@ -1,7 +1,8 @@
+local tag = "utils"
 local utils = {}
 
 
---- 删除目录及子文件
+--- 删除目录,以及下面所有的子目录和文件
 ---@param path string 目录
 function utils.remove_all(path)
     local ret, data = io.lsdir(path, 50, 0)
