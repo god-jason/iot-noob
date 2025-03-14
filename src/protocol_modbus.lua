@@ -133,7 +133,7 @@ end
 ---@return table|nil 值
 function Device:poll()
     -- 没有轮询器，直接返回
-    if not self.poller or not self.poller.pollers then
+    if not self.poller or not self.poller.pollers or #self.poller.pollers == 0 then
         return false
     end
 
@@ -346,7 +346,7 @@ function Modbus:_polling()
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
             log.info(tag, "polling", dev.id, ret, values)
-            if ret then
+            if ret and #values > 0 then
                 -- log.info(tag, dev.id, "polling values", values)
                 -- 向平台发布消息
                 -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
