@@ -48,6 +48,7 @@ function links.load()
         local res, lnk = links.create(link.type, link.options)
         log.info(tag, "create link", link.id, link.type, res)
         if res then
+            lnk.id = link.id -- 重新赋值ID
             res = lnk:open()
             log.info(tag, "open link", link.id, res)
 
@@ -55,7 +56,7 @@ function links.load()
                 _links[link.id] = lnk
                 if link.protocol then
                     -- 实例需要保存下来
-                    local res2, instanse = protocols.create(lnk, link.protocol_options)
+                    local res2, instanse = protocols.create(link.protocol, lnk, link.protocol_options)
                     log.info(tag, "create protocol", link.protocol, res2)
                     if res2 then
                         lnk.instanse = instanse

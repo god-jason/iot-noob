@@ -9,7 +9,7 @@ local tag = "tcp client"
 local increment = 1; -- 自增ID
 
 -- 定义类
-local id = {}
+local Client = {}
 
 require("links").register("tcp_client", Client)
 
@@ -20,7 +20,7 @@ function Client:new(opts)
     obj.host = opts.host
     obj.port = opts.port
     obj.adapter = opts.adapter or socket.ETH0 -- 默认以太网卡
-    obj.id = increment
+    obj.index = increment
 
     increment = increment + 1 -- 自增ID
     return obj
@@ -47,15 +47,15 @@ function Client:open()
         elseif event == socket.ON_LINE then
             -- 连接成功
             -- self.ready = true
-            sys.publish("CLIENT_READY_" .. self.id)
+            sys.publish("CLIENT_READY_" .. self.index)
         elseif event == socket.EVENT then
-            sys.publish("CLIENT_DATA_" .. self.id)
+            sys.publish("CLIENT_DATA_" .. self.index)
             -- socket.rx(ctrl, rxbuf)
             -- socket.wait(ctrl)
         elseif event == socket.TX_OK then
             socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
-            sys.publish("CLIENT_CLOSE_" .. self.id)
+            sys.publish("CLIENT_CLOSE_" .. self.index)
         end
     end)
 
@@ -73,7 +73,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUtil(5000, "CLIENT_READY_" .. self.id)
+    local res, data = sys.waitUtil(5000, "CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -89,7 +89,7 @@ end
 
 -- 等待数据
 function Client:wait(timeout)
-    return sys.waitUtil("CLIENT_DATA_" + self.id, timeout)
+    return sys.waitUtil("CLIENT_DATA_" + self.index, timeout)
 end
 
 -- 读数据

@@ -24,7 +24,7 @@ function protocols.create(type, link, opts)
     end
     
     log.info(tag, "create", type)
-    return true, f:new(link, opts)
+    return true, f:new(link, opts or {})
 end
 
 

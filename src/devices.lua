@@ -12,10 +12,10 @@ local _devices = {}
 
 local configs = require("configs")
 
-function devices.load_by_link(id)
+function devices.load_by_link(link)
     --TODO 更好的加载方式
 
-    return configs.load("devices/"..id)
+    return configs.load("devices/"..link)
 end
 
 
