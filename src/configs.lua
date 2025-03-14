@@ -26,9 +26,9 @@ function configs.load(name)
     elseif fastlz and io.exists(path2) then
         zip = fastlz
         path = path2
-    elseif miniz and io.exists(path3) then
-        zip = miniz
-        path = path3
+        -- elseif miniz and io.exists(path3) then
+        --     zip = miniz
+        --     path = path3
     else
         return false
     end
@@ -77,10 +77,10 @@ function configs.save(name, data)
             path = path .. ".flz"
             zip = fastlz
             os.remove(path)
-        elseif miniz then
-            path = path .. ".mz"
-            zip = miniz
-            os.remove(path)
+            -- elseif miniz then
+            --     path = path .. ".mz"
+            --     zip = miniz
+            --     os.remove(path)
         end
     end
 
