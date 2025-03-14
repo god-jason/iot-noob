@@ -87,8 +87,8 @@ local function on_event(client, event, data, payload)
         end
     elseif event == "recv" then
         -- log.info(tag, "topic", data, "payload", payload)
-        -- sys.publish("mqtt_payload", data, payload)
-        on_message(data, payload)
+        sys.publish("CLOUD_MESSAGE", data, payload)
+        -- on_message(data, payload)
     elseif event == "sent" then
         -- log.info(tag, "sent", "pkgid", data)
     elseif event == "disconnect" then
@@ -96,6 +96,7 @@ local function on_event(client, event, data, payload)
         -- client:connect()
     end
 end
+
 
 -- 平台初始化，加载配置
 function cloud.init()
@@ -121,7 +122,7 @@ function cloud.id()
 end
 
 ---打开平台
----@return boolean 成本与否
+---@return boolean 成功与否
 function cloud.open()
     if mqtt == nil then
         log.info(tag, "bsp does not have mqtt lib")
@@ -144,6 +145,16 @@ function cloud.open()
 
     -- 注册回调
     client:on(on_event)
+
+    -- 处理MQTT消息，主要是回调中可能有sys.wait，所以必须用task
+    sys.taskInit(function()
+        while client do
+            local ret, topic, payload = sys.waitUntil("CLOUD_MESSAGE", 30000)
+            if ret then
+                on_message(topic, payload)
+            end
+        end
+    end)
 
     -- 连接
     return client:connect()

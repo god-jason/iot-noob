@@ -148,7 +148,12 @@ local function on_device_action(topic, payload)
         return
     end
     
-
+    -- 执行一系列动作
+    for _, action in ipairs(data) do
+        sys.timerStart(function()
+            dev.set(action.key, action.value)
+        end, action.delay or 0)
+    end
 end
 
 -- 上报设备信息
