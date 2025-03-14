@@ -27,7 +27,6 @@ local config = {}
 -- mqtt连接
 local client = nil
 
-
 -- 订阅历史
 local subs = {}
 -- 订阅树
@@ -48,7 +47,7 @@ local function find_callback(node, topics, topic, payload)
 
     local sub = node.children["#"]
     if sub ~= nil then
-        find_callback(node, {}, topic, payload)
+        find_callback(sub, {}, topic, payload)
     end
 
     local t = topics[1]
@@ -75,7 +74,7 @@ end
 --- mqtt事件处理
 local function on_event(client, event, data, payload)
     -- 用户自定义代码
-    --log.info(tag, "event", event, client, data, payload)
+    -- log.info(tag, "event", event, client, data, payload)
     if event == "conack" then
         -- 联上了
         sys.publish("MQTT_CONACK")
@@ -87,11 +86,11 @@ local function on_event(client, event, data, payload)
             client:subscribe(filter)
         end
     elseif event == "recv" then
-        --log.info(tag, "topic", data, "payload", payload)
+        -- log.info(tag, "topic", data, "payload", payload)
         -- sys.publish("mqtt_payload", data, payload)
         on_message(data, payload)
     elseif event == "sent" then
-        --log.info(tag, "sent", "pkgid", data)
+        -- log.info(tag, "sent", "pkgid", data)
     elseif event == "disconnect" then
         -- 非自动重连时,按需重启mqttc
         -- client:connect()
@@ -137,7 +136,7 @@ function cloud.open()
 
     client:auth(config.clienid, config.username, config.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
-    client:autoreconn(true, 3000)                                 -- 自动重连机制
+    client:autoreconn(true, 3000) -- 自动重连机制
 
     if config.will ~= nil then
         client:will(config.will.topic, config.will.payload)
@@ -153,7 +152,7 @@ end
 --- 关闭平台（不太需要）
 function cloud.close()
     client:close()
-    --client = nil
+    -- client = nil
 end
 
 --- 发布消息
@@ -211,12 +210,6 @@ function cloud.unsubscribe(filter, cb)
         subs[filter] = subs[filter] - 1
     end
 
-    -- 取消全部订阅
-    if cb == nil then
-        client:unsubscribe(filter)
-        return
-    end
-
     local fs = string.split(filter, "/")
 
     -- 创建树枝
@@ -230,13 +223,15 @@ function cloud.unsubscribe(filter, cb)
     end
 
     -- 删除回调
-    for i, c in ipairs(sub.callbacks) do
-        if c == cb then
-            table.remove(sub.callbacks, i)
-        end
-    end
-    if #sub.callbacks == 1 then
+    if #sub.callbacks == 1 or cb == nil then
         client:unsubscribe(filter)
+        sub.callbacks = {}
+    else
+        for i, c in ipairs(sub.callbacks) do
+            if c == cb then
+                table.remove(sub.callbacks, i)
+            end
+        end
     end
 end
 

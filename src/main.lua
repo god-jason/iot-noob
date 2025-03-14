@@ -14,7 +14,7 @@ log.info(tag, "last power reson", pm.lastReson())
 
 -- 引入sys，方便使用
 _G.sys = require("sys")
-
+_G.sysplus = require("sysplus")
 
 -- 看门狗守护
 if wdt then

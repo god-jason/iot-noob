@@ -88,18 +88,19 @@ function configs.save(name, data)
     return io.writeFile(path, data)
 end
 
----下载配置文件，自动编码json
+---下载配置文件，要求是.json或.json.flz格式
 ---@param name string 文件名，不带.json后缀
 ---@param url string 从http服务器下载
----@return boolean 成功与否
 function configs.download(name, url)
     log.info(tag, "download", url)
-    local code, headers, body = http.request("GET", url).wait()
-    log.info(tag, "download result", code, body)
-    -- 阻塞执行的
-    if code == 200 then
-        configs.save(name, body)
-    end
+    sys.taskInit(function()
+        local code, headers, body = http.request("GET", url).wait()
+        log.info(tag, "download result", code, body)
+        -- 阻塞执行的
+        if code == 200 then
+            configs.save(name, body)
+        end
+    end)
 end
 
 return configs
