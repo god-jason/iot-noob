@@ -10,25 +10,26 @@ local configs = {}
 
 ---加载配置文件，自动解析json
 ---@param name string 文件名，不带.json后缀
----@param compress boolean 压缩
 ---@return boolean 成功与否
 ---@return table|nil
-function configs.load(name, compress)
+function configs.load(name)
     -- 找文件
     local path = "/" .. name .. ".json"
-    -- if SD.enable then
-    --     path = "/sd" .. path
-    -- end
-    if compress then
-        if fastlz then
-            path = path .. ".flz"
-        elseif miniz then
-            path = path .. ".mz"
-        end
-    end
+    local path2 = path .. ".flz"
+    local path3 = path .. ".mz"
 
-    -- 找不到，则下载
-    if not io.exists(path) then
+    local zip -- 压缩引擎
+
+    -- 找不到原始文件，则找压缩文件
+    if io.exists(path) then
+        -- 找到了未压缩的文件
+    elseif io.exists(path2) then
+        zip = fastlz
+        path = path2
+    elseif io.exists(path3) then
+        zip = miniz
+        path = path3
+    else
         return false
     end
 
@@ -42,12 +43,8 @@ function configs.load(name, compress)
     local data = io.readFile(path)
 
     -- 解压
-    if compress then
-        if fastlz then
-            data = fastlz.uncompress(data)
-        elseif miniz then
-            data = miniz.uncompress(data)
-        end
+    if zip then
+        data = zip.uncompress(data)
     end
 
     local obj, ret, err = json.decode(data)
@@ -62,23 +59,24 @@ end
 ---保存配置文件，自动编码json
 ---@param name string 文件名，不带.json后缀
 ---@param data table|string 内容
----@param compress boolean 压缩
 ---@return boolean 成功与否
-function configs.save(name, data, compress)
+function configs.save(name, data)
     if type(data) ~= "string" then
         data = json.encode(data)
     end
 
     -- 找文件
     local path = "/" .. name .. ".json"
-    -- if SD.enable then
-    --     path = "/sd" .. path
-    -- end
-    if compress then
+    local zip -- 压缩引擎
+
+    -- 大于一个block-size（flash 4k）
+    if #data > 4096 then
         if fastlz then
             path = path .. ".flz"
+            zip = fastlz
         elseif miniz then
             path = path .. ".mz"
+            zip = miniz
         end
     end
 
@@ -88,12 +86,8 @@ function configs.save(name, data, compress)
     end
 
     -- 压缩
-    if compress then
-        if fastlz then
-            data = fastlz.compress(data)
-        elseif miniz then
-            data = miniz.compress(data)
-        end
+    if zip then
+        data = zip.compress(data)
     end
 
     return io.writeFile(path, data)
