@@ -13,6 +13,8 @@ local configs = {}
 ---@return boolean 成功与否
 ---@return table|nil
 function configs.load(name)
+    log.info(tag, "load", name)
+
     -- 找文件
     local path = "/" .. name .. ".json"
     local path2 = path .. ".flz"
@@ -58,8 +60,21 @@ end
 ---@param data table|string 内容
 ---@return boolean 成功与否
 function configs.save(name, data)
+    log.info(tag, "save", name, data)
+
     if type(data) ~= "string" then
         data = json.encode(data)
+    end
+
+    -- 创建父目录
+    local ss = string.split(name, "/")
+    if #ss > 1 then
+        local dir = "/"
+        for i = 1, #ss - 1, 1 do
+            dir = dir .. "/" .. ss[i]
+            io.mkdir(dir)
+            --log.info(tag, "mkdir", dir, r, e)
+        end
     end
 
     -- 找文件
@@ -92,7 +107,8 @@ end
 ---@param name string 文件名，不带.json后缀
 ---@param url string 从http服务器下载
 function configs.download(name, url)
-    log.info(tag, "download", url)
+    log.info(tag, "download", name, url)
+
     sys.taskInit(function()
         local code, headers, body = http.request("GET", url).wait()
         log.info(tag, "download result", code, body)

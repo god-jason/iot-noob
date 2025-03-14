@@ -12,11 +12,14 @@ local configs = require("configs")
 local default_config = {
     enable = true, -- 启用
     ports = {{
-        id = 0,
-        name = "RS485",
-        rs485_gpio = 22
-    }, {
         id = 1,
+        name = "RS485",
+        -- rs485_gpio = 22
+    }, {
+        id = 2,
+        name = "GNSS"
+    }, {
+        id = 3,
         name = "RS232"
     }}
 }
@@ -58,6 +61,8 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     if not port then
         return false
     end
+
+    log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
     local p = uart.NONE
     if parity == 'N' or parity == 'n' then
@@ -132,7 +137,7 @@ function serial.watch(id, cb)
         return false
     end
 
-    uart.on(self.id, 'receive', cb)
+    uart.on(id, 'receive', cb)
     return true
 end
 
