@@ -31,14 +31,14 @@ local function on_config_read(topic, payload)
     log.info(tag, "on_config_read", topic)
 
     local base = "gateway/" .. cloud.id() .. "/config/read/"
-    local config = string.sub(topic, #base+1)
+    local config = string.sub(topic, #base + 1)
 
     local r, c = configs.load(config)
     if not r then
         return
     end
 
-    cloud.publish("gateway/" .. cloud.id() .. "/config/content/"..config, c)
+    cloud.publish("gateway/" .. cloud.id() .. "/config/content/" .. config, c)
 end
 
 -- 处理配置写入
@@ -46,9 +46,19 @@ local function on_config_write(topic, payload)
     log.info(tag, "on_config_write", payload)
 
     local base = "gateway/" .. cloud.id() .. "/config/write/"
-    local config = string.sub(topic, #base+1)
-    
+    local config = string.sub(topic, #base + 1)
+
     configs.save(config, payload)
+end
+
+local function on_config_download(topic, payload)
+    log.info(tag, "on_config_download", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    configs.download(data.name, data.url)
 end
 
 -- 开始透传
@@ -140,7 +150,7 @@ local function report_status()
         net = mobile.scell()
     }
 
-    --内存使用信息
+    -- 内存使用信息
     local total, used, top = rtos.meminfo()
     status.mem = {
         total = total,
@@ -148,7 +158,7 @@ local function report_status()
         top = top
     }
 
-    --文件系统使用
+    -- 文件系统使用
     local ret, block_total, block_used, block_size = fs.fsstat()
     status.fs = {
         total = block_total * block_size,
@@ -168,7 +178,6 @@ local function report_status()
         status.location = location
     end
 
-
     cloud.publish("gateway/" .. cloud.id() .. "/status", status)
 end
 
@@ -187,6 +196,7 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/ota", on_ota)
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/read/#", on_config_read)
     cloud.subscribe("gateway/" .. cloud.id() .. "/config/write/#", on_config_write)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/download", on_config_download)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)

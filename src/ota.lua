@@ -15,7 +15,6 @@ local function on_ota_download(result, prompt, head, body)
         log.info(tag, "reboot after 5s")
 
         -- TODO gateway.close() 可以发布全局消息以解耦
-        
 
         -- 5秒后自动重启
         sys.timerStart(rtos.reboot, 5000)
@@ -25,16 +24,18 @@ local function on_ota_download(result, prompt, head, body)
     end
 end
 
-
 ---下载文件(阻塞执行的)
 ---@param url string 下载链接
 ---@return boolean 成功与否
 function ota.download(url)
     log.info(tag, "download", url)
-    local code, headers, body = http.request("GET", url, nil, nil, nil, 30000, on_ota_download, "/update.bin")
+    local code, headers, body = http.request("GET", url, {}, nil, {
+        timeout = 30000,
+        dst = "/update.bin"
+    }).wait()
     log.info(tag, "download result", code, body)
     -- 阻塞执行的
-    return code == 2000
+    return code == 200
 end
 
 return ota
