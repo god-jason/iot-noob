@@ -8,6 +8,8 @@ local tag = "configs"
 
 local configs = {}
 
+local utils = require("utils")
+
 ---加载配置文件，自动解析json
 ---@param name string 文件名，不带.json后缀
 ---@return boolean 成功与否
@@ -111,13 +113,16 @@ function configs.delete(name)
 
     -- 找文件
     local path = "/" .. name .. ".json"
-
     os.remove(path)
 
+    -- 删除压缩版
     if fastlz then
         path = path .. ".flz"
         os.remove(path)
     end
+
+    --删除目录
+    utils.remove_all(name)
 end
 
 ---下载配置文件，要求是.json或.json.flz格式
