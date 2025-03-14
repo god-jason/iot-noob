@@ -158,7 +158,7 @@ end
 
 --- 发布消息
 ---@param topic string 主题
----@param payload string|table 数据，支持string,table
+---@param payload string|table|nil 数据，支持string,table
 ---@param qos integer|nil 质量
 ---@return integer 消息id
 function cloud.publish(topic, payload, qos)

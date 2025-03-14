@@ -28,30 +28,27 @@ end
 
 -- 处理配置读取
 local function on_config_read(topic, payload)
-    log.info(tag, "on_config_read", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-    local r, c = configs.load(data.name)
+    log.info(tag, "on_config_read", topic)
+
+    local base = "gateway/" .. cloud.id() .. "/config/read/"
+    local config = string.sub(topic, #base+1)
+
+    local r, c = configs.load(config)
     if not r then
         return
     end
-    cloud.publish("gateway/" .. cloud.id() .. "/config", {
-        name = data.name,
-        content = c
-    })
+
+    cloud.publish("gateway/" .. cloud.id() .. "/config/content/"..config, c)
 end
 
 -- 处理配置写入
 local function on_config_write(topic, payload)
     log.info(tag, "on_config_write", payload)
-    local data, ret = json.decode(payload)
-    if ret ~= 1 then
-        -- 解析失败
-        return
-    end
-    configs.save(data.name, data.content)
+
+    local base = "gateway/" .. cloud.id() .. "/config/write/"
+    local config = string.sub(topic, #base+1)
+    
+    configs.save(config, payload)
 end
 
 -- 开始透传
@@ -188,8 +185,8 @@ function gateway.open()
 
     -- 订阅网关消息
     cloud.subscribe("gateway/" .. cloud.id() .. "/ota", on_ota)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/read", on_config_read)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/write", on_config_write)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/read/#", on_config_read)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/write/#", on_config_write)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
