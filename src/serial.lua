@@ -62,7 +62,7 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
         return false
     end
 
-    log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
+    --log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
     local p = uart.NONE
     if parity == 'N' or parity == 'n' then
@@ -79,6 +79,8 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     else
         ret = uart.setup(port.id, baud_rate, data_bits, stop_bits, p, uart.MSB, 1024, port.rs485_gpio)
     end
+
+    log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity, ret==0)
 
     return ret == 0
 end
@@ -98,6 +100,7 @@ function serial.write(data)
     end
     
     local len = uart.write(port.id, data)
+    log.info(tag, "write", port.id, data, len)
     return len > 0, len
 end
 
@@ -118,6 +121,7 @@ function serial.read(id)
     local len = uart.rxSize(port.id)
     if len > 0 then
         local data = uart.read(port.id, len)
+        log.info(tag, "read", port.id, data)
         return true, data
     end
     return false
@@ -137,7 +141,7 @@ function serial.watch(id, cb)
         return false
     end
 
-    uart.on(id, 'receive', cb)
+    uart.on(port.id, 'receive', cb)
     return true
 end
 
@@ -153,6 +157,8 @@ function serial.close(id)
     if not port then
         return false
     end
+
+    log.info(tag, "close", port.id)
 
     uart.close(port.id)
     return true
