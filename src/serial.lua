@@ -72,9 +72,9 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     if parity == 'N' or parity == 'n' then
         p = uart.NONE
     elseif parity == 'E' or parity == 'e' then
-        p = uart.Even
+        p = uart.EVEN
     elseif parity == 'O' or parity == 'o' then
-        p = uart.Odd
+        p = uart.ODD
     end
 
     local ret
