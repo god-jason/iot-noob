@@ -141,7 +141,11 @@ function serial.watch(id, cb)
         return false
     end
 
-    uart.on(port.id, 'receive', cb)
+    uart.on(port.id, 'receive', function(_id, len)
+        log.info(tag, "receive", id, _id, len)
+        -- 使用外部ID
+        cb(id, len)
+    end)
     return true
 end
 
