@@ -20,20 +20,16 @@ local config = {}
 
 --- 初始化config卡
 function sd.init()
-    local ret
 
+    log.info(tag, "init")
+    
     -- 加载配置
-    ret, config = configs.load(tag)
-    if not ret then
-        -- 使用默认
-        config = default_config
-    end
+    config = configs.load_default(tag, default_config)
 
     if not config.enable then
         return
     end
 
-    log.info(tag, "init")
 
     spi.setup(config.spi, 255, 0, 0, 8, 4000000)
 

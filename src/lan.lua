@@ -24,20 +24,17 @@ local config = {}
 
 --- 以太网初始化
 function lan.init()
-    local ret
 
+    log.info(tag, "init")
+    
     -- 加载配置
-    ret, config = configs.load(tag)
-    if not ret then
-        -- 使用默认
-        config = default_config
-    end
+    config = configs.load_default(tag, default_config)
+
 
     if not config.enable then
         return
     end
 
-    log.info(tag, "init")
 
     if config.chip == "w5500" then
 

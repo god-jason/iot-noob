@@ -57,6 +57,19 @@ function configs.load(name)
     end
 end
 
+---加载配置文件，如果不存在，则用默认
+---@param name string 文件名，不带.json后缀
+---@param default table 默认内容
+---@return table
+function configs.load_default(name, default)
+    log.info(tag, "load", name)
+    local ret, data = configs.load(name)
+    if not ret then
+        return default
+    end
+    return data
+end
+
 ---保存配置文件，自动编码json
 ---@param name string 文件名，不带.json后缀
 ---@param data table|string 内容

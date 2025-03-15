@@ -10,10 +10,10 @@ local cloud = {}
 local configs = require("configs")
 
 local default_config = {
-    id = "test",
+    id = mobile.imei(),
     host = "git.zgwit.com",
     port = 1883,
-    clienid = "test",
+    clienid = mobile.imei(),
     username = "",
     password = ""
     -- will = { -- 遗嘱消息
@@ -100,19 +100,10 @@ end
 
 -- 平台初始化，加载配置
 function cloud.init()
-    local ret
+    log.info(tag, "init")
 
     -- 加载配置
-    ret, config = configs.load(tag)
-    if not ret then
-        -- 使用默认
-        config = default_config
-        -- 默认使用imei号作为网关ID
-        config.id = mobile.imei()
-        config.clienid = mobile.imei()
-    end
-
-    log.info(tag, "init")
+    config = configs.load_default(tag, default_config)
 end
 
 --- 获取ID
