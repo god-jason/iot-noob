@@ -155,34 +155,58 @@ function Device:poll()
     local values = {}
     for _, poller in ipairs(self.poller.pollers) do
         local res, data = self.master:read(self.station.slave, poller.code, poller.address, poller.length)
+        log.info(tag, "read", res, #data)
         if res then
             if poller.code == 1 then
+                --log.info(tag, "parse 1 ", #data)
                 for _, point in ipairs(self.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        values[point.name] = points.parseBit(point, data, poller.address)
-                        return true
+                        local r, v = points.parseBit(point, data, poller.address)
+                        if r then
+                            ret = true
+                            values[point.name] = v
+                        end
                     end
                 end
+                --log.info(tag, "parse 1 ", json.encode(values))
             elseif poller.code == 2 then
+                --log.info(tag, "parse 2 ", #data)
                 for _, point in ipairs(self.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        values[point.name] = points.parseBit(point, data, poller.address)
-                        return true
+                        local r, v = points.parseBit(point, data, poller.address)
+                        if r then
+                            ret = true
+                            values[point.name] = v
+                        end
                     end
                 end
+                --log.info(tag, "parse 2 ", json.encode(values))
             elseif poller.code == 3 then
+                --log.info(tag, "parse 3 ", #data)
                 for _, point in ipairs(self.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        values[point.name] = points.parseWord(point, data, poller.address)
+                        local r, v = points.parseWord(point, data, poller.address)
+                        if r then
+                            ret = true
+                            values[point.name] = v
+                        end
                     end
                 end
+                --log.info(tag, "parse 3 ", json.encode(values))
             elseif poller.code == 4 then
+                --log.info(tag, "parse 4 ", #data)
                 for _, point in ipairs(self.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
-                        values[point.name] = points.parseWord(point, data, poller.address)
+                        local r, v = points.parseWord(point, data, poller.address)
+                        if r then
+                            ret = true
+                            values[point.name] = v
+                        end
                     end
                 end
+                --log.info(tag, "parse 4 ", json.encode(values))
             else
+                log.info(tag, "unkown code ", poller.code)
                 -- 暂不支持其他类型
             end
         end
@@ -221,6 +245,7 @@ function Modbus:ask(request, len)
     if request ~= nil and #request > 0 then
         local ret = self.link:write(request)
         if not ret then
+            log.info(tag, "write failed")
             return false
         end
     end
@@ -238,6 +263,7 @@ function Modbus:ask(request, len)
 
         local r, d = self.link:read()
         if not r then
+            log.info(tag, "read failed")
             return false
         end
         buf = buf .. d
@@ -246,7 +272,7 @@ function Modbus:ask(request, len)
             -- 取错误码
             local code = string.byte(buf, 2)
             if code > 0x80 then
-                log.info(tag, "error", code, string.byte(3))
+                log.info(tag, "error code", code, string.byte(3))
                 return false
             end
         end
@@ -366,8 +392,9 @@ function Modbus:_polling()
 
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
-            if ret and #values > 0 then
-                log.info(tag, "polling", dev.id, "values", values)
+            if ret then
+                log.info(tag, "polling", dev.id, "succeed")
+                -- log.info(tag, "polling", dev.id, "values", json.encode(values))
                 -- 向平台发布消息
                 -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
                 sys.publish("DEVICE_VALUES", dev, values)

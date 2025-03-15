@@ -65,7 +65,7 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     if not serial.available(id) then
         return false
     end
-    
+
     local port = config.ports[id]
     --log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
@@ -100,7 +100,7 @@ function serial.write(id, data)
     end
     
     local len = uart.write(id, data)
-    log.info(tag, "write", id, data, len)
+    log.info(tag, "write", id, len)
     return len > 0, len
 end
 
@@ -116,7 +116,7 @@ function serial.read(id)
     local len = uart.rxSize(id)
     if len > 0 then
         local data = uart.read(id, len)
-        log.info(tag, "read", id, data)
+        log.info(tag, "read", id, #data)
         return true, data
     end
     return false

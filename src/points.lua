@@ -4,6 +4,7 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
+local tag = "points"
 local points = {}
 
 -- 数据点类型
@@ -116,50 +117,74 @@ end
 ---@param point table 点位信息
 ---@param data string 数据
 ---@param address integer 数据地址
+---@return boolean
 ---@return any
 function points.parseBit(point, data, address)
-    local offset = point.address - address + 1
-    local byte = string.byte(data, math.floor(offset / 8))
-    local value = bit.isSet(byte, offset % 8)
-    return value
+    --log.info(tag, "parseBit", point, #data, address)
+    local offset = point.address - address
+    local cursor = math.floor(offset / 8) + 1
+    if #data <= cursor then
+        log.info(tag, "parseBit over index")
+        return false
+    end
+    local byte = string.byte(data, cursor)
+    local value = bit.isSet(byte, offset % 8 + 1)
+    return true, value
 end
 
 ---解析字数据
 ---@param point table 点位信息
 ---@param data string 数据
 ---@param address integer 数据地址
+---@return boolean
 ---@return any
 function points.parseWord(point, data, address)
+    --log.info(tag, "parseWord", point.name, point.address, #data, address)
     local feagure = feagures[point.type]
     if not feagure then
-        return nil
+        log.info(tag, "parseWord unkown type", point.type)
+        return false
     end
 
-    -- 编码数据
+    local cursor = (point.address - address) * 2 + 1 -- lua索引从1开始...
+    if #data <= cursor then
+        log.info(tag, "parseWord over index")
+        return false
+    end
+
+    -- 解码数据
     local be = point.be and ">" or "<"
     local pk = feagure.pack
-    local buf = string.sub(data, (point.address - address) * 2 + 1) -- lua索引从1开始...
+    local buf = string.sub(data, cursor)
     local _, value = pack.unpack(buf, be .. pk)
-    return value
+    return true, value
 end
 
 ---解析数据
 ---@param point table 点位信息
 ---@param data string 数据
 ---@param address integer 数据地址
+---@return boolean
 ---@return any
 function points.parse(point, data, address)
     local feagure = feagures[point.type]
     if not feagure then
-        return nil
+        log.info(tag, "parse unkown type", point.type)
+        return false
     end
 
-    -- 编码数据
+    local cursor = point.address - address + 1 -- lua索引从1开始...
+    if #data <= cursor then
+        log.info(tag, "parse over index")
+        return false
+    end
+
+    -- 解码数据
     local be = point.be and ">" or "<"
     local pk = feagure.pack
-    local buf = string.sub(data, point.address - address + 1) -- lua索引从1开始...
+    local buf = string.sub(data, cursor)
     local _, value = pack.unpack(buf, be .. pk)
-    return value
+    return true, value
 end
 
 ---编码数据
@@ -170,11 +195,12 @@ end
 function points.encode(point, value)
     local feagure = feagures[point.type]
     if not feagure then
+        log.info(tag, "encode unkown type", point.type)
         return false
     end
     local be = point.be and ">" or "<"
     local pk = feagure.pack
-    data = pack.pack(be .. pk, value)
+    local data = pack.pack(be .. pk, value)
     return true, data
 end
 
