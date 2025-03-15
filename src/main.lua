@@ -88,4 +88,10 @@ require("protocol_modbus")
 -- 启动网关系统程序
 require("gateway").open()
 
+-- sys.timerLoopStart(function()
+--     uart.write(1, "111")
+--     uart.write(2, "222")
+--     uart.write(3, "333")
+-- end, 6000)
+
 sys.run()

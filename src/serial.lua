@@ -13,7 +13,7 @@ local default_config = {
     ports = {{
         enable = true, -- 启用
         name = "RS485",
-        -- rs485_gpio = 22
+        rs485_gpio = 25
     }, {
         enable = false, -- 启用
         name = "GNSS"
