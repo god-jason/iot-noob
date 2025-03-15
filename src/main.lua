@@ -68,6 +68,7 @@ require("led").init() -- LED灯光
 require("lan").init() -- 以太网
 require("input").init() -- 输入
 require("output").init() -- 输入
+require("ext_adc").init() -- 外部ADC
 require("gnss").init() -- GPS定位
 require("serial").init() -- 串口
 require("cloud").init() -- 平台

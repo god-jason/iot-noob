@@ -73,7 +73,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUtil(5000, "CLIENT_READY_" .. self.index)
+    local res, data = sys.waitUntil(5000, "CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -89,7 +89,7 @@ end
 
 -- 等待数据
 function Client:wait(timeout)
-    return sys.waitUtil("CLIENT_DATA_" + self.index, timeout)
+    return sys.waitUntil("CLIENT_DATA_" .. self.index, timeout)
 end
 
 -- 读数据

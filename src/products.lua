@@ -26,7 +26,7 @@ function products.load_config(id, config)
     end
 
     -- 加载配置文件
-    local name = "product/" .. id .. "/" .. config
+    local name = "products/" .. id .. "/" .. config
     local ret, data = configs.load(name)
     if not ret then
         -- products.download(id, config)
@@ -43,7 +43,7 @@ end
 --- @param id any 产品ID
 --- @param config any 配置文件
 function products.download(id, config)
-    local name = "product/" .. id .. "/" .. config
+    local name = "products/" .. id .. "/" .. config
     local url = "http://iot.busycloud.cn/product/" .. id .. "/" .. config .. ".json"
     configs.download(name, url)
 end

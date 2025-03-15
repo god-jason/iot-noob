@@ -29,9 +29,17 @@ end
 
 ---打开设备
 function Device:open()
+    log.info(tag, "device open", self.id, self.product_id)
+
     local ret
     ret, self.mapper = products.load_config(self.product_id, "modbus_mapper")
+    if not ret then
+        log.error(tag, self.product_id, "modbus_mapper load failed")
+    end
     ret, self.poller = products.load_config(self.product_id, "modbus_poller")
+    if not ret then
+        log.error(tag, self.product_id, "modbus_poller load failed")
+    end
 end
 
 ---查找点位
@@ -78,7 +86,7 @@ function Device:get(key)
 
     local data
     if code == 1 or code == 2 then
-        ret, data = self.master:read(self.slave, code, point.address, 1)
+        ret, data = self.master:read(self.station.slave, code, point.address, 1)
         if not ret then
             return false
         end
@@ -89,7 +97,7 @@ function Device:get(key)
         if not feagure then
             return false
         end
-        ret, data = self.master:read(self.slave, code, point.address, feagure.word)
+        ret, data = self.master:read(self.station.slave, code, point.address, feagure.word)
         if not ret then
             return false
         end
@@ -125,22 +133,25 @@ function Device:set(key, value)
         code = 6
     end
 
-    return self.master:write(self.slave, code, point.address, data)
+    return self.master:write(self.station.slave, code, point.address, data)
 end
 
 ---读取所有数据
 ---@return boolean 成功与否
 ---@return table|nil 值
 function Device:poll()
+    -- log.info(tag, "poller", json.encode(self.poller))
+
     -- 没有轮询器，直接返回
     if not self.poller or not self.poller.pollers or #self.poller.pollers == 0 then
+        log.info(tag, self.id, self.product_id, "pollers empty")
         return false
     end
 
     local ret = false
     local values = {}
     for _, poller in ipairs(self.poller.pollers) do
-        local res, data = self.master:read(self.slave, poller.code, poller.address, poller.length)
+        local res, data = self.master:read(self.station.slave, poller.code, poller.address, poller.length)
         if res then
             if poller.code == 1 then
                 for _, point in ipairs(self.mapper.coils) do
@@ -191,7 +202,9 @@ function Modbus:new(link, opts)
     setmetatable(obj, self)
     self.__index = self
     obj.link = link
-    obj.timeout = opts.timeout or 1000
+    obj.timeout = opts.timeout or 1000 --1秒钟
+    obj.poller_interval = opts.poller_interval or 5 --5秒钟
+    
     return obj
 end
 
@@ -312,23 +325,24 @@ function Modbus:open()
     self.opened = true
 
     -- 加载设备
-    local ret, ds = devices.load_by_link(self.link.id)
-    if not ret then
-        return
-    end
+    local ds = devices.load_by_link(self.link.id)
 
     -- 启动设备
     self.devices = {}
     for _, d in ipairs(ds) do
+        log.info(tag, "open device", json.encode(d))
         local dev = Device:new(self, d)
+        dev:open() -- 设备也要打开
+
         self.devices[d.id] = dev
         -- dev.open()
         devices.set(d.id, dev)
     end
 
     -- 开启轮询
+    local this = self
     self.task = sys.taskInit(function()
-        self:_polling()
+        this:_polling()
     end)
 end
 
@@ -345,17 +359,18 @@ function Modbus:_polling()
 
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
-            log.info(tag, "polling", dev.id, ret, values)
             if ret and #values > 0 then
-                -- log.info(tag, dev.id, "polling values", values)
+                log.info(tag, "polling", dev.id, "values", values)
                 -- 向平台发布消息
                 -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
                 sys.publish("DEVICE_VALUES", dev, values)
+            else
+                log.info(tag, "polling", dev.id, "failed")
             end
         end
 
-        -- 轮询间隔
-        if self.poller_interval ~= nil and self.poller_interval > 0 then
+        -- 轮询间隔 TODO 计时，算时差
+        if self.poller_interval > 0 then
             sys.wait(self.poller_interval * 1000)
         else
             sys.wait(60 * 1000)

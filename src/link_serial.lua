@@ -55,7 +55,7 @@ end
 --- @param timeout integer 超时 ms
 --- @return boolean 成功与否
 function Serial:wait(timeout)
-    return sys.waitUtil("SERIAL_DATA_" + self.port, timeout)
+    return sys.waitUntil("SERIAL_DATA_" .. self.port, timeout)
 end
 
 -- 读数据
