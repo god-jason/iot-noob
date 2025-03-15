@@ -79,6 +79,7 @@ end
 ---@return boolean 成功与否
 ---@return any
 function Device:get(key)
+    log.info(tag, "get", key, self.id)
     local ret, point, code = self:_find_point(key)
     if not ret then
         return false
@@ -110,6 +111,7 @@ end
 ---@param value any 值
 ---@return boolean 成功与否
 function Device:set(key, value)
+    log.info(tag, "set", key, value, self.id)
     local ret, point, code = self:_find_point(key)
     if not ret then
         return false
@@ -140,6 +142,7 @@ end
 ---@return boolean 成功与否
 ---@return table|nil 值
 function Device:poll()
+    log.info(tag, "poll", self.id)
     -- log.info(tag, "poller", json.encode(self.poller))
 
     -- 没有轮询器，直接返回
@@ -202,9 +205,9 @@ function Modbus:new(link, opts)
     setmetatable(obj, self)
     self.__index = self
     obj.link = link
-    obj.timeout = opts.timeout or 1000 --1秒钟
-    obj.poller_interval = opts.poller_interval or 5 --5秒钟
-    
+    obj.timeout = opts.timeout or 1000 -- 1秒钟
+    obj.poller_interval = opts.poller_interval or 5 -- 5秒钟
+
     return obj
 end
 
@@ -214,7 +217,8 @@ end
 ---@return boolean 成功与否
 ---@return string 返回数据
 function Modbus:ask(request, len)
-    if not request then
+    -- log.info(tag, "ask", request, len)
+    if request ~= nil and #request > 0 then
         local ret = self.link:write(request)
         if not ret then
             return false
@@ -259,6 +263,8 @@ end
 ---@return boolean 成功与否
 ---@return string 只有数据
 function Modbus:read(slave, code, addr, len)
+    log.info(tag, "read", slave, code, addr, len)
+
     -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
     local crc = pack.pack('<h', crypto.crc16_modbus(data))
@@ -305,6 +311,7 @@ function Modbus:write(slave, code, addr, data)
         end
     end
 
+    log.info(tag, "write", slave, code, addr, data)
     local data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 

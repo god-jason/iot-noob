@@ -65,7 +65,8 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     if not serial.available(id) then
         return false
     end
-
+    
+    local port = config.ports[id]
     --log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
     local p = uart.NONE

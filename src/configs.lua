@@ -62,7 +62,7 @@ end
 ---@param default table 默认内容
 ---@return table
 function configs.load_default(name, default)
-    log.info(tag, "load", name)
+    -- log.info(tag, "load", name)
     local ret, data = configs.load(name)
     if not ret then
         return default
