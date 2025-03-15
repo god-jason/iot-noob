@@ -155,8 +155,9 @@ function Device:poll()
     local values = {}
     for _, poller in ipairs(self.poller.pollers) do
         local res, data = self.master:read(self.station.slave, poller.code, poller.address, poller.length)
-        log.info(tag, "read", res, #data)
         if res then
+            log.info(tag, "poll read", #data)
+
             if poller.code == 1 then
                 --log.info(tag, "parse 1 ", #data)
                 for _, point in ipairs(self.mapper.coils) do
@@ -209,6 +210,8 @@ function Device:poll()
                 log.info(tag, "unkown code ", poller.code)
                 -- 暂不支持其他类型
             end
+        else
+            log.info(tag, "poll read failed")
         end
     end
     return ret, values
