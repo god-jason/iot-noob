@@ -45,10 +45,9 @@ function links.load()
     log.info(tag, "load", data)
 
     for _, link in ipairs(data) do
-        local res, lnk = links.create(link.type, link.options)
+        local res, lnk = links.create(link.type, link)
         log.info(tag, "create link", link.id, link.type, res)
         if res then
-            lnk.id = link.id -- 重新赋值ID
             res = lnk:open()
             log.info(tag, "open link", link.id, res)
 

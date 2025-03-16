@@ -80,12 +80,12 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
 
     local ret
     if port.rs485_gpio == nil then
-        ret = uart.setup(id, baud_rate, data_bits, stop_bits, p)
+        ret = uart.setup(id, baud_rate, data_bits, stop_bits, p, uart.LSB, 1024, nil)
+        log.info(tag, "open", id, port.name, baud_rate, data_bits, stop_bits, parity, ret)
     else
         ret = uart.setup(id, baud_rate, data_bits, stop_bits, p, uart.LSB, 1024, port.rs485_gpio)
+        log.info(tag, "open 485", id, port.name, baud_rate, data_bits, stop_bits, parity, port.rs485_gpio, ret)
     end
-
-    log.info(tag, "open", id, port.name, baud_rate, data_bits, stop_bits, parity, ret == 0)
 
     return ret == 0
 end

@@ -17,6 +17,7 @@ function Client:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
+    obj.id = opts.id or "tcp-" .. opts.host .. ":" .. opts.port
     obj.host = opts.host
     obj.port = opts.port
     obj.adapter = opts.adapter or socket.ETH0 -- 默认以太网卡

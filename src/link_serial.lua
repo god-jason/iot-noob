@@ -21,7 +21,8 @@ function Serial:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    obj.port = opts.id or opts.port or 1
+    obj.id = opts.id or "serial-"..opts.port
+    obj.port = opts.port or 1
     obj.baud_rate = opts.baud_rate or 9600
     obj.data_bits = opts.data_bits or 8
     obj.stop_bits = opts.stop_bits or 1

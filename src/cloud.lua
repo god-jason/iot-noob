@@ -97,7 +97,6 @@ local function on_event(client, event, data, payload)
     end
 end
 
-
 -- 平台初始化，加载配置
 function cloud.init()
     log.info(tag, "init")
@@ -219,7 +218,7 @@ function cloud.unsubscribe(filter, cb)
     for _, f in ipairs(fs) do
         local s = sub.children[f]
         if s == nil then
-            return
+            return -- 找不到了
         end
         sub = s
     end
