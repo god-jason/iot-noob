@@ -159,7 +159,7 @@ function Device:poll()
             log.info(tag, "poll read", #data)
 
             if poller.code == 1 then
-                --log.info(tag, "parse 1 ", #data)
+                -- log.info(tag, "parse 1 ", #data)
                 for _, point in ipairs(self.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
@@ -169,9 +169,9 @@ function Device:poll()
                         end
                     end
                 end
-                --log.info(tag, "parse 1 ", json.encode(values))
+                -- log.info(tag, "parse 1 ", json.encode(values))
             elseif poller.code == 2 then
-                --log.info(tag, "parse 2 ", #data)
+                -- log.info(tag, "parse 2 ", #data)
                 for _, point in ipairs(self.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
@@ -181,9 +181,9 @@ function Device:poll()
                         end
                     end
                 end
-                --log.info(tag, "parse 2 ", json.encode(values))
+                -- log.info(tag, "parse 2 ", json.encode(values))
             elseif poller.code == 3 then
-                --log.info(tag, "parse 3 ", #data)
+                -- log.info(tag, "parse 3 ", #data)
                 for _, point in ipairs(self.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
@@ -193,9 +193,9 @@ function Device:poll()
                         end
                     end
                 end
-                --log.info(tag, "parse 3 ", json.encode(values))
+                -- log.info(tag, "parse 3 ", json.encode(values))
             elseif poller.code == 4 then
-                --log.info(tag, "parse 4 ", #data)
+                -- log.info(tag, "parse 4 ", #data)
                 for _, point in ipairs(self.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
@@ -205,7 +205,7 @@ function Device:poll()
                         end
                     end
                 end
-                --log.info(tag, "parse 4 ", json.encode(values))
+                -- log.info(tag, "parse 4 ", json.encode(values))
             else
                 log.info(tag, "unkown code ", poller.code)
                 -- 暂不支持其他类型
@@ -270,15 +270,6 @@ function Modbus:ask(request, len)
             return false
         end
         buf = buf .. d
-
-        if #buf > 3 then
-            -- 取错误码
-            local code = string.byte(buf, 2)
-            if code > 0x80 then
-                log.info(tag, "error code", code, string.byte(3))
-                return false
-            end
-        end
     until #buf >= len
 
     return true, buf
@@ -303,10 +294,20 @@ function Modbus:read(slave, code, addr, len)
         return false
     end
 
+    -- 取错误码
+    if #buf > 3 then
+        local code = string.byte(buf, 2)
+        if code > 0x80 then
+            log.info(tag, "error code", code)
+            return false
+        end
+    end
+
     -- 先取字节数
-    local cnt = string.byte(3)
+    local cnt = string.byte(buf, 3)
     local len = 5 + cnt
     if #buf < len then
+        log.info(tag, "wait more", len, #buf)
         local r, d = self:ask(nil, len - #buf)
         if not r then
             return false
@@ -347,6 +348,15 @@ function Modbus:write(slave, code, addr, data)
     local ret, buf = self:ask(data .. crc, 7)
     if not ret then
         return false
+    end
+
+    -- 取错误码
+    if #buf > 3 then
+        local code = string.byte(buf, 2)
+        if code > 0x80 then
+            log.info(tag, "error code", code)
+            return false
+        end
     end
 
     return true
