@@ -29,7 +29,7 @@ local config = {}
 function serial.init()
 
     log.info(tag, "init")
-    
+
     -- 加载配置
     config = configs.load_default(tag, default_config)
     if not config.enable then
@@ -67,25 +67,25 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
     end
 
     local port = config.ports[id]
-    --log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
+    -- log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
-    local p = uart.NONE
+    local p = uart.None
     if parity == 'N' or parity == 'n' then
-        p = uart.NONE
+        p = uart.None
     elseif parity == 'E' or parity == 'e' then
-        p = uart.EVEN
+        p = uart.Even
     elseif parity == 'O' or parity == 'o' then
-        p = uart.ODD
+        p = uart.Odd
     end
 
     local ret
     if port.rs485_gpio == nil then
         ret = uart.setup(id, baud_rate, data_bits, stop_bits, p)
     else
-        ret = uart.setup(id, baud_rate, data_bits, stop_bits, p, uart.MSB, 1024, port.rs485_gpio)
+        ret = uart.setup(id, baud_rate, data_bits, stop_bits, p, uart.LSB, 1024, port.rs485_gpio)
     end
 
-    log.info(tag, "open", id, port.name, baud_rate, data_bits, stop_bits, parity, ret==0)
+    log.info(tag, "open", id, port.name, baud_rate, data_bits, stop_bits, parity, ret == 0)
 
     return ret == 0
 end
@@ -98,7 +98,7 @@ function serial.write(id, data)
     if not serial.available(id) then
         return false
     end
-    
+
     local len = uart.write(id, data)
     log.info(tag, "write", id, len)
     return len > 0, len
@@ -133,6 +133,15 @@ function serial.watch(id, cb)
 
     uart.on(id, 'receive', cb)
     return true
+end
+
+---清空串口数据
+---@param id integer ID号 
+function serial.clear(id)
+    if not serial.available(id) then
+        return false
+    end
+    uart.rxClear(id)
 end
 
 ---关闭串口

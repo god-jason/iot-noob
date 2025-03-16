@@ -296,7 +296,7 @@ function Modbus:read(slave, code, addr, len)
 
     -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
-    local crc = pack.pack('<h', crypto.crc16_modbus(data))
+    local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
     local ret, buf = self:ask(data .. crc, 7)
     if not ret then
