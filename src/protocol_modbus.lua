@@ -183,7 +183,7 @@ function Device:poll()
                 end
                 -- log.info(tag, "parse 2 ", json.encode(values))
             elseif poller.code == 3 then
-                 log.info(tag, "parse 3 ", #data)
+                -- log.info(tag, "parse 3 ", #data)
                 for _, point in ipairs(self.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
@@ -193,7 +193,7 @@ function Device:poll()
                         end
                     end
                 end
-                 log.info(tag, "parse 3 ", json.encode(values))
+                -- log.info(tag, "parse 3 ", json.encode(values))
             elseif poller.code == 4 then
                 -- log.info(tag, "parse 4 ", #data)
                 for _, point in ipairs(self.mapper.input_registers) do
