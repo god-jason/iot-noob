@@ -1,3 +1,130 @@
 {
-    
+    "battery": {
+        "enable": false,
+        "vbat": 3800,
+        "adc": 0,
+        "partial": true,
+        "voltage": 12000,
+        "empty": 11200,
+        "full": 14200
+    },
+    "clock": {
+        "enable": false,
+        "chip": "SD3077",
+        "i2c": 1,
+        "addr": 100,
+        "init": "0E04",
+        "read": "00",
+        "write": "00",
+        "registers": [
+            0,
+            "second",
+            "minute",
+            "hour",
+            "wday",
+            "day",
+            "month",
+            "year"
+        ]
+    },
+    "cloud": {
+        "enable": true,
+        "id": "",
+        "host": "git.zgwit.com",
+        "port": 1883,
+        "clienid": "",
+        "username": "",
+        "password": ""
+    },
+    "ext_adc": {
+        "enable": false,
+        "chip": "AD7616",
+        "spi": 2,
+        "cs_pin": 10,
+        "channels": 16,
+        "bits": 16,
+        "init": "0000",
+        "read": "00",
+        "power_pin": 10,
+        "enable_pin": 11,
+        "reset_pin": 12,
+        "busy_pin": 13
+    },
+    "gnss": {
+        "enable": false,
+        "debug": false,
+        "uart": 2,
+        "baud_rate": 115200
+    },
+    "input": {
+        "enable": false,
+        "pins": [
+            {
+                "pin": 27,
+                "name": "X1"
+            },
+            {
+                "pin": 28,
+                "name": "X2"
+            },
+            {
+                "pin": 29,
+                "name": "X3"
+            }
+        ]
+    },
+    "output": {
+        "enable": false,
+        "pins": [
+            {
+                "name": "Y1",
+                "pin": 30,
+                "value": 1,
+                "pull": 1
+            },
+            {
+                "name": "Y2",
+                "pin": 31
+            },
+            {
+                "name": "Y3",
+                "pin": 32
+            }
+        ]
+    },
+    "lan": {
+        "enable": false,
+        "chip": "w5500",
+        "spi": 0,
+        "speed": 25600000,
+        "scs": 8,
+        "int": 1,
+        "rst": 22
+    },
+    "led": {
+        "enable": true,
+        "pins": {
+            "net": 27,
+            "ready": 26
+        }
+    },
+    "sd": {
+        "enable": false,
+        "spi": 1,
+        "cs_pin": 2,
+        "speed": 24000000
+    },
+    "serials": {
+        "ports": [
+            {
+                "enable": true,
+                "name": "RS485",
+                "rs485_gpio": 25
+            },
+            {
+                "enable": false,
+                "name": "GNSS"
+            }
+        ]
+    }
 }

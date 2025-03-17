@@ -38,6 +38,13 @@ function ext_adc.init(opts)
 
     log.info(tag, "init")
 
+    if type(options.init) == "string" then
+        options.init = string.fromHex(options.init)
+    end
+    if type(options.read) == "string" then
+        options.read = string.fromHex(options.read)
+    end
+
     -- 开启供电
     if options.power_pin ~= nil then
         gpio.setup(options.power_pin, gpio.PULLUP)

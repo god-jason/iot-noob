@@ -45,6 +45,17 @@ function clock.init(opts)
 
     log.info(tag, "init")
 
+    -- 兼容配置文件
+    if type(options.init) == "string" then
+        options.init = string.fromHex(options.init)
+    end
+    if type(options.read) == "string" then
+        options.read = string.fromHex(options.read)
+    end
+    if type(options.write) == "string" then
+        options.write = string.fromHex(options.write)
+    end
+
     -- 初始化iic接口
     i2c.setup(options.i2c, i2c.FAST)
 
