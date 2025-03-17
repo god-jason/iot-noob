@@ -10,14 +10,17 @@ _G.sysplus = require("sysplus")
 --local ret = uart.setup(1, 9600)
 log.info("boot")
 
+--银尔达需要拉高
+--gpio.set(25, 1)
+gpio.setup(25, 1, gpio.PULLUP)
 
-pm.ioVol(pm.IOVOL_ALL_GPIO, 3300) --提供电压
+--pm.ioVol(pm.IOVOL_ALL_GPIO, 3300) --提供电压
 
---uart.setup(1, 9600)
+uart.setup(1, 9600)
 --uart.setup(1, 115200)
 --uart.setup(1, 115200, 8, 1, uart.NONE, uart.LSB, 1024, 10, 0, 2000)
 --uart.setup(1, 115200, 8, 1, uart.NONE, uart.LSB, 1024, 25) //收发正常，换个GPIO都不行
-uart.setup(1, 9600, 8, 1, uart.NONE, uart.LSB, 1024, 25) --收正常，发少最后一个字节
+--uart.setup(1, 9600, 8, 1, uart.NONE, uart.LSB, 1024, 25) --收正常，发少最后一个字节
 --uart.setup(1, 19200, 8, 1, uart.NONE, uart.LSB, 1024, 25)
 --uart.setup(1, 38400, 8, 1, uart.NONE, uart.LSB, 1024, 25) //最后一个字符错误
 --uart.setup(1, 57600, 8, 1, uart.NONE, uart.LSB, 1024, 25) -- 收发正常的最小波特率

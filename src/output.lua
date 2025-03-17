@@ -10,16 +10,23 @@ local output = {}
 local configs = require("configs")
 
 local default_config = {
-    enable = false,
+    enable = true,
     pins = {{
+        name = "TTL_TXD", --银尔达780 25引脚要拉高，才能输出数据
+        pin = 25,
+        value = 1,
+        pull = 1,
+    }, {
+        name = "Y1",
         pin = 30,
-        name = "Y1"
+        value = 1,
+        pull = 1,
     }, {
+        name = "Y2",
         pin = 31,
-        name = "Y2"
     }, {
+        name = "Y3",
         pin = 32,
-        name = "Y3"
     }}
 }
 
@@ -36,6 +43,11 @@ function output.init()
 
     if not config.enable then
         return
+    end
+
+    -- 初始化GPIO
+    for i, p in ipairs(config.pins) do
+        gpio.setup(p.pin, p.value or 0, p.pull or gpio.PULLDOWN)
     end
     
 end
