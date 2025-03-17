@@ -16,7 +16,8 @@ function ota.download(url)
     sys.taskInit(function()
         local code, headers, body = http.request("GET", url, {}, nil, {
             -- timeout = 30000,
-            dst = "/update.bin"
+            fota = true, --780EPM改用fota模块
+            -- dst = "/update.bin"
         }).wait()
         log.info(tag, "download result", code, body)
 
@@ -24,7 +25,8 @@ function ota.download(url)
             -- TODO gateway.close() 可以发布全局消息以解耦
 
             -- 5秒后自动重启
-            sys.timerStart(rtos.reboot, 5000)
+            sys.timerStart(rtos.reboot, 15000)
+            log.info(tag, "reboot after 15s")
         end
     end)
 end

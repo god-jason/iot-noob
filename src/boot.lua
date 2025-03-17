@@ -39,6 +39,12 @@ local function ip_ready()
         -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
     end
     -- TODO 其他任务，比如连接云服务器等 
+
+end
+
+local function ip_lose()
+    log.info(tag, "IP_LOSE")
+    led.off("net")
 end
 
 local function ntp_sync()
@@ -88,6 +94,7 @@ local function main_task()
 end
 
 sys.subscribe("IP_READY", ip_ready)
+sys.subscribe("IP_LOSE", ip_lose)
 sys.subscribe("NTP_UPDATE", ntp_sync)
 
 sys.taskInit(main_task)

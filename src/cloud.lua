@@ -101,6 +101,14 @@ function cloud.init(opts)
 
     -- 加载配置
     options = opts or default_options
+
+    -- 用IMEI号作为默认ID
+    if not options.id or #options.id == 0 then
+        options.id = mobile.imei()
+    end
+    if not options.clienid or #options.clienid == 0 then
+        options.clienid = mobile.imei()
+    end
 end
 
 --- 获取ID

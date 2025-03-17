@@ -147,13 +147,21 @@ local function on_device_action(topic, payload)
     if not dev then
         return
     end
-    
+
     -- 执行一系列动作
     for _, action in ipairs(data) do
         sys.timerStart(function()
             dev.set(action.key, action.value)
         end, action.delay or 0)
     end
+end
+
+local function on_reboot(topic, payload)
+    log.info(tag, "on_reboot", payload)
+    sys.timerStart(rtos.reboot, 5000)
+    log.info(tag, "reboot after 5s")
+
+    -- TODO 关闭网关，保存历史
 end
 
 -- 上报设备信息
@@ -235,6 +243,7 @@ function gateway.open()
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/write", on_device_write)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/action", on_device_action)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/reboot", on_reboot)
 
     -- 订阅系统消息
     sys.subscribe("DEVICE_VALUES", function(dev, values)
@@ -243,7 +252,6 @@ function gateway.open()
     sys.subscribe("DEVICE_EVENT", function(dev, event)
         cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/event", event)
     end)
-
 
 end
 
