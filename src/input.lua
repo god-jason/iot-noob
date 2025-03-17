@@ -7,9 +7,7 @@
 local tag = "input"
 local input = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = false,
     pins = {{
         pin = 27,
@@ -23,23 +21,23 @@ local default_config = {
     }}
 }
 
-local config = {}
+local options = {}
 
 
 --- 初始化输入
-function input.init()
+function input.init(opts)
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
 
     --- 初始化
-    for i, p in ipairs(config.pins) do
+    for i, p in ipairs(options.pins) do
         gpio.setup(p.pin, function(val)
             sys.publish("INPUT", i, val, p.pin)
             log.info(tag, "input", i, val, p.pin)
@@ -51,7 +49,7 @@ end
 --- 获取输入状态
 --- @return integer 1高电平，0低电平
 function input.get(index)
-    return gpio.get(config.pins[index].pin)
+    return gpio.get(options.pins[index].pin)
 end
 
 return input

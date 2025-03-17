@@ -7,43 +7,41 @@
 local tag = "sd"
 local sd = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = false, -- 启用 (默认配置有问题，会直接宕机)
     spi = 1, -- SPI
     cs_pin = 2, -- 片选GPIO
     speed = 24000000 -- 速度，默认 10000000
 }
 
-local config = {}
+local options = {}
 
 --- 初始化config卡
-function sd.init()
+function sd.init(opts)
 
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
 
-    spi.setup(config.spi, 255, 0, 0, 8, 4000000)
+    spi.setup(options.spi, 255, 0, 0, 8, 4000000)
 
-    gpio.setup(config.cs_pin, 1)
+    gpio.setup(options.cs_pin, 1)
     -- fatfs.debug(1)
 
-    fatfas.mount(fatfs.SPI, "SD", config.spi, config.cs_pin, config.speed)
+    fatfas.mount(fatfs.SPI, "SD", options.spi, options.cs_pin, options.speed)
 
 end
 
 ---格式化config卡
 ---@return boolean 成功与否
 function sd.format()
-    if not config.enable then
+    if not options.enable then
         return false
     end
     return io.mkfs("/sd")

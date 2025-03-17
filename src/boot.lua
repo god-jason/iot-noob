@@ -9,6 +9,9 @@ local tag = "boot"
 -- 引入sys，方便使用
 _G.sys = require("sys")
 _G.sysplus = require("sysplus")
+    
+local configs = require("configs")
+
 
 log.info(tag, PROJECT, VERSION)
 log.info(tag, "last power reson", pm.lastReson())
@@ -45,22 +48,31 @@ local function ntp_sync()
     require("clock").write()
 end
 
+
 local function main_task()
-    -- 测试
-    require("utils").walk("/")
+
+    --加载全局配置文件
+    local ret, opts = configs.load("board")
+    if not ret then
+        ret, opts = configs.load("luadb/board")
+        if not ret then
+            log.error(tag, "you should configure board.json")
+            opts = {}
+        end
+    end
 
     -- 初始化外设
-    require("sd").init() -- SD卡
-    require("battery").init() -- 电池
-    require("clock").init() -- 初始化时钟芯片
-    require("led").init() -- LED灯光
-    require("lan").init() -- 以太网
-    require("input").init() -- 输入
-    require("output").init() -- 输入
-    require("ext_adc").init() -- 外部ADC
-    require("gnss").init() -- GPS定位
-    require("serial").init() -- 串口
-    require("cloud").init() -- 平台
+    require("sd").init(opts.sd) -- SD卡 
+    require("battery").init(opts.battery) -- 电池
+    require("clock").init(opts.clock) -- 初始化时钟芯片
+    require("led").init(opts.led) -- LED灯光
+    require("lan").init(opts.lan) -- 以太网
+    require("input").init(opts.input) -- 输入
+    require("output").init(opts.output) -- 输入
+    require("ext_adc").init(opts.ext_adc) -- 外部ADC
+    require("gnss").init(opts.gnss) -- GPS定位
+    require("serial").init(opts.serial) -- 串口
+    require("cloud").init(opts.cloud) -- 平台
 
     -- gnss.init() --GPS定位
 
@@ -74,7 +86,6 @@ local function main_task()
     -- require("protocol_dlt645")
     -- require("protocol_s7")
 
-    
     -- 启动网关系统程序
     require("gateway").open()
 

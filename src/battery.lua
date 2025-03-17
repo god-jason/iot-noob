@@ -7,9 +7,7 @@
 local tag = "battery"
 local battery = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = true, -- 启用
     vbat = 3800, -- 供电电压mV（合宙的推荐设计是4.2）
     adc = 0, -- 使用ADC0 adc.CH_VBAT
@@ -19,27 +17,27 @@ local default_config = {
     full = 14200 -- 满的电压
 }
 
-local config = {}
+local options = {}
 
 --- 电池初始化
-function battery.init()
+function battery.init(opts)
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
     --分压
-    if config.adc ~= adc.CH_VBAT and config.partial then
+    if options.adc ~= adc.CH_VBAT and options.partial then
         adc.setRange(adc.ADC_RANGE_1_2)
     end
 
-    adc.open(config.adc)
-    local vbat = adc.get(config.adc)
-    adc.close(config.adc)
+    adc.open(options.adc)
+    local vbat = adc.get(options.adc)
+    adc.close(options.adc)
 
     log.info(tag, "init", vbat) -- 测试值 3835
 end
@@ -48,28 +46,28 @@ end
 --- @return boolean 成功与否
 --- @return table 百分比
 function battery.get()
-    if not config.enable then
+    if not options.enable then
         return false
     end
 
-    -- adc.setRange(config.range) -- 0-1.2v
-    adc.open(config.adc)
-    local vbat = adc.get(config.adc)
-    adc.close(config.adc)
+    -- adc.setRange(options.range) -- 0-1.2v
+    adc.open(options.adc)
+    local vbat = adc.get(options.adc)
+    adc.close(options.adc)
 
     local target = 3800 -- 未电压
-    if  config.adc ~= adc.CH_VBAT and config.partial then
+    if  options.adc ~= adc.CH_VBAT and options.partial then
         target = 1200
     end
 
     -- 计算电压和百分比
-    local voltage = config.voltage * vbat / target
-    local percent = (voltage - config.empty) / (config.full - config.empty) * 100
+    local voltage = options.voltage * vbat / target
+    local percent = (voltage - options.empty) / (options.full - options.empty) * 100
     log.info(tag, "get", vbat, voltage, percent)
 
     return true, {
         vbat = vbat,
-        voltage = voltage > config.empty and voltage or 0,
+        voltage = voltage > options.empty and voltage or 0,
         percent = percent > 0 and percent or 0
     }
 end

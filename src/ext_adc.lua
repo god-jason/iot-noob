@@ -8,9 +8,7 @@
 local tag = "ext_adc"
 local ext_adc = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = false,
     chip = "AD7616", -- 型号
     spi = 2, -- spi总线
@@ -25,51 +23,47 @@ local default_config = {
     busy_pin = 13 -- 忙检测GPIO
 }
 
-local config = {}
+local options = {}
 
 -- ADC芯片初始化
-function ext_adc.init()
+function ext_adc.init(opts)
     local ret
 
     -- 加载配置
-    ret, config = configs.load(tag)
-    if not ret then
-        -- 使用默认
-        config = default_config
-    end
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
     log.info(tag, "init")
 
     -- 开启供电
-    if config.power_pin ~= nil then
-        gpio.setup(config.power_pin, gpio.PULLUP)
+    if options.power_pin ~= nil then
+        gpio.setup(options.power_pin, gpio.PULLUP)
     end
 
     -- 初始化iic接口
-    ret = spi.setup(config.spi, config.cs_pin)
+    ret = spi.setup(options.spi, options.cs_pin)
     if ret ~= 0 then
         log.info(tag, "adc init failed", ret)
         return
     end
 
     -- 使能
-    gpio.setup(config.enable_pin, gpio.PULLUP)
+    gpio.setup(options.enable_pin, gpio.PULLUP)
 
     -- 初始化指令
-    spi.send(config.spi, config.init)
+    spi.send(options.spi, options.init)
 end
 
 
 --- 关闭ADC芯片
 function ext_adc.close()
-    spi.close(config.spi)
+    spi.close(options.spi)
 
-    if config.power_pin ~= nil then
-        gpio.setup(config.power_pin, gpio.PULLDOWN)
+    if options.power_pin ~= nil then
+        gpio.setup(options.power_pin, gpio.PULLDOWN)
     end
 end
 
@@ -77,30 +71,30 @@ end
 --- 读取ADC数据
 function ext_adc.read()
     -- 重置
-    gpio.setup(config.reset_pin, gpio.PULLUP)
+    gpio.setup(options.reset_pin, gpio.PULLUP)
 
     -- 发送读指令
-    spi.send(config.spi, config.read)
+    spi.send(options.spi, options.read)
     -- sys.wait(100) --延迟等待
 
-    local len = 2 * config.channels
-    if config.bits > 16 then
+    local len = 2 * options.channels
+    if options.bits > 16 then
         len = 2 * len
     end
 
     -- 读取数据
-    local data = spi.recv(config.spi, len)
+    local data = spi.recv(options.spi, len)
     if data == nil then
         return false
     end
 
     -- 解析
-    if config.bits > 16 then
-        local values = {pack.unpack(data, ">i" .. config.channels)}
+    if options.bits > 16 then
+        local values = {pack.unpack(data, ">i" .. options.channels)}
         table.remove(values, 1)
         return true, values
     else
-        local values = {pack.unpack(data, ">h" .. config.channels)}
+        local values = {pack.unpack(data, ">h" .. options.channels)}
         table.remove(values, 1)
         return true, values
     end

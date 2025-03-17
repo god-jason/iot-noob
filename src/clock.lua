@@ -15,9 +15,8 @@ local function hex_to_bcd(data)
     return bit.lshift(math.floor(data / 10), 4) + data % 10
 end
 
-local configs = require("configs")
 
-local default_config = {
+local default_options = {
     enable = false,
     chip = "SD3077", -- 型号
     i2c = 1, -- iic总线
@@ -31,27 +30,27 @@ local default_config = {
 
 }
 
-local config = {}
+local options = {}
 
 --- rtc时钟芯片初始化
-function clock.init()
+function clock.init(opts)
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
     log.info(tag, "init")
 
     -- 初始化iic接口
-    i2c.setup(config.i2c, i2c.FAST)
+    i2c.setup(options.i2c, i2c.FAST)
 
     -- 初始化指令
-    if config.init ~= nil and #config.init > 0 then
-        i2c.send(config.i2c, config.addr, config.init)
+    if options.init ~= nil and #options.init > 0 then
+        i2c.send(options.i2c, options.addr, options.init)
     end
 
     -- 读取config芯片时钟
@@ -63,22 +62,22 @@ end
 --- @return boolean 成功与否
 --- @return table {year,mon,day,wday,hour,min,sec}
 function clock.read()
-    if not config.enable then
+    if not options.enable then
         return false
     end
 
     -- 发送
-    local ret = i2c.send(config.i2c, config.addr, config.registers[1]) -- 从秒开始读
+    local ret = i2c.send(options.i2c, options.addr, options.registers[1]) -- 从秒开始读
     if ret == false then
         return ret
     end
 
     -- 读取
-    local data = i2c.recv(config.i2c, config.addr, 7)
+    local data = i2c.recv(options.i2c, options.addr, 7)
 
     -- 解析
     local time = {}
-    for i, v in ipairs(config.registers) do
+    for i, v in ipairs(options.registers) do
         if v == "year" then
             time.year = bcd_to_hex(data:byte(i - 1)) + 2000
         elseif v == "month" then
@@ -106,15 +105,15 @@ end
 --- 写入芯片时钟
 --- @return boolean 成功与否
 function clock.write()
-    if not config.enable then
+    if not options.enable then
         return false
     end
 
     -- local tm = socket.ntptm()
     local tm = os.date("*t")
 
-    local data = { config.registers[1] }
-    for i, v in ipairs(config.registers) do
+    local data = { options.registers[1] }
+    for i, v in ipairs(options.registers) do
         if v == "year" then
             table.insert(data, hex_to_bcd(tm.year - 2000))
         elseif v == "month" then
@@ -133,7 +132,7 @@ function clock.write()
     end
 
     -- 写指令
-    local ret = i2c.send(config.i2c, config.addr, data)
+    local ret = i2c.send(options.i2c, options.addr, data)
     log.info(tag, "write time", ret, json.encode(tm))
 
     return ret

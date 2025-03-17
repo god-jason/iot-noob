@@ -7,9 +7,7 @@
 local tag = "cloud"
 local cloud = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     id = mobile.imei(),
     host = "git.zgwit.com",
     port = 1883,
@@ -22,7 +20,7 @@ local default_config = {
     -- }
 }
 
-local config = {}
+local options = {}
 
 -- mqtt连接
 local client = nil
@@ -98,17 +96,17 @@ local function on_event(client, event, data, payload)
 end
 
 -- 平台初始化，加载配置
-function cloud.init()
+function cloud.init(opts)
     log.info(tag, "init")
 
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 end
 
 --- 获取ID
 --- @return string ID号，一般是IMEI
 function cloud.id()
-    return config.id
+    return options.id
 end
 
 ---打开平台
@@ -119,18 +117,18 @@ function cloud.open()
         return false
     end
 
-    client = mqtt.create(nil, config.host, config.port)
+    client = mqtt.create(nil, options.host, options.port)
     if client == nil then
         log.info(tag, "create client failed")
         return false
     end
 
-    client:auth(config.clienid, config.username, config.password) -- 鉴权
+    client:auth(options.clienid, options.username, options.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
     client:autoreconn(true, 3000) -- 自动重连机制
 
-    if config.will ~= nil then
-        client:will(config.will.topic, config.will.payload)
+    if options.will ~= nil then
+        client:will(options.will.topic, options.will.payload)
     end
 
     -- 注册回调

@@ -7,9 +7,7 @@
 local tag = "led"
 local led = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = true,
     pins = {
         net = 27,
@@ -18,42 +16,42 @@ local default_config = {
     }
 }
 
-local config = {}
+local options = {}
 
 --- LED初始化
-function led.init()
+function led.init(opts)
 
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
 
     -- 读取GPIO配置表
-    -- for k, v in pairs(config.pins) do
+    -- for k, v in pairs(options.pins) do
     --     v['gpio'] = gpio.setup(v.pin, gpio.PULLDOWN)
     -- end
 
     -- 初始化网络灯 netLed库 有问题
-    -- if config.pins.net then
-    --     require("netLed").setup(true, config.pins.net, 0)
+    -- if options.pins.net then
+    --     require("netLed").setup(true, options.pins.net, 0)
     -- end
 end
 
 ---点亮LED
 ---@param id string 名称
 function led.on(id)
-    gpio.set(config.pins[id], gpio.PULLUP)
+    gpio.set(options.pins[id], gpio.PULLUP)
 end
 
 ---关闭LED
 ---@param id string 名称
 function led.off(id)
-    gpio.set(config.pins[id], gpio.PULLDOWN)
+    gpio.set(options.pins[id], gpio.PULLDOWN)
 end
 
 return led

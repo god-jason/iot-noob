@@ -7,30 +7,28 @@
 local tag = "gnss"
 local gnss = {}
 
-local configs = require("configs")
-
-local default_config = {
+local default_options = {
     enable = true, -- 启用
     debug = false,
     uart = 2, -- 串口
     baud_rate = 115200 -- 速度
 }
 
-local config = {}
+local options = {}
 
 
 --- 初始化GPS
-function gnss.init()
+function gnss.init(opts)
     log.info(tag, "init")
     
     -- 加载配置
-    config = configs.load_default(tag, default_config)
+    options = opts or default_options
 
-    if not config.enable then
+    if not options.enable then
         return
     end
 
-    log.info(tag, "init", json.encode(config))
+    log.info(tag, "init", json.encode(options))
 
     -- 给内置GPS芯片上电
     pm.power(pm.GPS, true)
@@ -38,10 +36,10 @@ function gnss.init()
     -- 初始化
     libgnss.clear() -- 清空数据,兼初始化
 
-    uart.setup(config.uart, config.baud_rate)
-    libgnss.bind(config.uart)
-    --libgnss.bind(config.uart, uart.VUART_0) --调试原始数据
-    libgnss.debug(config.debug) --GPS调试
+    uart.setup(options.uart, options.baud_rate)
+    libgnss.bind(options.uart)
+    --libgnss.bind(options.uart, uart.VUART_0) --调试原始数据
+    libgnss.debug(options.debug) --GPS调试
 
     sys.subscribe("GNSS_STATE", function(event, ticks)
         -- event取值有
