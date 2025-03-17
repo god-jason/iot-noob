@@ -19,8 +19,8 @@ function configs.load(name)
 
     -- 找文件
     local path = "/" .. name .. ".json"
-    local path2 = path .. ".flz"
-    local path3 = path .. ".mz"
+    local path2 = "/" .. name .. ".json.flz"
+    local path3 = "/luadb/" .. string.gsub(name, "/", "_") .. ".json" -- 文件名长度限制在21字节。。。
 
     local compressed = false -- 压缩引擎
 
@@ -30,6 +30,8 @@ function configs.load(name)
     elseif fastlz and io.exists(path2) then
         compressed = true
         path = path2
+    elseif io.exists(path3) then
+        path = path3
     else
         return false
     end
@@ -88,7 +90,7 @@ function configs.save(name, data)
         for i = 1, #ss - 1, 1 do
             dir = dir .. "/" .. ss[i]
             io.mkdir(dir)
-            --log.info(tag, "mkdir", dir, r, e)
+            -- log.info(tag, "mkdir", dir, r, e)
         end
     end
 
@@ -118,7 +120,6 @@ function configs.save(name, data)
     return io.writeFile(path, data)
 end
 
-
 ---删除配置文件
 ---@param name string 文件名，不带.json后缀
 function configs.delete(name)
@@ -134,7 +135,7 @@ function configs.delete(name)
         os.remove(path)
     end
 
-    --删除目录
+    -- 删除目录
     utils.remove_all(name)
 end
 

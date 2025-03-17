@@ -9,9 +9,8 @@ local tag = "boot"
 -- 引入sys，方便使用
 _G.sys = require("sys")
 _G.sysplus = require("sysplus")
-    
-local configs = require("configs")
 
+local configs = require("configs")
 
 log.info(tag, PROJECT, VERSION)
 log.info(tag, "last power reson", pm.lastReson())
@@ -51,14 +50,11 @@ end
 
 local function main_task()
 
-    --加载全局配置文件
+    -- 加载全局配置文件
     local ret, opts = configs.load("board")
     if not ret then
-        ret, opts = configs.load("luadb/board")
-        if not ret then
-            log.error(tag, "you should configure board.json")
-            opts = {}
-        end
+        log.error(tag, "you should configure board.json")
+        opts = {}
     end
 
     -- 初始化外设
