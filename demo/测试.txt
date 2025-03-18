@@ -1,12 +1,9 @@
 
-products/temp/modbus_mapper
-
-{"holding_registers":[{"name":"uan","label":"A相电压","address":0,"type":"float"},{"name":"ubn","label":"B相电压","address":2,"type":"float"},{"name":"ucn","label":"C相电压","address":4,"type":"float"},{"name":"uab","label":"AB线电压","address":6,"type":"float"},{"name":"ucb","label":"CB线电压","address":8,"type":"float"},{"name":"uac","label":"AC线电压","address":10,"type":"float"},{"name":"ia","label":"A相电流","address":12,"type":"float"},{"name":"ib","label":"B相电流","address":14,"type":"float"},{"name":"ic","label":"C相电流","address":16,"type":"float"},{"name":"iz","label":"零序电流","address":18,"type":"float"},{"name":"pa","label":"A相有功功率","address":20,"type":"float"},{"name":"pb","label":"B相有功功率","address":22,"type":"float"},{"name":"pc","label":"C相有功功率","address":24,"type":"float"},{"name":"ps","label":"总有功功率","address":26,"type":"float"},{"name":"qa","label":"A相无功功率","address":28,"type":"float"},{"name":"qb","label":"B相无功功率","address":30,"type":"float"},{"name":"qc","label":"C相无功功率","address":32,"type":"float"},{"name":"qs","label":"总无功功率","address":34,"type":"float"},{"name":"sa","label":"A相视在功率","address":36,"type":"float"},{"name":"sb","label":"B相视在功率","address":38,"type":"float"},{"name":"sc","label":"C相视在功率","address":40,"type":"float"},{"name":"ss","label":"总视在功率","address":42,"type":"float"},{"name":"pfa","label":"A相功率因数","address":44,"type":"float"},{"name":"pfb","label":"B相功率因数","address":46,"type":"float"},{"name":"pfc","label":"C相功率因数","address":48,"type":"float"},{"name":"pfs","label":"总功率因数","address":50,"type":"float"},{"name":"f","label":"频率","address":52,"type":"float"},{"name":"e","type":"int32","rate":0.1000000,"address":0,"label":"组合有功总电能"},{"name":"ep","type":"int32","rate":0.1000000,"address":10,"label":"正向有功总电能"},{"name":"en","type":"int32","rate":0.1000000,"address":20,"label":"正向有功总电能"},{"name":"eq","type":"int32","rate":0.1000000,"address":30,"label":"组合无功总电能"},{"name":"eqp","type":"int32","rate":0.1000000,"address":40,"label":"正向无功总电能"},{"name":"eqn","type":"int32","rate":0.1000000,"address":50,"label":"正向无功总电能"}]}
-
-products/temp/modbus_poller
-
-{"pollers":[{"code":3,"address":0,"length":10}]}
-
+products/temp/modbus
+{
+  "mapper":{"holding_registers":[{"name":"A","be":true,"address":0,"type":"uint16"},{"name":"B","be":true,"address":1,"type":"uint16"},{"name":"C","be":true,"address":2,"type":"uint16"},{"name":"D","be":true,"address":3,"type":"uint16"},{"name":"E","be":true,"address":4,"type":"uint16"},{"name":"F","be":true,"address":5,"type":"uint16"}]},
+  "pollers":[{"code":3,"address":0,"length":10}]
+}
 
 devices
 [{"id":"dev-abc","product_id":"temp","station":{"slave":1},"link_id":"test"}]
