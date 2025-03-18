@@ -157,6 +157,16 @@ function points.parseWord(point, data, address)
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
     local _, value = pack.unpack(buf, be .. pk)
+
+    -- 倍率
+    if not feagure.rate then
+        value = value * feagure.rate
+    end
+    -- 校准
+    if not feagure.correct then
+        value = value + feagure.correct
+    end
+
     return true, value
 end
 
@@ -184,6 +194,16 @@ function points.parse(point, data, address)
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
     local _, value = pack.unpack(buf, be .. pk)
+
+    -- 倍率
+    if not feagure.rate then
+        value = value * feagure.rate
+    end
+    -- 校准
+    if not feagure.correct then
+        value = value + feagure.correct
+    end
+
     return true, value
 end
 
@@ -198,6 +218,17 @@ function points.encode(point, value)
         log.info(tag, "encode unkown type", point.type)
         return false
     end
+
+    -- 校准
+    if not feagure.correct then
+        value = value - feagure.correct
+    end
+
+    -- 倍率
+    if not feagure.rate then
+        value = value / feagure.rate
+    end
+
     local be = point.be and ">" or "<"
     local pk = feagure.pack
     local data = pack.pack(be .. pk, value)

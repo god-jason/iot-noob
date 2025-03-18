@@ -1,0 +1,8 @@
+[
+    {
+        "id": "dev-abc",
+        "product_id": "temp",
+        "link_id": "test",
+        "station": { "slave": 1 }
+    }
+]

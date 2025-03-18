@@ -26,7 +26,8 @@ function products.load_config(id, config)
     end
 
     -- 加载配置文件
-    local name = "products/" .. id .. "/" .. config
+    -- local name = "products/" .. id .. "/" .. config
+    local name = id .. "/" .. config -- 去掉前缀，兼容luadb
     local ret, data = configs.load(name)
     if not ret then
         -- products.download(id, config)
