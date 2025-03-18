@@ -30,34 +30,34 @@ end
 local function on_config_read(topic, payload)
     log.info(tag, "on_config_read", topic)
 
-    local base = "gateway/" .. cloud.id() .. "/options/read/"
-    local options = string.sub(topic, #base + 1)
+    local base = "gateway/" .. cloud.id() .. "/config/read/"
+    local config = string.sub(topic, #base + 1)
 
-    local r, c = configs.load(options)
+    local r, c = configs.load(config)
     if not r then
         return
     end
 
-    cloud.publish("gateway/" .. cloud.id() .. "/options/content/" .. options, c)
+    cloud.publish("gateway/" .. cloud.id() .. "/config/content/" .. config, c)
 end
 
 -- 处理配置写入
 local function on_config_write(topic, payload)
     log.info(tag, "on_config_write", topic, payload)
 
-    local base = "gateway/" .. cloud.id() .. "/options/write/"
-    local options = string.sub(topic, #base + 1)
+    local base = "gateway/" .. cloud.id() .. "/config/write/"
+    local config = string.sub(topic, #base + 1)
 
-    configs.save(options, payload)
+    configs.save(config, payload)
 end
 
 local function on_config_delete(topic, payload)
     log.info(tag, "on_config_delete", topic)
 
-    local base = "gateway/" .. cloud.id() .. "/options/delete/"
-    local options = string.sub(topic, #base + 1)
+    local base = "gateway/" .. cloud.id() .. "/config/delete/"
+    local config = string.sub(topic, #base + 1)
 
-    configs.delete(options)
+    configs.delete(config)
 end
 
 local function on_config_download(topic, payload)
@@ -234,10 +234,10 @@ function gateway.open()
 
     -- 订阅网关消息
     cloud.subscribe("gateway/" .. cloud.id() .. "/ota", on_ota)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/options/read/#", on_config_read)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/options/write/#", on_config_write)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/options/delete/#", on_config_delete)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/options/download", on_config_download)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/read/#", on_config_read)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/write/#", on_config_write)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/delete/#", on_config_delete)
+    cloud.subscribe("gateway/" .. cloud.id() .. "/config/download", on_config_download)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
     cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
     cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
