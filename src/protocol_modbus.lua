@@ -32,13 +32,9 @@ function Device:open()
     log.info(tag, "device open", self.id, self.product_id)
 
     local ret
-    ret, self.mapper = products.load_config(self.product_id, "modbus_mapper")
+    ret, self.options = products.load_config(self.product_id, "modbus")
     if not ret then
         log.error(tag, self.product_id, "modbus_mapper load failed")
-    end
-    ret, self.poller = products.load_config(self.product_id, "modbus_poller")
-    if not ret then
-        log.error(tag, self.product_id, "modbus_poller load failed")
     end
 end
 
@@ -48,25 +44,25 @@ end
 ---@return table 点位
 ---@return integer 功能码
 function Device:_find_point(key)
-    if not self.mapper then
+    if not self.options or not self.options.mapper then
         return false
     end
-    for _, p in ipairs(self.mapper.coils) do
+    for _, p in ipairs(self.options.mapper.coils) do
         if p.name == key then
             return true, p, 1
         end
     end
-    for _, p in ipairs(self.mapper.discrete_inputs) do
+    for _, p in ipairs(self.options.mapper.discrete_inputs) do
         if p.name == key then
             return true, p, 2
         end
     end
-    for _, p in ipairs(self.mapper.holding_registers) do
+    for _, p in ipairs(self.options.mapper.holding_registers) do
         if p.name == key then
             return true, p, 3
         end
     end
-    for _, p in ipairs(self.mapper.input_registers) do
+    for _, p in ipairs(self.options.mapper.input_registers) do
         if p.name == key then
             return true, p, 4
         end
@@ -143,24 +139,24 @@ end
 ---@return table|nil 值
 function Device:poll()
     log.info(tag, "poll", self.id)
-    -- log.info(tag, "poller", json.encode(self.poller))
+    -- log.info(tag, "poller", json.encode(self.options.pollers))
 
     -- 没有轮询器，直接返回
-    if not self.poller or not self.poller.pollers or #self.poller.pollers == 0 then
+    if not self.options or not self.options.pollers or #self.options.pollers == 0 then
         log.info(tag, self.id, self.product_id, "pollers empty")
         return false
     end
 
     local ret = false
     local values = {}
-    for _, poller in ipairs(self.poller.pollers) do
+    for _, poller in ipairs(self.options.pollers) do
         local res, data = self.master:read(self.station.slave, poller.code, poller.address, poller.length)
         if res then
             log.info(tag, "poll read", #data)
 
             if poller.code == 1 then
                 -- log.info(tag, "parse 1 ", #data)
-                for _, point in ipairs(self.mapper.coils) do
+                for _, point in ipairs(self.options.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
@@ -172,7 +168,7 @@ function Device:poll()
                 -- log.info(tag, "parse 1 ", json.encode(values))
             elseif poller.code == 2 then
                 -- log.info(tag, "parse 2 ", #data)
-                for _, point in ipairs(self.mapper.discrete_inputs) do
+                for _, point in ipairs(self.options.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
@@ -184,7 +180,7 @@ function Device:poll()
                 -- log.info(tag, "parse 2 ", json.encode(values))
             elseif poller.code == 3 then
                 -- log.info(tag, "parse 3 ", #data)
-                for _, point in ipairs(self.mapper.holding_registers) do
+                for _, point in ipairs(self.options.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
@@ -196,7 +192,7 @@ function Device:poll()
                 -- log.info(tag, "parse 3 ", json.encode(values))
             elseif poller.code == 4 then
                 -- log.info(tag, "parse 4 ", #data)
-                for _, point in ipairs(self.mapper.input_registers) do
+                for _, point in ipairs(self.options.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
@@ -400,8 +396,12 @@ end
 
 --- 轮询
 function Modbus:_polling()
+    -- 轮询间隔 TODO 计时，算时差
+    local interval = self.poller_interval or 60
+
     while self.opened do
         log.info(tag, "polling start")
+        local start = os.clock()
 
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
@@ -416,11 +416,11 @@ function Modbus:_polling()
             end
         end
 
-        -- 轮询间隔 TODO 计时，算时差
-        if self.poller_interval > 0 then
-            sys.wait(self.poller_interval * 1000)
-        else
-            sys.wait(60 * 1000)
+        local finish = os.clock()
+        local remain = interval - (finish - start)
+
+        if remain > 0 then
+            sys.wait(remain * 1000)
         end
     end
 end
