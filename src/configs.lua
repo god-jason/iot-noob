@@ -10,6 +10,14 @@ local configs = {}
 
 local utils = require("utils")
 
+local function luadb_config(name)
+    if #name <= 26 then -- 带后缀名，长度不能大于31
+        return "/luadb/" .. string.gsub(name, "/", "_") .. ".json"
+    end
+    local md5 = crypto.md5(name) -- substr(md5, 8, 24)
+    return "/luadb/" .. string.sub(md5, 9, 24) .. ".json"
+end
+
 ---加载配置文件，自动解析json
 ---@param name string 文件名，不带.json后缀
 ---@return boolean 成功与否
@@ -17,22 +25,24 @@ local utils = require("utils")
 function configs.load(name)
     log.info(tag, "load", name)
 
-    -- 找文件
+    -- 1、找原始JSON文件hen
     local path = "/" .. name .. ".json"
+    -- 2、找压缩的JSON文件
     local path2 = "/" .. name .. ".json.flz"
-    local path3 = "/luadb/" .. string.gsub(name, "/", "_") .. ".json" -- 文件名长度限制在21字节。。。
+    -- 3、从luadb中找，（编译时添加）文件名长度限制在31字节。。。
+    local path3 = luadb_config(name) -- 要避免重复计算MD5 ？？？
 
     local compressed = false -- 压缩引擎
 
-    -- 找不到原始文件，则找压缩文件
     if io.exists(path) then
-        -- 找到了未压缩的文件
+        -- do nothing 找到了未压缩的文件
     elseif fastlz and io.exists(path2) then
         compressed = true
         path = path2
     elseif io.exists(path3) then
         path = path3
     else
+        log.info(tag, "not found config", name)
         return false
     end
 
@@ -44,6 +54,7 @@ function configs.load(name)
     -- end
 
     local data = io.readFile(path)
+    log.info(tag, "from", path, #data)
 
     -- 解压
     if compressed then

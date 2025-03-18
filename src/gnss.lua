@@ -7,6 +7,8 @@
 local tag = "gnss"
 local gnss = {}
 
+local led = require("led")
+
 local default_options = {
     enable = true, -- 启用
     debug = false,
@@ -48,6 +50,7 @@ function gnss.init(opts)
         -- ticks是事件发生的时间,一般可以忽略
         log.info(tag, "state", event, ticks)
         if event == "FIXED" then
+            led.on("gnss")
             sys.publish("GNSS_OK")
         end
     end)
@@ -96,7 +99,7 @@ end
 
 --- 关闭GPS
 function gnss.close()
-
+    pm.power(pm.GPS, false)
 end
 
 return gnss

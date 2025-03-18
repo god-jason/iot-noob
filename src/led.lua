@@ -11,7 +11,8 @@ local default_options = {
     enable = true,
     pins = {
         net = 27,
-        ready = 26
+        ready = 26,
+        -- cloud = 
         -- power = 49 -- 待定
     }
 }
@@ -32,9 +33,9 @@ function led.init(opts)
 
 
     -- 读取GPIO配置表
-    -- for k, v in pairs(options.pins) do
-    --     v['gpio'] = gpio.setup(v.pin, gpio.PULLDOWN)
-    -- end
+    for k, v in pairs(options.pins) do
+        gpio.setup(v, 0, gpio.PULLDOWN)
+    end
 
     -- 初始化网络灯 netLed库 有问题
     -- if options.pins.net then
@@ -45,13 +46,13 @@ end
 ---点亮LED
 ---@param id string 名称
 function led.on(id)
-    gpio.set(options.pins[id], gpio.PULLUP)
+    gpio.set(options.pins[id], 1)
 end
 
 ---关闭LED
 ---@param id string 名称
 function led.off(id)
-    gpio.set(options.pins[id], gpio.PULLDOWN)
+    gpio.set(options.pins[id], 0)
 end
 
 return led

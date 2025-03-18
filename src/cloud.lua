@@ -70,9 +70,10 @@ local function on_message(topic, payload)
 end
 
 --- mqtt事件处理
-local function on_event(client, event, data, payload)
+local function on_event(client, event, topic, payload)
     -- 用户自定义代码
-    -- log.info(tag, "event", event, client, data, payload)
+    log.info(tag, "event", event, client, topic, payload)
+
     if event == "conack" then
         -- 联上了
         sys.publish("MQTT_CONACK")
@@ -81,11 +82,14 @@ local function on_event(client, event, data, payload)
 
         -- 恢复订阅
         for filter, cnt in pairs(subs) do
-            client:subscribe(filter)
+            if cnt > 0 then
+                log.info(tag, "recovery subscribe", filter)
+                client:subscribe(filter)    
+            end
         end
     elseif event == "recv" then
         -- log.info(tag, "topic", data, "payload", payload)
-        sys.publish("CLOUD_MESSAGE", data, payload)
+        sys.publish("CLOUD_MESSAGE", topic, payload)
         -- on_message(data, payload)
     elseif event == "sent" then
         -- log.info(tag, "sent", "pkgid", data)
@@ -179,7 +183,11 @@ end
 --- @param filter string 主题
 --- @param cb function 回调
 function cloud.subscribe(filter, cb)
-    if not subs[filter] then
+    log.info(tag, "subscribe", filter)
+
+    -- 计数，避免重复订阅
+    if not subs[filter] or subs[filter] <= 0 then
+        client:subscribe(filter)
         subs[filter] = 1
     else
         subs[filter] = subs[filter] + 1
@@ -202,10 +210,6 @@ function cloud.subscribe(filter, cb)
     end
 
     -- 注册回调
-    if #sub.callbacks == 0 then
-        client:subscribe(filter)
-    end
-
     table.insert(sub.callbacks, cb)
 end
 
@@ -213,8 +217,18 @@ end
 --- @param filter string 主题
 --- @param cb function|nil 回调
 function cloud.unsubscribe(filter, cb)
-    if subs[filter] then
-        subs[filter] = subs[filter] - 1
+    log.info(tag, "subscribe", filter)
+
+    -- 取消订阅
+    if subs[filter] ~= nil then
+        if cb == nil then
+            client:unsubscribe(filter)
+        else
+            subs[filter] = subs[filter] - 1
+            if subs[filter] <= 0 then
+                client:unsubscribe(filter)
+            end
+        end
     end
 
     local fs = string.split(filter, "/")
@@ -231,7 +245,6 @@ function cloud.unsubscribe(filter, cb)
 
     -- 删除回调
     if #sub.callbacks == 1 or cb == nil then
-        client:unsubscribe(filter)
         sub.callbacks = {}
     else
         for i, c in ipairs(sub.callbacks) do
