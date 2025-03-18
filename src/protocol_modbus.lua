@@ -396,12 +396,14 @@ end
 
 --- 轮询
 function Modbus:_polling()
-    -- 轮询间隔 TODO 计时，算时差
+
+    -- 轮询间隔
     local interval = self.poller_interval or 60
+    interval = interval * 1000 -- 毫秒
 
     while self.opened do
         log.info(tag, "polling start")
-        local start = os.clock()
+        local start = mcu.ticks()
 
         for _, dev in pairs(self.devices) do
             local ret, values = dev:poll()
@@ -416,11 +418,10 @@ function Modbus:_polling()
             end
         end
 
-        local finish = os.clock()
+        local finish = mcu.ticks()
         local remain = interval - (finish - start)
-
         if remain > 0 then
-            sys.wait(remain * 1000)
+            sys.wait(remain)
         end
     end
 end
