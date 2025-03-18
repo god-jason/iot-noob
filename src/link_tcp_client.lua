@@ -11,7 +11,7 @@ local increment = 1; -- 自增ID
 -- 定义类
 local Client = {}
 
-require("links").register("tcp_client", Client)
+require("links").register("tcp-client", Client)
 
 function Client:new(opts)
     local obj = {}
@@ -48,15 +48,15 @@ function Client:open()
         elseif event == socket.ON_LINE then
             -- 连接成功
             -- self.ready = true
-            sys.publish("CLIENT_READY_" .. self.index)
+            sys.publish("TCP_CLIENT_READY_" .. self.index)
         elseif event == socket.EVENT then
-            sys.publish("CLIENT_DATA_" .. self.index)
+            sys.publish("TCP_CLIENT_DATA_" .. self.index)
             -- socket.rx(ctrl, rxbuf)
             -- socket.wait(ctrl)
         elseif event == socket.TX_OK then
             socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
-            sys.publish("CLIENT_CLOSE_" .. self.index)
+            sys.publish("TCP_CLIENT_CLOSE_" .. self.index)
         end
     end)
 
@@ -74,7 +74,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUntil(5000, "CLIENT_READY_" .. self.index)
+    local res, data = sys.waitUntil(5000, "TCP_CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -90,7 +90,7 @@ end
 
 -- 等待数据
 function Client:wait(timeout)
-    return sys.waitUntil("CLIENT_DATA_" .. self.index, timeout)
+    return sys.waitUntil("TCP_CLIENT_DATA_" .. self.index, timeout)
 end
 
 -- 读数据
