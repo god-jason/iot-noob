@@ -1,4 +1,4 @@
---- 定时任务相关(目前还不支持星期)
+--- 定时任务相关
 --- @module "cron"
 --- @author 杰神
 --- @license GPLv3
@@ -79,13 +79,96 @@ local function parse(crontab)
     return true, job
 end
 
+local function calc_wday(time, field)
+    local added = false
+    local wday = time.wday
+    if field.every then
+    elseif field.mod then
+        while wday % field.mod ~= 0 do
+            wday = wday + 1
+            time.day = time.day + 1
+
+            if wday > 7 then
+                wday = 1
+            end
+            added = true
+        end
+    else
+        while not field[tostring(wday)] do
+            -- log.info(tag, "calc_next dot", f, tm[f])
+            wday = wday + 1
+            time.day = time.day + 1
+
+            -- 1-7 日一二三四五六
+            if wday > 7 then
+                wday = 1
+            end
+            added = true
+        end
+    end
+    return added
+end
+
+local function calc_field(time, field, key, upper, min, max)
+    local added = false
+    -- 跳过年，计算 月 日 时 分 秒
+    if field.every then
+        -- log.info(tag, "calc_next every", f)
+        -- 所有，不用计算了
+    elseif field.mod then
+        -- 计算模
+        -- log.info(tag, "calc_next mod", f)
+        while time[key] % field.mod ~= 0 do
+            -- log.info(tag, "calc_next mod", f, tm[f])
+            time[key] = time[key] + 1
+
+            -- 越界
+            if time[key] > max then
+                time[upper] = time[upper] + 1 -- 上级时间单位进一
+                time[key] = min -- 从0开始
+            end
+            added = true
+        end
+    else
+        -- 计算散列
+        -- log.info(tag, "calc_next dot", f)
+        while not field[tostring(time[key])] do
+            -- log.info(tag, "calc_next dot", f, tm[f])
+            time[key] = time[key] + 1
+
+            -- 越界
+            if time[key] > max then
+                time[upper] = time[upper] + 1 -- 上级时间单位进一
+                time[key] = min -- 从0开始
+            end
+            added = true
+        end
+    end
+    return added
+end
+
+local days = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 31, 30}
+local function get_month_days(time)
+    local d = days[time.month]
+    if d == 28 then
+        if time.year % 4 == 0 then
+            if time.year % 100 == 0 then
+                if time.year % 400 == 0 then
+                    d = d + 1
+                end
+            else
+                d = d + 1
+            end
+        end
+    end
+    return d
+end
+
 local function calc_next(job, now)
     -- log.info(tag, "calc_next()", job.crontab)
 
     -- 复制当前时间，并延后1秒再执行
     local next = now + 1
-
-    local items = {"year", "month", "day", "hour", "min", "sec"}
 
     local added = true
 
@@ -96,40 +179,11 @@ local function calc_next(job, now)
         local tm = os.date("!*t", next)
         -- log.info(tag, "next begin", json.encode(tm))
 
-        for i, f in ipairs(items) do
-            -- log.info(tag, "calc_next", f)
-            if i > 1 then -- 跳过年
-                local field = job[f]
-                if field.every then
-                    -- log.info(tag, "calc_next every", f)
-                    -- 所有，不用计算了
-                elseif field.mod then
-                    -- 计算模
-                    -- log.info(tag, "calc_next mod", f)
-                    while tm[f] % field.mod ~= 0 do
-                        -- log.info(tag, "calc_next mod", f, tm[f])
-                        tm[f] = tm[f] + 1
-                        added = true
-                    end
-                else
-                    -- 计算散列
-                    -- log.info(tag, "calc_next dot", f)
-                    while not field[tostring(tm[f])] do
-                        -- log.info(tag, "calc_next dot", f, tm[f])
-                        tm[f] = tm[f] + 1
-
-                        -- 统一处理
-                        if tm[f] > 100 then
-                            local ff = items[i - 1]
-                            tm[ff] = tm[ff] + 1
-                            tm[f] = 0
-                        end
-                        added = true
-                    end
-                end
-            end
-        end
-
+        -- 先计算星期
+        added = calc_wday(tm, job.wday) or calc_field(tm, job.month, "month", "year", 1, 12) or
+                    calc_field(tm, job.day, "day", "month", 1, get_month_days(tm))
+        or calc_field(tm, job.hour, "hour", "day", 0, 23) or calc_field(tm, job.min, "min", "hour", 0, 59) or
+                    calc_field(tm, job.sec, "sec", "min", 0, 59)
         -- log.info(tag, "next end", json.encode(tm))
 
         -- 重新计算时间
