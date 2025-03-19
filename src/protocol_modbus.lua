@@ -240,11 +240,20 @@ end
 ---@return boolean 成功与否
 ---@return string 返回数据
 function Modbus:ask(request, len)
+
+    -- 重入锁，等待其他操作完成
+    while self.asking do
+        sys.wait(100) 
+    end
+    self.asking = true
+
+
     -- log.info(tag, "ask", request, len)
     if request ~= nil and #request > 0 then
         local ret = self.link:write(request)
         if not ret then
             log.info(tag, "write failed")
+            self.asking = false
             return false
         end
     end
@@ -257,17 +266,20 @@ function Modbus:ask(request, len)
         local ret = self.link:wait(self.timeout)
         if not ret then
             log.info(tag, "read timeout")
+            self.asking = false
             return false
         end
 
         local r, d = self.link:read()
         if not r then
             log.info(tag, "read failed")
+            self.asking = false
             return false
         end
         buf = buf .. d
     until #buf >= len
 
+    self.asking = false
     return true, buf
 end
 
