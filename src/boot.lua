@@ -83,10 +83,10 @@ local function main_task()
     -- require("link_tcp_client")
 
     -- 加载协议库
-    require("protocol_modbus")
-    -- require("protocol_cjt188")
-    -- require("protocol_dlt645")
-    -- require("protocol_s7")
+    require("modbus")
+    -- require("cjt188")
+    -- require("dlt645")
+    -- require("s7")
 
     -- 启动网关系统程序
     require("gateway").open()
