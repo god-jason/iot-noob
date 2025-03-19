@@ -59,7 +59,7 @@ function aliyun.init()
     log.info(tag, "init")
 
     local ret
-    ret, options = configs.load("aliyun")
+    ret, options = configs.load(tag)
     if not ret then
         return false
     end
