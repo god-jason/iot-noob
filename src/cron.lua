@@ -80,7 +80,7 @@ local function parse(crontab)
 end
 
 local function calc_next(job, now)
-    log.info(tag, "calc_next()", job.crontab)
+    --log.info(tag, "calc_next()", job.crontab)
 
     -- 复制当前时间，并延后1秒再执行
     local next = now + 1
@@ -94,28 +94,28 @@ local function calc_next(job, now)
         added = false
 
         local tm = os.date("!*t", next)
-        log.info(tag, "next begin", json.encode(tm))
+        --log.info(tag, "next begin", json.encode(tm))
 
         for i, f in ipairs(items) do
-            log.info(tag, "calc_next", f)
+            --log.info(tag, "calc_next", f)
             if i > 1 then -- 跳过年
                 local field = job[f]
                 if field.every then
-                    log.info(tag, "calc_next every", f)
+                    --log.info(tag, "calc_next every", f)
                     -- 所有，不用计算了
                 elseif field.mod then
                     -- 计算模
-                    log.info(tag, "calc_next mod", f)
+                    --log.info(tag, "calc_next mod", f)
                     while tm[f] % field.mod ~= 0 do
-                        log.info(tag, "calc_next mod", f, tm[f])
+                        --log.info(tag, "calc_next mod", f, tm[f])
                         tm[f] = tm[f] + 1
                         added = true
                     end
                 else
                     -- 计算散列
-                    log.info(tag, "calc_next dot", f)
+                    --log.info(tag, "calc_next dot", f)
                     while not field[tostring(tm[f])] do
-                        log.info(tag, "calc_next dot", f, tm[f])
+                        --log.info(tag, "calc_next dot", f, tm[f])
                         tm[f] = tm[f] + 1
 
                         -- 统一处理
@@ -130,12 +130,12 @@ local function calc_next(job, now)
             end
         end
 
-        log.info(tag, "next end", json.encode(tm))
+        --log.info(tag, "next end", json.encode(tm))
 
         -- 重新计算时间
         if added then
             next = os.time(tm)
-            log.info(tag, "calc_next added")
+            --log.info(tag, "calc_next added")
         end
     end
 
@@ -151,29 +151,29 @@ local function execute()
 
     -- 找到下一个执行时间点，但后
     local now = os.time()
-    local next
+    local latest
     for c, job in pairs(jobs) do
         if not job.next then
             calc_next(job, now)
         elseif job.next <= now then
-            calc_next(job, now)
             for id, cb in pairs(job.callbacks) do
-                -- 异步执行
+                -- 异步执行(不知道有没有数量限制，会不会影响性能)
                 sys.taskInit(cb)
             end
+            calc_next(job, now)
         end
 
-        if next == nil or job.next < next then
-            next = job.next
+        if latest == nil or job.next < latest then
+            latest = job.next
         end
     end
 
     -- 下次唤醒
-    if not next_time or next_time ~= next then
-        next_time = next
-        if next ~= nil and next > now then
-            log.info(tag, "wait", (next - now))
-            sys.timerStart(execute, (next - now) * 1000)
+    if not next_time or next_time ~= latest then
+        next_time = latest
+        if latest ~= nil and latest > now then
+            log.info(tag, "wait", (latest - now))
+            sys.timerStart(execute, (latest - now) * 1000)
         end
     end
 end
@@ -183,9 +183,7 @@ function cron.start(crontab, callback)
     if job ~= nil then
         job.count = job.count + 1
         -- table.insert(job.callbacks, increment, callback)
-        jobs.callbacks = {
-            [increment] = callback
-        }
+        job.callbacks[increment] = callback
         increment = increment + 1
         return true, increment - 1
     end
