@@ -14,8 +14,8 @@ local cron = require("cron")
 -- 先同步时间
 sys.subscribe("IP_READY", function()
 
-    -- cron.start("* * * * * *", function()
-    --     log.info("*")
+    -- cron.start("* * * * *", function()
+    --     log.info("0")
     -- end)
 
     cron.start("*/5 * * * * *", function()

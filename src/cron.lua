@@ -179,6 +179,9 @@ local function execute()
 end
 
 function cron.start(crontab, callback)
+    crontab = string.trim(crontab) --删除前后空白
+
+    -- 重复规则
     local job = jobs[crontab]
     if job ~= nil then
         job.count = job.count + 1
@@ -188,6 +191,7 @@ function cron.start(crontab, callback)
         return true, increment - 1
     end
 
+    -- 新规则
     local ret, job = parse(crontab)
     if not ret then
         log.info(tag, "parse failed", crontab)
