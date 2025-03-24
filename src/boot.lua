@@ -53,7 +53,6 @@ local function ntp_sync()
     require("clock").write()
 end
 
-
 local function main_task()
 
     -- 加载全局配置文件
@@ -74,7 +73,9 @@ local function main_task()
     require("ext_adc").init(opts.ext_adc) -- 外部ADC
     require("gnss").init(opts.gnss) -- GPS定位
     require("serial").init(opts.serial) -- 串口
-    require("cloud").init(opts.cloud) -- 平台
+
+    -- 启动平台连接
+    require("cloud").init() -- 平台
 
     -- gnss.init() --GPS定位
 

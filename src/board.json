@@ -27,15 +27,6 @@
             "year"
         ]
     },
-    "cloud": {
-        "enable": true,
-        "id": "",
-        "host": "git.zgwit.com",
-        "port": 1883,
-        "clienid": "",
-        "username": "",
-        "password": ""
-    },
     "ext_adc": {
         "enable": false,
         "chip": "AD7616",

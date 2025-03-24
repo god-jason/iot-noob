@@ -7,6 +7,8 @@
 local tag = "cloud"
 local cloud = {}
 
+local configs = require("configs")
+
 local default_options = {
     id = mobile.imei(),
     host = "git.zgwit.com",
@@ -100,11 +102,12 @@ local function on_event(client, event, topic, payload)
 end
 
 -- 平台初始化，加载配置
-function cloud.init(opts)
+function cloud.init()
     log.info(tag, "init")
 
     -- 加载配置
-    options = opts or default_options
+    -- options = opts or default_options
+    options = configs.load_default(tag, default_options)
 
     -- 用IMEI号作为默认ID
     if not options.id or #options.id == 0 then

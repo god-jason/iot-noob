@@ -32,7 +32,7 @@ function Device:open()
     log.info(tag, "device open", self.id, self.product_id)
 
     local ret
-    ret, self.options = products.load_config(self.product_id, "modbus")
+    ret, self.options = products.load_config(self.product_id, "modbus-rtu")
     if not ret then
         log.error(tag, self.product_id, "modbus_mapper load failed")
     end

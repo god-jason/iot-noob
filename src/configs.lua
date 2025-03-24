@@ -12,7 +12,7 @@ local utils = require("utils")
 
 local function luadb_config(name)
     if #name <= 26 then -- 带后缀名，长度不能大于31
-        return "/luadb/" .. string.gsub(name, "/", "_") .. ".json"
+        return "/luadb/" .. string.gsub(name, "/", "-") .. ".json"
     end
     local md5 = crypto.md5(name) -- substr(md5, 8, 24)
     return "/luadb/" .. string.sub(md5, 9, 24) .. ".json"
