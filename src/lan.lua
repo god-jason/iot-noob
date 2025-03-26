@@ -45,9 +45,9 @@ function lan.init(opts)
         w5500.init(options.spi, options.speed, options.scs, options.int, options.rst)
 
         -- 配置IP
-        w5500.options() -- 默认是DHCP模式
-        -- w5500.options("192.168.1.29", "255.255.255.0", "192.168.1.1") --静态IP模式
-        -- w5500.options("192.168.1.122", "255.255.255.0", "192.168.1.1", string.fromHex("102a3b4c5d6e")) --mac地址
+        w5500.config() -- 默认是DHCP模式
+        -- w5500.config("192.168.1.29", "255.255.255.0", "192.168.1.1") --静态IP模式
+        -- w5500.config("192.168.1.122", "255.255.255.0", "192.168.1.1", string.fromHex("102a3b4c5d6e")) --mac地址
 
         w5500.bind(socket.ETH0)
         -- lan.w5500_ready = true

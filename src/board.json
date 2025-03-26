@@ -9,7 +9,7 @@
         "full": 14200
     },
     "clock": {
-        "enable": false,
+        "enable": true,
         "chip": "SD3077",
         "i2c": 1,
         "addr": 100,
@@ -84,13 +84,13 @@
         ]
     },
     "lan": {
-        "enable": false,
+        "enable": true,
         "chip": "w5500",
         "spi": 0,
         "speed": 25600000,
         "scs": 8,
-        "int": 1,
-        "rst": 22
+        "int": 33,
+        "rst": 32
     },
     "led": {
         "enable": true,
