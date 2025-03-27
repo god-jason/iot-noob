@@ -43,7 +43,7 @@
     },
     "gnss": {
         "enable": false,
-        "debug": false,
+        "debug": true,
         "uart": 2,
         "baud_rate": 115200
     },
@@ -89,15 +89,15 @@
         "spi": 0,
         "speed": 25600000,
         "scs": 8,
-        "int": 33,
-        "rst": 32
+        "int": 32,
+        "rst": 31
     },
     "led": {
         "enable": true,
         "pins": {
             "net": 27,
             "ready": 26
-        }
+        } 
     },
     "sd": {
         "enable": false,
