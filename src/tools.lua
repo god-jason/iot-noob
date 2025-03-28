@@ -51,13 +51,18 @@ local function on_reboot(msg)
     sys.timerStart(rtos.reboot, 5000)
 end
 
-local function on_clear_fs()
+local function on_remove(msg)
+    os.remove(msg.name)
+    response_ok()
+end
+
+local function on_fs_clear()
     utils.remove_all("/")
     -- utils.walk("/")
     response_ok("clear_fs finished")
 end
 
-local function on_read_config(msg)
+local function on_config_read(msg)
     local ret, data, path = configs.load(msg.name)
     if ret then
         response(1, path, data)
@@ -66,7 +71,7 @@ local function on_read_config(msg)
     end
 end
 
-local function on_write_config(msg)
+local function on_config_write(msg)
     local ret, path = configs.save(msg.name, msg.data)
     if ret then
         response_ok(path)
@@ -75,7 +80,12 @@ local function on_write_config(msg)
     end
 end
 
-local function on_walk(msg)
+local function on_config_delete(msg)
+    configs.delete(msg.name)
+    response_ok()
+end
+
+local function on_fs_walk(msg)
     local files = {}
     utils.walk(msg.data or "/", files)
     response_data(files)
@@ -86,10 +96,11 @@ handlers = {
     commands = on_commands,
     version = on_version,
     reboot = on_reboot,
-    clear_fs = on_clear_fs,
-    read_config = on_read_config,
-    write_config = on_write_config,
-    walk = on_walk
+    fs_walk = on_fs_walk,
+    fs_clear = on_fs_clear,
+    config_read = on_config_read,
+    config_write = on_config_write,
+    config_delete = on_config_delete,
 }
 
 local cache = ""

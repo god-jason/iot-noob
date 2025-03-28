@@ -45,7 +45,7 @@
         "enable": false,
         "debug": true,
         "uart": 2,
-        "baud_rate": 115200
+        "baud_rate": 9600
     },
     "input": {
         "enable": false,

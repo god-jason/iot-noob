@@ -20,4 +20,18 @@ gpio.setup(20, 1, gpio.PULLUP)
 -- 调用启动
 require("boot")
 
+
+-- local relay = gpio.setup(2, 0)
+-- local on = true
+-- sys.timerLoopStart(function()
+--     if on then
+--         gpio.set(2, 0)
+--         on = false
+--     else
+--         gpio.set(2, 1)
+--         on = true
+--     end
+-- end, 1000)
+
+
 sys.run()
