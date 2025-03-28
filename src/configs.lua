@@ -22,6 +22,7 @@ end
 ---@param name string 文件名，不带.json后缀
 ---@return boolean 成功与否
 ---@return table|nil
+---@return string 最终文件名
 function configs.load(name)
     log.info(tag, "load", name)
 
@@ -63,7 +64,7 @@ function configs.load(name)
 
     local obj, ret, err = json.decode(data)
     if ret == 1 then
-        return true, obj
+        return true, obj, path
     else
         log.info(tag, "decode failed", path, err, data)
         return false, err
@@ -87,6 +88,7 @@ end
 ---@param name string 文件名，不带.json后缀
 ---@param data table|string 内容
 ---@return boolean 成功与否
+---@return string 最终文件名
 function configs.save(name, data)
     log.info(tag, "save", name, data)
 
@@ -128,7 +130,7 @@ function configs.save(name, data)
         data = fastlz.compress(data)
     end
 
-    return io.writeFile(path, data)
+    return io.writeFile(path, data), path
 end
 
 ---删除配置文件

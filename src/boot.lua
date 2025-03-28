@@ -63,6 +63,7 @@ local function main_task()
     end
 
     -- 初始化外设
+    require("tools").init() -- SD卡 
     require("sd").init(opts.sd) -- SD卡 
     require("battery").init(opts.battery) -- 电池
     require("clock").init(opts.clock) -- 初始化时钟芯片

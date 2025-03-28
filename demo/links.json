@@ -6,7 +6,7 @@
         "baud_rate": 9600,
         "protocol": "modbus-rtu",
         "protocol_options":{
-            "poller_interval": 10
+            "poller_interval": 5
         }
     }
 ]

@@ -1,13 +1,9 @@
 {
     "mapper": {
         "holding_registers": [
-            { "name": "A", "be": true, "address": 0, "type": "uint16" },
-            { "name": "B", "be": true, "address": 1, "type": "uint16" },
-            { "name": "C", "be": true, "address": 2, "type": "uint16" },
-            { "name": "D", "be": true, "address": 3, "type": "uint16" },
-            { "name": "E", "be": true, "address": 4, "type": "uint16" },
-            { "name": "F", "be": true, "address": 5, "type": "uint16" }
+            { "name": "temperature", "be": true, "address": 0, "type": "uint16", "rate":0.1 },
+            { "name": "humidity", "be": true, "address": 1, "type": "uint16", "rate":0.1 }
         ]
     },
-    "pollers": [{ "code": 3, "address": 0, "length": 10 }]
+    "pollers": [{ "code": 3, "address": 0, "length": 2 }]
 }
