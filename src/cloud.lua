@@ -78,7 +78,7 @@ local function on_event(client, event, topic, payload)
 
     if event == "conack" then
         -- 联上了
-        sys.publish("MQTT_CONACK")
+        sys.publish("CLOUD_CONNECTED")
         -- client:subscribe(sub_topic)--单主题订阅
         -- client:subscribe({[topic1]=1,[topic2]=1,[topic3]=1})--多主题订阅
 

@@ -91,7 +91,7 @@ local function main_task()
     -- require("s7")
 
     -- 启动网关系统程序
-    require("gateway").open()
+    require("noob").open()
 
 end
 

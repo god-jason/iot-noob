@@ -1,11 +1,11 @@
 --- 网关程序入口
--- @module "gateway"
+-- @module "noob"
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi
 -- @release 2025.02.08
-local tag = "gateway"
-local gateway = {}
+local tag = "noob"
+local noob = {}
 
 local battery = require("battery")
 local configs = require("configs")
@@ -30,7 +30,7 @@ end
 local function on_config_read(topic, payload)
     log.info(tag, "on_config_read", topic)
 
-    local base = "gateway/" .. cloud.id() .. "/config/read/"
+    local base = "noob/" .. cloud.id() .. "/config/read/"
     local config = string.sub(topic, #base + 1)
 
     local r, c = configs.load(config)
@@ -38,14 +38,14 @@ local function on_config_read(topic, payload)
         return
     end
 
-    cloud.publish("gateway/" .. cloud.id() .. "/config/content/" .. config, c)
+    cloud.publish("noob/" .. cloud.id() .. "/config/content/" .. config, c)
 end
 
 -- 处理配置写入
 local function on_config_write(topic, payload)
     log.info(tag, "on_config_write", topic, payload)
 
-    local base = "gateway/" .. cloud.id() .. "/config/write/"
+    local base = "noob/" .. cloud.id() .. "/config/write/"
     local config = string.sub(topic, #base + 1)
 
     configs.save(config, payload)
@@ -54,7 +54,7 @@ end
 local function on_config_delete(topic, payload)
     log.info(tag, "on_config_delete", topic)
 
-    local base = "gateway/" .. cloud.id() .. "/config/delete/"
+    local base = "noob/" .. cloud.id() .. "/config/delete/"
     local config = string.sub(topic, #base + 1)
 
     configs.delete(config)
@@ -79,11 +79,11 @@ local function on_pipe_start(topic, payload)
     end
     -- data.link TODO close protocol
     local link = links.get(data.link)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/" .. data.link .. "/down", function(topic, payload)
+    cloud.subscribe("noob/" .. cloud.id() .. "/" .. data.link .. "/down", function(topic, payload)
         link.write(payload)
     end)
     link.watch(function(data)
-        cloud.publish("gateway/" .. cloud.id() .. "/" .. data.link .. "/up", data)
+        cloud.publish("noob/" .. cloud.id() .. "/" .. data.link .. "/up", data)
     end)
 end
 
@@ -96,7 +96,7 @@ local function on_pipe_stop(topic, payload)
     end
     -- data.link TODO open protocol
     local link = links.get(data.link)
-    cloud.unsubscribe("gateway/" .. cloud.id() .. "/" .. data.link .. "/down")
+    cloud.unsubscribe("noob/" .. cloud.id() .. "/" .. data.link .. "/down")
     link.watch(nil)
 end
 
@@ -165,7 +165,7 @@ local function on_reboot(topic, payload)
 end
 
 -- 上报设备信息
-local function report_info()
+local function register()
     log.info(tag, "report_info")
     local info = {
         bsp = rtos.bsp(),
@@ -176,7 +176,7 @@ local function report_info()
         imsi = mobile.imsi(),
         iccid = mobile.iccid()
     }
-    cloud.publish("gateway/" .. cloud.id() .. "/info", info)
+    cloud.publish("noob/" .. cloud.id() .. "/register", info)
 end
 
 -- 上报设备状态（周期执行）
@@ -215,11 +215,11 @@ local function report_status()
         status.location = location
     end
 
-    cloud.publish("gateway/" .. cloud.id() .. "/status", status)
+    cloud.publish("noob/" .. cloud.id() .. "/status", status)
 end
 
 --- 打开网关
-function gateway.open()
+function noob.open()
     -- 加载设备
     devices.load()
 
@@ -229,21 +229,25 @@ function gateway.open()
     -- 连接云平台
     cloud.open()
 
-    sys.timerStart(report_info, 30000) -- 30秒上传信息
+    -- 自动注册
+    sys.subscribe("CLOUD_CONNECTED", register)
+    --sys.timerStart(register, 30000) -- 30秒上传信息
+
+    -- 周期上报状态
     sys.timerLoopStart(report_status, 60000) -- 60秒上传一次状态
 
     -- 订阅网关消息
-    cloud.subscribe("gateway/" .. cloud.id() .. "/ota", on_ota)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/read/#", on_config_read)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/write/#", on_config_write)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/delete/#", on_config_delete)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/config/download", on_config_download)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/start", on_pipe_start)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/device/read", on_device_read)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/device/write", on_device_write)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/device/action", on_device_action)
-    cloud.subscribe("gateway/" .. cloud.id() .. "/reboot", on_reboot)
+    cloud.subscribe("noob/" .. cloud.id() .. "/ota", on_ota)
+    cloud.subscribe("noob/" .. cloud.id() .. "/config/read/#", on_config_read)
+    cloud.subscribe("noob/" .. cloud.id() .. "/config/write/#", on_config_write)
+    cloud.subscribe("noob/" .. cloud.id() .. "/config/delete/#", on_config_delete)
+    cloud.subscribe("noob/" .. cloud.id() .. "/config/download", on_config_download)
+    cloud.subscribe("noob/" .. cloud.id() .. "/pipe/start", on_pipe_start)
+    cloud.subscribe("noob/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
+    cloud.subscribe("noob/" .. cloud.id() .. "/device/read", on_device_read)
+    cloud.subscribe("noob/" .. cloud.id() .. "/device/write", on_device_write)
+    cloud.subscribe("noob/" .. cloud.id() .. "/device/action", on_device_action)
+    cloud.subscribe("noob/" .. cloud.id() .. "/reboot", on_reboot)
 
     -- 订阅系统消息
     sys.subscribe("DEVICE_VALUES", function(dev, values)
@@ -256,8 +260,8 @@ function gateway.open()
 end
 
 --- 关闭网关
-function gateway.close()
+function noob.close()
 
 end
 
-return gateway
+return noob
