@@ -11,6 +11,8 @@ local commands = require("commands")
 local configs = require("configs")
 local links = require("links")
 local devices = require("devices")
+local battery = require("battery")
+local gnss = require("gnss")
 
 local MQTT = require("mqtt_ext")
 
