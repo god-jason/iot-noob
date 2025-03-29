@@ -53,12 +53,13 @@ local function ntp_sync()
     require("clock").write()
 end
 
-local function main_task()
+local function boot_task()
+    log.info(tag, "boot_task")
 
     -- 加载全局配置文件
     local ret, opts = configs.load("board")
     if not ret then
-        log.error(tag, "you should configure board.json")
+        log.error(tag, "you should configure your board.json")
         opts = {}
     end
 
@@ -93,10 +94,11 @@ local function main_task()
     -- 启动网关系统程序
     require("noob").open()
 
+    log.info(tag, "boot_task exit")
 end
 
 sys.subscribe("IP_READY", ip_ready)
 sys.subscribe("IP_LOSE", ip_lose)
 sys.subscribe("NTP_UPDATE", ntp_sync)
 
-sys.taskInit(main_task)
+sys.taskInit(boot_task)

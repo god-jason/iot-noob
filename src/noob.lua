@@ -7,68 +7,17 @@
 local tag = "noob"
 local noob = {}
 
-local battery = require("battery")
+local commands = require("commands")
 local configs = require("configs")
-local cloud = require("cloud")
 local links = require("links")
 local devices = require("devices")
-local ota = require("ota")
-local gnss = require("gnss")
 
--- 处理OTA升级
-local function on_ota(topic, payload)
-    log.info(tag, "on_ota", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-    -- ota.download(data.url)
-    sys.taskInit(ota.download, data.url)
-end
+local MQTT = require("mqtt_ext")
 
--- 处理配置读取
-local function on_config_read(topic, payload)
-    log.info(tag, "on_config_read", topic)
+--- @type MQTT
+local cloud = nil -- MQTT:new()
 
-    local base = "noob/" .. cloud.id() .. "/config/read/"
-    local config = string.sub(topic, #base + 1)
-
-    local r, c = configs.load(config)
-    if not r then
-        return
-    end
-
-    cloud.publish("noob/" .. cloud.id() .. "/config/content/" .. config, c)
-end
-
--- 处理配置写入
-local function on_config_write(topic, payload)
-    log.info(tag, "on_config_write", topic, payload)
-
-    local base = "noob/" .. cloud.id() .. "/config/write/"
-    local config = string.sub(topic, #base + 1)
-
-    configs.save(config, payload)
-end
-
-local function on_config_delete(topic, payload)
-    log.info(tag, "on_config_delete", topic)
-
-    local base = "noob/" .. cloud.id() .. "/config/delete/"
-    local config = string.sub(topic, #base + 1)
-
-    configs.delete(config)
-end
-
-local function on_config_download(topic, payload)
-    log.info(tag, "on_config_download", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-
-    configs.download(data.name, data.url)
-end
+local options = {}
 
 -- 开始透传
 local function on_pipe_start(topic, payload)
@@ -79,11 +28,11 @@ local function on_pipe_start(topic, payload)
     end
     -- data.link TODO close protocol
     local link = links.get(data.link)
-    cloud.subscribe("noob/" .. cloud.id() .. "/" .. data.link .. "/down", function(topic, payload)
+    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(topic, payload)
         link.write(payload)
     end)
-    link.watch(function(data)
-        cloud.publish("noob/" .. cloud.id() .. "/" .. data.link .. "/up", data)
+    link:watch(function(data)
+        cloud:publish("noob/" .. options.id .. "/" .. data.link .. "/up", data)
     end)
 end
 
@@ -96,72 +45,31 @@ local function on_pipe_stop(topic, payload)
     end
     -- data.link TODO open protocol
     local link = links.get(data.link)
-    cloud.unsubscribe("noob/" .. cloud.id() .. "/" .. data.link .. "/down")
-    link.watch(nil)
+    cloud:unsubscribe("noob/" .. options.id .. "/" .. data.link .. "/down")
+    link:watch(nil)
 end
 
-local function on_device_read(topic, payload)
-    log.info(tag, "on_device_read", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
+local function on_command(topic, payload)
+    log.info(tag, "on_command", payload)
+    -- local base = "noob/" .. options.id .. "/command/"
+    -- local cmd = string.sub(topic, #base + 1)
+
+    local response
+    local pkt, ret, err = json.decode(payload)
+    if ret == 1 then
+        local handler = commands[pkt.cmd]
+        if handler then
+            response = handler(pkt)
+        else
+            response = commands.error("invalid command")
+        end
+    else
+        response = commands.error(err)
     end
 
-    local dev = devices.get(data.id)
-    if not dev then
-        return
+    if response ~= nil then
+        cloud:publish("noob/" .. options.id .. "/command/response", response)
     end
-
-    local ret, value = dev.get(data.key)
-    if ret then
-        cloud.publish("device/" .. data.id .. "/read", {
-            key = data.key,
-            value = value
-        })
-    end
-end
-
-local function on_device_write(topic, payload)
-    log.info(tag, "on_device_write", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-
-    local dev = devices.get(data.id)
-    if not dev then
-        return
-    end
-
-    local ret = dev.set(data.key, data.value)
-end
-
-local function on_device_action(topic, payload)
-    log.info(tag, "on_device_action", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-
-    local dev = devices.get(data.id)
-    if not dev then
-        return
-    end
-
-    -- 执行一系列动作
-    for _, action in ipairs(data) do
-        sys.timerStart(function()
-            dev.set(action.key, action.value)
-        end, action.delay or 0)
-    end
-end
-
-local function on_reboot(topic, payload)
-    log.info(tag, "on_reboot", payload)
-    sys.timerStart(rtos.reboot, 5000)
-    log.info(tag, "reboot after 5s")
-
-    -- TODO 关闭网关，保存历史
 end
 
 -- 上报设备信息
@@ -169,14 +77,13 @@ local function register()
     log.info(tag, "report_info")
     local info = {
         bsp = rtos.bsp(),
-        version = rtos.version(),
         firmware = rtos.firmware(),
-        build = rtos.buildDate(),
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid()
+        -- TODO 添加串口数据量，网口支持等信息
     }
-    cloud.publish("noob/" .. cloud.id() .. "/register", info)
+    cloud:publish("noob/" .. options.id .. "/register", info)
 end
 
 -- 上报设备状态（周期执行）
@@ -184,7 +91,8 @@ local function report_status()
     log.info(tag, "report_status")
 
     local status = {
-        net = mobile.scell()
+        net = mobile.scell(),
+        date = os.date("%Y-%m-%d %H:%M:%S") -- 系统时间
     }
 
     -- 内存使用信息
@@ -215,7 +123,7 @@ local function report_status()
         status.location = location
     end
 
-    cloud.publish("noob/" .. cloud.id() .. "/status", status)
+    cloud:publish("noob/" .. options.id .. "/status", status)
 end
 
 --- 打开网关
@@ -226,42 +134,64 @@ function noob.open()
     -- 打开连接
     links.load()
 
+    -- 加载配置
+    local ret
+    ret, options = configs.load("noob")
+    if not ret or not options.enable then
+        log.info(tag, "disabled")
+        return
+    end
+
+    -- 默认使用IMEI号作为ID
+    if not options.id or #options.id == 0 then
+        options.id = mobile.imei()
+    end
+    options.id = options.id
+
+    -- 生成秘钥， username:imei, password:md5(imei+date+key)
+    -- local date = os.date("%Y-%m-%d") -- 系统可能还没获取到正确的时间
+    options.clienid = options.id
+    options.username = options.id
+    options.password = crypto.md5(options.id .. options.key)
+
     -- 连接云平台
-    cloud.open()
+    cloud = MQTT:new(options)
+    local ret = cloud:open()
+
+    if not ret then
+        log.error(tag, "cloud open failed")
+        return
+    end
 
     -- 自动注册
-    sys.subscribe("CLOUD_CONNECTED", register)
-    --sys.timerStart(register, 30000) -- 30秒上传信息
+    sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
     sys.timerLoopStart(report_status, 60000) -- 60秒上传一次状态
 
     -- 订阅网关消息
-    cloud.subscribe("noob/" .. cloud.id() .. "/ota", on_ota)
-    cloud.subscribe("noob/" .. cloud.id() .. "/config/read/#", on_config_read)
-    cloud.subscribe("noob/" .. cloud.id() .. "/config/write/#", on_config_write)
-    cloud.subscribe("noob/" .. cloud.id() .. "/config/delete/#", on_config_delete)
-    cloud.subscribe("noob/" .. cloud.id() .. "/config/download", on_config_download)
-    cloud.subscribe("noob/" .. cloud.id() .. "/pipe/start", on_pipe_start)
-    cloud.subscribe("noob/" .. cloud.id() .. "/pipe/stop", on_pipe_stop)
-    cloud.subscribe("noob/" .. cloud.id() .. "/device/read", on_device_read)
-    cloud.subscribe("noob/" .. cloud.id() .. "/device/write", on_device_write)
-    cloud.subscribe("noob/" .. cloud.id() .. "/device/action", on_device_action)
-    cloud.subscribe("noob/" .. cloud.id() .. "/reboot", on_reboot)
+    cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
+    cloud:subscribe("noob/" .. options.id .. "/pipe/stop", on_pipe_stop)
+    cloud:subscribe("noob/" .. options.id .. "/command/#", on_command)
 
     -- 订阅系统消息
+
+    -- 设备属性上报
     sys.subscribe("DEVICE_VALUES", function(dev, values)
-        cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
+        cloud:publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
     end)
+
+    -- 设备事件上报
     sys.subscribe("DEVICE_EVENT", function(dev, event)
-        cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/event", event)
+        cloud:publish("device/" .. dev.product_id .. "/" .. dev.id .. "/event", event)
     end)
 
 end
 
 --- 关闭网关
 function noob.close()
-
+    cloud:close()
+    cloud = nil
 end
 
 return noob

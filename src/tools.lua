@@ -1,112 +1,18 @@
+--- 虚拟串口处理指令
+--- @module "commands"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.03.28
 local tag = "tools"
 local tools = {}
-local handlers
 
-local utils = require("utils")
-local configs = require("configs")
-
-local function write_packet(pkt)
-    local data = json.encode(pkt)
-    uart.write(uart.VUART_0, "\r\n" .. data .. "\r\n")
-end
-
-local function response(ret, msg, data)
-    write_packet({
-        ret = ret,
-        msg = msg,
-        data = data
-    })
-end
-
-local function response_data(data)
-    response(1, nil, data)
-end
-
-local function response_ok(msg)
-    response(1, msg)
-end
-
-local function response_error(msg)
-    response(0, msg)
-end
-
-local function on_hello()
-    response_ok("world")
-end
-
-local function on_commands()
-    local cmds = {}
-    for k, v in pairs(handlers) do
-        table.insert(cmds, k)
-    end
-    response_data(cmds)
-end
-
-local function on_version()
-    response_data(_G.PROJECT .. _G.VERSION)
-end
-
-local function on_reboot(msg)
-    response_ok("reboot after 5s")
-    sys.timerStart(rtos.reboot, 5000)
-end
-
-local function on_remove(msg)
-    os.remove(msg.name)
-    response_ok()
-end
-
-local function on_fs_clear()
-    utils.remove_all("/")
-    -- utils.walk("/")
-    response_ok("clear_fs finished")
-end
-
-local function on_config_read(msg)
-    local ret, data, path = configs.load(msg.name)
-    if ret then
-        response(1, path, data)
-    else
-        response_error("not found")
-    end
-end
-
-local function on_config_write(msg)
-    local ret, path = configs.save(msg.name, msg.data)
-    if ret then
-        response_ok(path)
-    else
-        response_error("write failed")
-    end
-end
-
-local function on_config_delete(msg)
-    configs.delete(msg.name)
-    response_ok()
-end
-
-local function on_fs_walk(msg)
-    local files = {}
-    utils.walk(msg.data or "/", files)
-    response_data(files)
-end
-
-handlers = {
-    hello = on_hello,
-    commands = on_commands,
-    version = on_version,
-    reboot = on_reboot,
-    fs_walk = on_fs_walk,
-    fs_clear = on_fs_clear,
-    config_read = on_config_read,
-    config_write = on_config_write,
-    config_delete = on_config_delete,
-}
+local commands = require("commands")
 
 local cache = ""
 local function on_data(id, len)
     local data = uart.read(id, len)
-    log.info(tag, "command", len, data)
+    log.info(tag, "receive", len, data)
 
     if data:startsWith("\r\n") then
         cache = data
@@ -114,19 +20,25 @@ local function on_data(id, len)
         cache = cache .. data
     end
 
+    local response
+
     if data:endsWith("\r\n") then
         local pkt, ret, err = json.decode(cache:sub(3, -3))
         if ret == 1 then
-            local handler = handlers[pkt.cmd]
+            local handler = commands[pkt.cmd]
             if handler then
-                handler(pkt)
+                response = handler(pkt)
             else
-                response_error("invalid command")
+                response = commands.error("invalid command")
             end
         else
-            response_error(err)
+            response = commands.error(err)
         end
         cache = ""
+
+        if response ~= nil then
+            uart.write(uart.VUART_0, "\r\n" .. json.encode(response) .. "\r\n")
+        end
     end
 end
 

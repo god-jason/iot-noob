@@ -1,4 +1,5 @@
 {
+    "name": "nb100-20250301",
     "battery": {
         "enable": false,
         "vbat": 3800,
@@ -97,7 +98,7 @@
         "pins": {
             "net": 27,
             "ready": 26
-        } 
+        }
     },
     "sd": {
         "enable": false,
