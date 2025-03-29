@@ -76,9 +76,6 @@ local function boot_task()
     require("gnss").init(opts.gnss) -- GPS定位
     require("serial").init(opts.serial) -- 串口
 
-    -- 启动平台连接
-    require("cloud").init() -- 平台
-
     -- gnss.init() --GPS定位
 
     -- 加载连接器
@@ -90,6 +87,12 @@ local function boot_task()
     -- require("cjt188")
     -- require("dlt645")
     -- require("s7")
+
+    -- 加载设备
+    require("devices").load()
+
+    -- 打开连接
+    require("links").load()
 
     -- 启动网关系统程序
     require("noob").open()

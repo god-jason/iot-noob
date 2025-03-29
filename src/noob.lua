@@ -128,11 +128,6 @@ end
 
 --- 打开网关
 function noob.open()
-    -- 加载设备
-    devices.load()
-
-    -- 打开连接
-    links.load()
 
     -- 加载配置
     local ret

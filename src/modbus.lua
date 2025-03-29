@@ -9,7 +9,6 @@ local tag = "modbus"
 local devices = require("devices")
 local products = require("products")
 local points = require("points")
-local cloud = require("cloud")
 
 --- 设备类
 --- @class Device
