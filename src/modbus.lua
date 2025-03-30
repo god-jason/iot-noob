@@ -31,7 +31,7 @@ function Device:open()
     log.info(tag, "device open", self.id, self.product_id)
 
     local ret
-    ret, self.options = products.load_config(self.product_id, "modbus-rtu")
+    ret, self.options = products.load_config(self.product_id, "modbus")
     if not ret then
         log.error(tag, self.product_id, "modbus_mapper load failed")
     end
@@ -216,7 +216,7 @@ end
 ---@class Modbus
 local Modbus = {}
 
-require("protocols").register("modbus-rtu", Modbus)
+require("protocols").register("modbus", Modbus)
 
 ---创建实例
 ---@param link any 连接实例
@@ -229,6 +229,12 @@ function Modbus:new(link, opts)
     obj.link = link
     obj.timeout = opts.timeout or 1000 -- 1秒钟
     obj.poller_interval = opts.poller_interval or 5 -- 5秒钟
+    if opts.mode == "tcp" then
+        obj.tcp = true
+        obj.increment = 1
+    else
+        obj.tcp = false
+    end
 
     return obj
 end
@@ -242,10 +248,9 @@ function Modbus:ask(request, len)
 
     -- 重入锁，等待其他操作完成
     while self.asking do
-        sys.wait(100) 
+        sys.wait(100)
     end
     self.asking = true
-
 
     -- log.info(tag, "ask", request, len)
     if request ~= nil and #request > 0 then
@@ -282,6 +287,43 @@ function Modbus:ask(request, len)
     return true, buf
 end
 
+function Modbus:readTCP(slave, code, addr, len)
+    log.info(tag, "readTCP", slave, code, addr, len)
+
+    local data = pack.pack("b2>H2", slave, code, addr, len)
+    -- 事务ID, 0000, 长度
+    local header = pack.pack("H3", self.increment, 0, #data)
+    self.increment = self.increment + 1
+
+    local ret, buf = self:ask(header .. data, 12)
+    if not ret then
+        return false
+    end
+
+    -- 取错误码
+    if #buf > 8 then
+        local code = string.byte(buf, 8)
+        if code > 0x80 then
+            log.info(tag, "error code", code)
+            return false
+        end
+    end
+
+    -- 先取字节数
+    local cnt = string.byte(buf, 9)
+    local len = 9 + cnt
+    if #buf < len then
+        log.info(tag, "wait more", len, #buf)
+        local r, d = self:ask(nil, len - #buf)
+        if not r then
+            return false
+        end
+        buf = buf .. d
+    end
+
+    return true, string.sub(buf, 10)
+end
+
 -- 读取数据
 ---@param slave integer 从站号
 ---@param code integer 功能码
@@ -290,9 +332,12 @@ end
 ---@return boolean 成功与否
 ---@return string 只有数据
 function Modbus:read(slave, code, addr, len)
+    if self.tcp then
+        return self:readTCP(slave, code, addr, len)
+    end
+
     log.info(tag, "read", slave, code, addr, len)
 
-    -- local data = (string.format("%02x",slave)..string.format("%02x",code)..string.format("%04x",offset)..string.format("%04x",length)):fromHex()
     local data = pack.pack("b2>H2", slave, code, addr, len)
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
@@ -325,6 +370,31 @@ function Modbus:read(slave, code, addr, len)
     return true, string.sub(buf, 4, len - 2)
 end
 
+function Modbus:writeTCP(slave, code, addr, data)
+    log.info(tag, "writeTCP", slave, code, addr, data)
+
+    local data = pack.pack("b2>H", slave, code, addr) .. data
+    -- 事务ID, 0000, 长度
+    local header = pack.pack(">H3", self.increment, 0, #data)
+    self.increment = self.increment + 1
+
+    local ret, buf = self:ask(header..data, 12)
+    if not ret then
+        return false
+    end
+
+    -- 取错误码
+    if #buf > 8 then
+        local code = string.byte(buf, 8)
+        if code > 0x80 then
+            log.info(tag, "error code", code)
+            return false
+        end
+    end
+
+    return true
+end
+
 -- 写入数据
 ---@param slave integer 从站号
 ---@param code integer 功能码
@@ -346,6 +416,10 @@ function Modbus:write(slave, code, addr, data)
         else
             code = 6
         end
+    end
+
+    if self.tcp then
+        return self:writeTCP(slave, code, addr, data)
     end
 
     log.info(tag, "write", slave, code, addr, data)

@@ -78,7 +78,7 @@ function commands.reboot(msg)
 end
 
 function commands.ota(msg)
-    ota.download(msg.data)
+    ota.download(msg.url)
     return ok()
 end
 
@@ -106,13 +106,13 @@ function commands.config_delete(msg)
 end
 
 function commands.config_download(msg)
-    configs.download(msg.name, msg.data)    
+    configs.download(msg.name, msg.url)    
     return ok()
 end
 
 function commands.fs_walk(msg)
     local files = {}
-    utils.walk(msg.data or "/", files)
+    utils.walk(msg.path or "/", files)
     return data(files)
 end
 
@@ -147,7 +147,7 @@ function commands.device_read(msg)
         return error("device not found")
     end
 
-    local ret, value = dev.get(msg.key)
+    local ret, value = dev.get(msg.name)
     if ret then
         return data(value)
     else
@@ -161,7 +161,7 @@ function commands.device_write(msg)
         return error("device not found")
     end
 
-    local ret = dev.set(msg.name, msg.data)
+    local ret = dev.set(msg.name, msg.value)
     if ret then
         return ok()
     else
@@ -178,7 +178,7 @@ function commands.device_action(msg)
     -- 执行一系列动作
     for _, item in ipairs(msg.data) do
         sys.timerStart(function()
-            dev.set(item.key, item.value)
+            dev.set(item.name, item.value)
         end, item.delay or 0)
     end
 

@@ -69,6 +69,11 @@ local function on_command(topic, payload)
         response = commands.error(err)
     end
 
+    -- 复制ID
+    if pkt.mid ~= nil then
+        response.mid = pkt.mid
+    end
+
     if response ~= nil then
         cloud:publish("noob/" .. options.id .. "/command/response", response)
     end
@@ -169,7 +174,7 @@ function noob.open()
     -- 订阅网关消息
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
     cloud:subscribe("noob/" .. options.id .. "/pipe/stop", on_pipe_stop)
-    cloud:subscribe("noob/" .. options.id .. "/command/#", on_command)
+    cloud:subscribe("noob/" .. options.id .. "/command", on_command)
 
     -- 订阅系统消息
 

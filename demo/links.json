@@ -4,8 +4,9 @@
         "type": "serial",
         "port": 1,
         "baud_rate": 9600,
-        "protocol": "modbus-rtu",
+        "protocol": "modbus",
         "protocol_options":{
+            "mode": "rtu",
             "poller_interval": 5
         }
     }
