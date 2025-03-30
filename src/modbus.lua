@@ -292,7 +292,7 @@ function Modbus:readTCP(slave, code, addr, len)
 
     local data = pack.pack("b2>H2", slave, code, addr, len)
     -- 事务ID, 0000, 长度
-    local header = pack.pack("H3", self.increment, 0, #data)
+    local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
     local ret, buf = self:ask(header .. data, 12)
@@ -309,9 +309,11 @@ function Modbus:readTCP(slave, code, addr, len)
         end
     end
 
-    -- 先取字节数
-    local cnt = string.byte(buf, 9)
-    local len = 9 + cnt
+    -- 解析包头
+    local id, _, ln = pack.unpack(buf, ">H3")
+    len = ln + 6
+
+    -- 取剩余数据
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
         local r, d = self:ask(nil, len - #buf)
@@ -390,6 +392,20 @@ function Modbus:writeTCP(slave, code, addr, data)
             log.info(tag, "error code", code)
             return false
         end
+    end
+
+    -- 解析包头
+    local id, _, ln = pack.unpack(buf, ">H3")
+    local len = ln + 6
+
+    -- 取剩余数据
+    if #buf < len then
+        log.info(tag, "wait more", len, #buf)
+        local r, d = self:ask(nil, len - #buf)
+        if not r then
+            return false
+        end
+        buf = buf .. d
     end
 
     return true
