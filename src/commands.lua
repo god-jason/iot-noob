@@ -57,11 +57,11 @@ end
 function commands.eval(msg)
     local fn = load(msg.data, "eval", "t", _G)
     if fn ~= nil then
-        local status, result = pcall(fn)
-        if status then
-            return data(result)
+        local ret, info = pcall(fn)
+        if ret then
+            return data(info)
         else
-            return error("execute failed")
+            return error(info)
         end
     else
         return error("load failed")
