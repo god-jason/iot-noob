@@ -141,6 +141,15 @@ function commands.fs_delete(msg)
     return ok()
 end
 
+function commands.fs_ls(msg)
+    local ret, files = io.lsdir(msg.path or "/", msg.offset, msg.length)
+    if ret then
+        return data(files)
+    else
+        return error("lsdir failed")
+    end
+end
+
 function commands.device_read(msg)
     local dev = devices.get(msg.id)
     if not dev then

@@ -11,6 +11,7 @@ local commands = require("commands")
 local configs = require("configs")
 local links = require("links")
 local devices = require("devices")
+local products = require("products")
 local battery = require("battery")
 local gnss = require("gnss")
 
@@ -87,11 +88,33 @@ local function register()
         firmware = rtos.firmware(),
         imei = mobile.imei(),
         imsi = mobile.imsi(),
-        iccid = mobile.iccid()
+        iccid = mobile.iccid(),
         -- TODO 添加串口数据量，网口支持等信息
     }
+
+    -- 同步信息，服务器接收后，远程下发数据
+    local ret, links = configs.load("links")
+    if ret then
+        info.links = #links        
+    else
+        info.links = 0
+    end
+    local ret, devices = configs.load("devices")
+    if ret then
+        info.devices = #devices        
+    else
+        info.devices = 0
+    end
+
+    -- 需要同步的配置
+    local ret, configs = products.wanted()
+    if ret then
+        info.wanted_configs = configs
+    end
+    
     cloud:publish("noob/" .. options.id .. "/register", info)
 end
+
 
 -- 上报设备状态（周期执行）
 local function report_status()
@@ -169,7 +192,7 @@ function noob.open()
     sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
-    sys.timerLoopStart(report_status, 60000) -- 60秒上传一次状态
+    sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)

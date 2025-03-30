@@ -229,12 +229,8 @@ function Modbus:new(link, opts)
     obj.link = link
     obj.timeout = opts.timeout or 1000 -- 1秒钟
     obj.poller_interval = opts.poller_interval or 5 -- 5秒钟
-    if opts.mode == "tcp" then
-        obj.tcp = true
-        obj.increment = 1
-    else
-        obj.tcp = false
-    end
+    obj.tcp = opts.tcp or false -- modbus tcp
+    obj.increment = 1
 
     return obj
 end
@@ -380,7 +376,7 @@ function Modbus:writeTCP(slave, code, addr, data)
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self:ask(header..data, 12)
+    local ret, buf = self:ask(header .. data, 12)
     if not ret then
         return false
     end

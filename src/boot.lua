@@ -22,6 +22,7 @@ if wdt then
 end
 
 local sntp_sync_ok = false
+local noob_ok = false
 
 -- 指示灯
 local led = require("led")
@@ -38,8 +39,12 @@ local function ip_ready()
         -- socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
         -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
     end
-    -- TODO 其他任务，比如连接云服务器等 
 
+    -- 启动网关系统程序
+    if not noob_ok then
+        require("noob").open()
+        noob_ok = true
+    end
 end
 
 local function ip_lose()
@@ -55,6 +60,8 @@ end
 
 local function boot_task()
     log.info(tag, "boot_task")
+    
+    fskv.init() -- KV 数据库
 
     -- 加载全局配置文件
     local ret, opts = configs.load("board")
@@ -93,9 +100,6 @@ local function boot_task()
 
     -- 打开连接
     require("links").load()
-
-    -- 启动网关系统程序
-    require("noob").open()
 
     log.info(tag, "boot_task exit")
 end

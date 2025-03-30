@@ -51,7 +51,7 @@ function utils.walk(path, results, offset)
             log.info(tag, "walk", fn, e.size)
             if results then
                 table.insert(results, {
-                    filename = fn,
+                    name = fn,
                     size = e.size
                 })
             end

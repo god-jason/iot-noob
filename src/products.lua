@@ -9,7 +9,9 @@ local products = {}
 
 local configs = require("configs")
 
-local product_configs = {}
+local cached_configs = {}
+
+local wanted_configs = {}
 
 --- 加载产品配置
 --- @param id any 产品ID
@@ -18,11 +20,11 @@ local product_configs = {}
 --- @return table|nil 配置内容
 function products.load_config(id, config)
     -- 取缓存
-    if product_configs[id] == nil then
-        product_configs[id] = {}
+    if cached_configs[id] == nil then
+        cached_configs[id] = {}
     end
-    if product_configs[id][config] ~= nil then
-        return true, product_configs[id][config]
+    if cached_configs[id][config] ~= nil then
+        return true, cached_configs[id][config]
     end
 
     -- 加载配置文件
@@ -30,12 +32,12 @@ function products.load_config(id, config)
     local name = id .. "/" .. config -- 去掉前缀，兼容luadb
     local ret, data = configs.load(name)
     if not ret then
-        -- products.download(id, config)
+        wanted_configs[name] = true
         return false
     end
 
     -- 缓存
-    product_configs[id][config] = data
+    cached_configs[id][config] = data
 
     return true, data
 end
@@ -47,6 +49,19 @@ function products.download(id, config)
     local name = "products/" .. id .. "/" .. config
     local url = "http://iot.busycloud.cn/product/" .. id .. "/" .. config .. ".json"
     configs.download(name, url)
+end
+
+--- 获取未成功加载的配置
+--- @return boolean
+--- @return table
+function products.wanted()
+    local has = false
+    local cs = {}
+    for k, v in pairs(wanted_configs) do
+        table.insert(cs, k)
+        has = true
+    end
+    return has, cs
 end
 
 return products
