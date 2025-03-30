@@ -6,7 +6,6 @@
 --- @release 2025.03.30
 local tag = "MQTT"
 
-
 --- @class MQTT
 MQTT = {}
 
@@ -21,7 +20,7 @@ function MQTT:new(opts)
     setmetatable(obj, self)
     self.__index = self
     obj.id = increment
-    increment = increment+1
+    increment = increment + 1
     obj.options = opts -- 参数
     obj.client = nil -- MQTT连接
     obj.subs = {} -- 订阅历史
@@ -61,7 +60,6 @@ local function find_callback(node, topics, topic, payload)
     end
 end
 
-
 ---打开平台
 ---@return boolean 成功与否
 function MQTT:open()
@@ -88,7 +86,7 @@ function MQTT:open()
     self.client:on(function(client, event, topic, payload)
         -- log.info(tag, "event", event, client, topic, payload)
         if event == "conack" then
-            sys.publish("MQTT_CONNECT_"..self.id)
+            sys.publish("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
                 if cnt > 0 then
@@ -97,17 +95,17 @@ function MQTT:open()
                 end
             end
         elseif event == "recv" then
-            sys.publish("MQTT_MESSAGE_"..self.id, topic, payload)
+            sys.publish("MQTT_MESSAGE_" .. self.id, topic, payload)
         elseif event == "sent" then
         elseif event == "disconnect" then
-            sys.publish("MQTT_DISCONNECT_"..self.id)
+            sys.publish("MQTT_DISCONNECT_" .. self.id)
         end
     end)
 
     -- 处理MQTT消息，主要是回调中可能有sys.wait，所以必须用task
     sys.taskInit(function()
         while self.client do
-            local ret, topic, payload = sys.waitUntil("MQTT_MESSAGE_"..self.id, 30000)
+            local ret, topic, payload = sys.waitUntil("MQTT_MESSAGE_" .. self.id, 30000)
             if ret then
                 local ts = string.split(topic, "/")
                 find_callback(self.sub_tree, ts, topic, payload)
@@ -134,7 +132,11 @@ end
 function MQTT:publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
-        payload = json.encode(payload)
+        local err
+        payload, err = json.encode(payload)
+        if payload == nil then
+            payload = "payload json encode error:" .. err
+        end
     end
     return self.client:publish(topic, payload, qos)
 end
