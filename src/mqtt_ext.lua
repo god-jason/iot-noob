@@ -133,7 +133,7 @@ function MQTT:publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
         local err
-        payload, err = json.encode(payload)
+        payload, err = json.encode(payload, "2f")
         if payload == nil then
             payload = "payload json encode error:" .. err
         end
