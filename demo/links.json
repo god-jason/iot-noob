@@ -1,13 +1,12 @@
 [
     {
-        "id": "test",
+        "id": "test-serial",
         "type": "serial",
         "port": 1,
         "baud_rate": 9600,
         "protocol": "modbus",
         "protocol_options":{
-            "mode": "rtu",
-            "poller_interval": 5
+            "poller_interval": 10
         }
     }
 ]

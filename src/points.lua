@@ -159,12 +159,12 @@ function points.parseWord(point, data, address)
     local _, value = pack.unpack(buf, be .. pk)
 
     -- 倍率
-    if not feagure.rate then
-        value = value * feagure.rate
+    if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
+        value = value * point.rate
     end
     -- 校准
-    if not feagure.correct then
-        value = value + feagure.correct
+    if point.correct ~= nil and point.correct ~= 0 then
+        value = value + point.correct
     end
 
     return true, value
@@ -196,12 +196,12 @@ function points.parse(point, data, address)
     local _, value = pack.unpack(buf, be .. pk)
 
     -- 倍率
-    if not feagure.rate then
-        value = value * feagure.rate
+    if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
+        value = value * point.rate
     end
     -- 校准
-    if not feagure.correct then
-        value = value + feagure.correct
+    if point.correct ~= nil and point.correct ~= 0 then
+        value = value + point.correct
     end
 
     return true, value
@@ -220,13 +220,13 @@ function points.encode(point, value)
     end
 
     -- 校准
-    if not feagure.correct then
-        value = value - feagure.correct
+    if point.correct ~= nil and point.correct ~= 0 then
+        value = value - point.correct
     end
 
     -- 倍率
-    if not feagure.rate then
-        value = value / feagure.rate
+    if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
+        value = value / point.rate
     end
 
     local be = point.be and ">" or "<"

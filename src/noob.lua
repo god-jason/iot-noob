@@ -88,22 +88,17 @@ local function register()
         firmware = rtos.firmware(),
         imei = mobile.imei(),
         imsi = mobile.imsi(),
-        iccid = mobile.iccid(),
-        -- TODO 添加串口数据量，网口支持等信息
+        iccid = mobile.iccid()
     }
 
     -- 同步信息，服务器接收后，远程下发数据
     local ret, links = configs.load("links")
     if ret then
-        info.links = #links        
-    else
-        info.links = 0
+        info.links = #links
     end
     local ret, devices = configs.load("devices")
     if ret then
-        info.devices = #devices        
-    else
-        info.devices = 0
+        info.devices = #devices
     end
 
     -- 需要同步的配置
