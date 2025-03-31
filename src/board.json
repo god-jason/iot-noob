@@ -14,11 +14,8 @@
         "chip": "SD3077",
         "i2c": 1,
         "addr": 100,
-        "init": "0E04",
-        "read": "00",
-        "write": "00",
-        "registers": [
-            0,
+        "reg": 0,
+        "fields": [
             "second",
             "minute",
             "hour",
