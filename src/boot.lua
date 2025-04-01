@@ -71,7 +71,7 @@ local function boot_task()
     end
 
     -- 初始化外设
-    require("tools").init() -- SD卡 
+    require("tools").init() -- 虚拟串口，接上位机
     require("sd").init(opts.sd) -- SD卡 
     require("battery").init(opts.battery) -- 电池
     require("clock").init(opts.clock) -- 初始化时钟芯片
@@ -79,7 +79,7 @@ local function boot_task()
     require("lan").init(opts.lan) -- 以太网
     require("input").init(opts.input) -- 输入
     require("output").init(opts.output) -- 输入
-    require("ext_adc").init(opts.ext_adc) -- 外部ADC
+    require("adc_ext").init(opts.adc_ext) -- 外部ADC
     require("gnss").init(opts.gnss) -- GPS定位
     require("serial").init(opts.serial) -- 串口
 
@@ -109,3 +109,13 @@ sys.subscribe("IP_LOSE", ip_lose)
 sys.subscribe("NTP_UPDATE", ntp_sync)
 
 sys.taskInit(boot_task)
+
+sys.timerLoopStart(function()
+    local ret, data = require("adc_ext").read()
+    if ret then
+        log.info("read adc ", json.encode(data))
+    else
+        log.info("read adc failed")    
+    end
+    
+end, 3000)

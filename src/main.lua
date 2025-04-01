@@ -13,7 +13,7 @@ VERSION = "1.0.0"
 -- gpio.setup(25, 1, gpio.PULLUP)
 
 --W5500芯片供电
--- gpio.setup(20, 1, gpio.PULLUP)
+gpio.setup(20, 1, gpio.PULLUP)
 
 -- 调用启动
 require("boot")

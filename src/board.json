@@ -13,7 +13,7 @@
         "enable": true,
         "chip": "SD3077",
         "i2c": 1,
-        "addr": 100,
+        "addr": 50,
         "reg": 0,
         "fields": [
             "second",
@@ -25,19 +25,20 @@
             "year"
         ]
     },
-    "ext_adc": {
-        "enable": false,
+    "adc_ext": {
+        "enable": true,
         "chip": "AD7616",
-        "spi": 2,
-        "cs_pin": 10,
+        "spi": 1,
+        "cs_pin": 35,
         "channels": 16,
         "bits": 16,
         "init": "0000",
         "read": "00",
-        "power_pin": 10,
-        "enable_pin": 11,
-        "reset_pin": 12,
-        "busy_pin": 13
+        "convst_pin":28,
+        "power_pin": 4,
+        "enable_pin": 4,
+        "reset_pin": 36,
+        "busy_pin": 22
     },
     "gnss": {
         "enable": false,

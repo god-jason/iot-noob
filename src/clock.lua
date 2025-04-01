@@ -19,7 +19,7 @@ local default_options = {
     enable = false,
     chip = "SD3077", -- 型号
     i2c = 1, -- iic总线
-    addr = 0x64, -- 站号 0x64: SD3077, 0x68 SD3231
+    addr = 0x32, -- 地址 0x64: SD3077, 0x68 SD3231
     reg = 0x00, -- 首地址
     fields = { -- 寄存器
     "second", "minute", "hour", "wday", "day", "month", "year"}

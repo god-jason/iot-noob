@@ -1,12 +1,12 @@
 --- 外部adc芯片接口
---- @module "ext_adc"
+--- @module "adc_ext"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.01
 --- 基于AD7616芯片开发，其他芯片需要做参数调整
-local tag = "ext_adc"
-local ext_adc = {}
+local tag = "adc_ext"
+local adc_ext = {}
 
 local default_options = {
     enable = false,
@@ -26,7 +26,7 @@ local default_options = {
 local options = {}
 
 -- ADC芯片初始化
-function ext_adc.init(opts)
+function adc_ext.init(opts)
     local ret
 
     -- 加载配置
@@ -50,15 +50,15 @@ function ext_adc.init(opts)
         gpio.setup(options.power_pin, gpio.PULLUP)
     end
 
-    -- 初始化iic接口
+    -- 初始化spi接口
     ret = spi.setup(options.spi, options.cs_pin)
     if ret ~= 0 then
-        log.info(tag, "adc init failed", ret)
+        log.info(tag, "open spi ", ret)
         return
     end
 
     -- 使能
-    gpio.setup(options.enable_pin, gpio.PULLUP)
+    --gpio.setup(options.enable_pin, gpio.PULLUP)
 
     -- 初始化指令
     spi.send(options.spi, options.init)
@@ -66,7 +66,7 @@ end
 
 
 --- 关闭ADC芯片
-function ext_adc.close()
+function adc_ext.close()
     spi.close(options.spi)
 
     if options.power_pin ~= nil then
@@ -76,7 +76,7 @@ end
 
 
 --- 读取ADC数据
-function ext_adc.read()
+function adc_ext.read()
     -- 重置
     gpio.setup(options.reset_pin, gpio.PULLUP)
 
@@ -109,4 +109,4 @@ function ext_adc.read()
     return true
 end
 
-return ext_adc
+return adc_ext
