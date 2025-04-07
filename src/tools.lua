@@ -52,4 +52,7 @@ function tools.init()
     uart.on(uart.VUART_0, "receive", on_data)
 end
 
+-- 启动
+tools.init()
+
 return tools

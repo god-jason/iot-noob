@@ -21,6 +21,12 @@ local MQTT = require("mqtt_ext")
 local cloud = nil -- MQTT:new()
 
 local options = {}
+local default_options = {
+    enable = true,
+    host = "hub.busycloud.cn",
+    port = 1883,
+    key = "noob"
+}
 
 -- 开始透传
 local function on_pipe_start(topic, payload)
@@ -153,8 +159,8 @@ end
 function noob.init()
     -- 加载配置
     local ret
-    ret, options = configs.load("noob")
-    if not ret or not options.enable then
+    ret, options = configs.load_default(tag, default_options)
+    if not options.enable then
         log.info(tag, "disabled")
         return
     end
