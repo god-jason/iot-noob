@@ -149,7 +149,7 @@ function configs.delete(name)
     end
 
     -- 删除目录
-    --utils.remove_all(name)
+    -- utils.remove_all(name)
 end
 
 ---下载配置文件，要求是.json或.json.flz格式

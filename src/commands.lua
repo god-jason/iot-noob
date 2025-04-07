@@ -7,7 +7,6 @@
 local tag = "commands"
 local commands = {}
 
-
 local utils = require("utils")
 local configs = require("configs")
 local battery = require("battery")
@@ -15,7 +14,6 @@ local links = require("links")
 local devices = require("devices")
 local ota = require("ota")
 local gnss = require("gnss")
-
 
 local function response(ret, msg, data)
     return {
@@ -36,7 +34,6 @@ end
 local function error(err)
     return response(0, err)
 end
-
 
 function commands.error(err)
     return response(0, err)
@@ -106,7 +103,7 @@ function commands.config_delete(msg)
 end
 
 function commands.config_download(msg)
-    configs.download(msg.name, msg.url)    
+    configs.download(msg.name, msg.url)
     return ok()
 end
 
@@ -174,7 +171,7 @@ function commands.device_write(msg)
     if ret then
         return ok()
     else
-        return error("device write failed")        
+        return error("device write failed")
     end
 end
 
@@ -193,7 +190,5 @@ function commands.device_action(msg)
 
     return ok()
 end
-
-
 
 return commands

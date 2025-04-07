@@ -41,7 +41,6 @@ function clock.init()
         return
     end
 
-
     -- 初始化iic接口
     i2c.setup(options.i2c, i2c.SLOW)
 
@@ -67,7 +66,7 @@ function clock.read()
     local time = {}
     for i, v in ipairs(options.fields) do
         if v == "year" then
-            time.year = bcd_to_hex(data:byte(i )) + 2000
+            time.year = bcd_to_hex(data:byte(i)) + 2000
         elseif v == "month" then
             time.mon = bcd_to_hex(bit.band(data:byte(i), 0x7f)) - 1
         elseif v == "day" then
@@ -133,20 +132,19 @@ clock.init()
 local sntp_sync_ok = false
 
 sys.subscribe("IP_READY", function()
-        -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
-        if not sntp_sync_ok then
-            socket.sntp()
-            -- socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
-            -- socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
-            -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
-        end
+    -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
+    if not sntp_sync_ok then
+        socket.sntp()
+        -- socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
+        -- socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
+        -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
+    end
 end)
 
-sys.subscribe("NTP_UPDATE", function()    
+sys.subscribe("NTP_UPDATE", function()
     sntp_sync_ok = true
     -- 设置到RTC时钟芯片
     clock.write()
 end)
-
 
 return clock

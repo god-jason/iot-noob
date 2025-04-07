@@ -20,9 +20,8 @@ local default_options = {
 
 local options = {}
 
-
 --- 初始化GPS
-function gnss.init()    
+function gnss.init()
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
@@ -39,8 +38,8 @@ function gnss.init()
 
     uart.setup(options.uart, options.baud_rate)
     libgnss.bind(options.uart)
-    --libgnss.bind(options.uart, uart.VUART_0) --调试原始数据
-    libgnss.debug(options.debug) --GPS调试
+    -- libgnss.bind(options.uart, uart.VUART_0) --调试原始数据
+    libgnss.debug(options.debug) -- GPS调试
 
     sys.subscribe("GNSS_STATE", function(event, ticks)
         -- event取值有
@@ -89,7 +88,7 @@ function gnss.get()
         return true, {
             langitude = lng,
             latitude = lat,
-            speed = speed,
+            speed = speed
         }
         -- return true, libgnss.getRmc(2)
     end

@@ -4,17 +4,16 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag     = "device"
+local tag = "device"
 local devices = {}
 
 local _devices = {}
 local _raw = {}
 
-
 local configs = require("configs")
 
 --- 加载所有设备
-function devices.load()    
+function devices.load()
     local ret, data = configs.load("devices")
     if not ret then
         return false
@@ -36,7 +35,6 @@ function devices.load_by_link(link_id)
     return ds
 end
 
-
 ---获取设备实例
 ---@param id string ID
 ---@return table
@@ -50,7 +48,5 @@ end
 function devices.set(id, dev)
     _devices[id] = dev
 end
-
-
 
 return devices

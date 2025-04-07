@@ -18,7 +18,7 @@ end
 --- 网络可用状态
 ---@return boolean
 function net.ready()
-    return mobile.status() == 1 --网络已经注册
+    return mobile.status() == 1 -- 网络已经注册
 end
 
 return net

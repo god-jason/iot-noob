@@ -34,7 +34,7 @@ function serial.init()
     if not options.enable then
         return
     end
-    
+
 end
 
 --- 检查可用
@@ -156,7 +156,6 @@ function serial.close(id)
     uart.close(id)
     return true
 end
-
 
 -- 启动
 serial.init()

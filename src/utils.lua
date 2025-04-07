@@ -60,7 +60,7 @@ function utils.walk(path, results, offset)
 
     -- 继续遍历
     if #data == 50 then
-        utils.walk(path, results, offset+50)
+        utils.walk(path, results, offset + 50)
     end
 end
 

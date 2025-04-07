@@ -7,7 +7,6 @@
 local tag = "ota"
 local ota = {}
 
-
 ---下载文件(阻塞执行的)
 ---@param url string 下载链接
 ---@return boolean 成功与否
@@ -16,7 +15,7 @@ function ota.download(url)
     sys.taskInit(function()
         local code, headers, body = http.request("GET", url, {}, nil, {
             -- timeout = 30000,
-            fota = true, --780EPM改用fota模块
+            fota = true -- 780EPM改用fota模块
             -- dst = "/update.bin"
         }).wait()
         log.info(tag, "download result", code, body)

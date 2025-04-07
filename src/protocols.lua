@@ -10,22 +10,19 @@ local protocols = {}
 
 local factory = {}
 
-
 function protocols.register(type, class)
     log.info(tag, "register", type)
     factory[type] = class
 end
-
 
 function protocols.create(type, link, opts)
     local f = factory[type]
     if not f then
         return false
     end
-    
+
     log.info(tag, "create", type)
     return true, f:new(link, opts or {})
 end
-
 
 return protocols

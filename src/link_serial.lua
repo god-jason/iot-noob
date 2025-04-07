@@ -13,7 +13,6 @@ local Serial = {}
 require("links").register("serial", Serial)
 local serial = require("serial")
 
-
 ---创建串口实例
 ---@param opts table
 ---@return table
@@ -21,7 +20,7 @@ function Serial:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    obj.id = opts.id or "serial-"..opts.port
+    obj.id = opts.id or "serial-" .. opts.port
     obj.port = opts.port or 1
     obj.baud_rate = opts.baud_rate or 9600
     obj.data_bits = opts.data_bits or 8

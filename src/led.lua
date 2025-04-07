@@ -13,7 +13,7 @@ local default_options = {
     enable = true,
     pins = {
         net = 27,
-        ready = 26,
+        ready = 26
         -- cloud = 
         -- power = 49 -- 待定
     }
@@ -24,13 +24,12 @@ local options = {}
 --- LED初始化
 function led.init()
     log.info(tag, "init")
-    
+
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
-
 
     -- 读取GPIO配置表
     for k, v in pairs(options.pins) do

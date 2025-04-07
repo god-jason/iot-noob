@@ -181,8 +181,8 @@ local function calc_next(job, now)
 
         -- 先计算星期
         added = calc_wday(tm, job.wday) or calc_field(tm, job.month, "month", "year", 1, 12) or
-                    calc_field(tm, job.day, "day", "month", 1, get_month_days(tm))
-        or calc_field(tm, job.hour, "hour", "day", 0, 23) or calc_field(tm, job.min, "min", "hour", 0, 59) or
+                    calc_field(tm, job.day, "day", "month", 1, get_month_days(tm)) or
+                    calc_field(tm, job.hour, "hour", "day", 0, 23) or calc_field(tm, job.min, "min", "hour", 0, 59) or
                     calc_field(tm, job.sec, "sec", "min", 0, 59)
         -- log.info(tag, "next end", json.encode(tm))
 

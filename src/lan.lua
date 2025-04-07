@@ -26,13 +26,12 @@ local options = {}
 function lan.init()
 
     log.info(tag, "init")
-    
+
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
-
 
     if options.chip == "w5500" then
 

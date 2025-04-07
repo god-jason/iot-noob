@@ -24,7 +24,7 @@ local options = {}
 --- 电池初始化
 function battery.init()
     log.info(tag, "init")
-    
+
     -- 加载配置
     options = configs.load_default(tag, default_options)
 
@@ -32,7 +32,7 @@ function battery.init()
         return
     end
 
-    --分压
+    -- 分压
     if options.adc ~= adc.CH_VBAT and options.partial then
         adc.setRange(adc.ADC_RANGE_1_2)
     end
@@ -58,7 +58,7 @@ function battery.get()
     adc.close(options.adc)
 
     local target = 3800 -- 未电压
-    if  options.adc ~= adc.CH_VBAT and options.partial then
+    if options.adc ~= adc.CH_VBAT and options.partial then
         target = 1200
     end
 
