@@ -8,6 +8,8 @@ local tag = "lan"
 
 local lan = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = false, -- 启用 (默认CORE不带驱动，需要重新编译固件)
     chip = "w5500", -- 型号 w5500 ch390
@@ -21,14 +23,12 @@ local default_options = {
 local options = {}
 
 --- 以太网初始化
-function lan.init(opts)
+function lan.init()
 
     log.info(tag, "init")
     
     -- 加载配置
-    options = opts or default_options
-
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -86,5 +86,8 @@ function lan.ready()
     end
 
 end
+
+-- 启动
+lan.init()
 
 return lan

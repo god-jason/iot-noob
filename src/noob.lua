@@ -106,10 +106,9 @@ local function register()
     if ret then
         info.wanted_configs = configs
     end
-    
+
     cloud:publish("noob/" .. options.id .. "/register", info)
 end
-
 
 -- 上报设备状态（周期执行）
 local function report_status()
@@ -151,9 +150,7 @@ local function report_status()
     cloud:publish("noob/" .. options.id .. "/status", status)
 end
 
---- 打开网关
-function noob.open()
-
+function noob.init()
     -- 加载配置
     local ret
     ret, options = configs.load("noob")
@@ -173,7 +170,10 @@ function noob.open()
     options.clienid = options.id
     options.username = options.id
     options.password = crypto.md5(options.id .. options.key)
+end
 
+--- 打开网关
+function noob.open()
     -- 连接云平台
     cloud = MQTT:new(options)
     local ret = cloud:open()
@@ -213,5 +213,18 @@ function noob.close()
     cloud:close()
     cloud = nil
 end
+
+local noob_ok = false
+
+sys.subscribe("IP_READY", function()
+    -- 启动网关系统程序
+    if not noob_ok then
+        noob.open()
+        noob_ok = true
+    end
+end)
+
+-- 初始化
+noob.init()
 
 return noob

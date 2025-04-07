@@ -1,7 +1,14 @@
+--- 程序加载器
+--- @module "loader"
+--- @author 杰神
+--- @license GPLv3
+--- @copyright benyi
+--- @release 2025.04.07
 local tag = "loader"
 local loader = {}
 
 function loader.load(name)
+    --使用pcall 避免异常退出
     local ret, mod = pcall(require, name)
     log.info(tag, "load", name, ret, mod)
 end

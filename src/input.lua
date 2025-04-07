@@ -7,6 +7,8 @@
 local tag = "input"
 local input = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = false,
     pins = {{
@@ -25,12 +27,11 @@ local options = {}
 
 
 --- 初始化输入
-function input.init(opts)
+function input.init()
     log.info(tag, "init")
     
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -51,5 +52,8 @@ end
 function input.get(index)
     return gpio.get(options.pins[index].pin)
 end
+
+-- 启动
+input.init()
 
 return input

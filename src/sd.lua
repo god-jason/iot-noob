@@ -7,6 +7,8 @@
 local tag = "sd"
 local sd = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = false, -- 启用 (默认配置有问题，会直接宕机)
     spi = 1, -- SPI
@@ -17,13 +19,11 @@ local default_options = {
 local options = {}
 
 --- 初始化config卡
-function sd.init(opts)
+function sd.init()
+    log.info(tag, "init")  
 
-    log.info(tag, "init")
-    
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -46,5 +46,8 @@ function sd.format()
     end
     return io.mkfs("/sd")
 end
+
+-- 启动
+sd.init()
 
 return sd

@@ -7,6 +7,8 @@
 local tag = "led"
 local led = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = true,
     pins = {
@@ -20,13 +22,11 @@ local default_options = {
 local options = {}
 
 --- LED初始化
-function led.init(opts)
-
+function led.init()
     log.info(tag, "init")
     
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -54,5 +54,16 @@ end
 function led.off(id)
     gpio.set(options.pins[id], 0)
 end
+
+-- 启动
+led.init()
+
+sys.subscribe("IP_READY", function()
+    led.on("net")
+end)
+
+sys.subscribe("IP_LOSE", function()
+    led.off("net")
+end)
 
 return led

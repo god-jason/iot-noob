@@ -6,30 +6,44 @@
 --- @release 2025.01.20
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
+local tag = "main"
 
+-- 引入sys，方便使用
+_G.sys = require("sys")
+_G.sysplus = require("sysplus")
 
+log.info(tag, "last power reson", pm.lastReson())
 
---银尔达780系列 需要拉高 GPIO25，取消UART1输出屏蔽。。。
--- gpio.setup(25, 1, gpio.PULLUP)
+-- 看门狗守护
+if wdt then
+    wdt.init(9000)
+    sys.timerLoopStart(wdt.feed, 3000)
+end
 
---W5500芯片供电
-gpio.setup(20, 1, gpio.PULLUP)
+-- 主进程
+sys.taskInit(function()
+    log.info(tag, "main task")
 
--- 调用启动
-require("boot")
+    fskv.init() -- KV 数据库
 
+    -- 银尔达780系列 需要拉高 GPIO25，取消UART1输出屏蔽。。。
+    -- gpio.setup(25, 1, gpio.PULLUP)
 
--- local relay = gpio.setup(2, 0)
--- local on = true
--- sys.timerLoopStart(function()
---     if on then
---         gpio.set(2, 0)
---         on = false
---     else
---         gpio.set(2, 1)
---         on = true
---     end
--- end, 1000)
+    -- W5500芯片供电
+    -- gpio.setup(20, 1, gpio.PULLUP)
 
+    -- 加载所有程序文件
+    require("loader").walk("/luadb/")
+
+    -- 加载设备
+    require("devices").load()
+
+    -- 打开连接
+    require("links").load()
+
+    -- TODO 定时器啥的
+
+    log.info(tag, "main task exit")
+end)
 
 sys.run()

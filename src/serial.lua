@@ -7,6 +7,8 @@
 local tag = "serial"
 local serial = {}
 
+local configs = require("configs")
+
 local default_options = {
     ports = {{
         enable = true, -- 启用
@@ -24,17 +26,15 @@ local default_options = {
 local options = {}
 
 --- 串口初始化
-function serial.init(opts)
-
+function serial.init()
     log.info(tag, "init")
 
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
-
+    
 end
 
 --- 检查可用
@@ -156,5 +156,9 @@ function serial.close(id)
     uart.close(id)
     return true
 end
+
+
+-- 启动
+serial.init()
 
 return serial

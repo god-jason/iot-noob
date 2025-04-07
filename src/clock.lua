@@ -15,6 +15,8 @@ local function hex_to_bcd(data)
     return bit.lshift(data // 10, 4) + data % 10
 end
 
+local configs = require("configs")
+
 local default_options = {
     enable = false,
     chip = "SD3077", -- 型号
@@ -29,11 +31,11 @@ local default_options = {
 local options = {}
 
 --- rtc时钟芯片初始化
-function clock.init(opts)
+function clock.init()
     log.info(tag, "init")
 
     -- 加载配置
-    options = opts or default_options
+    options = configs.load_default(tag, default_options)
 
     if not options.enable then
         return
@@ -124,5 +126,27 @@ function clock.write()
 
     return ret
 end
+
+-- 启动
+clock.init()
+
+local sntp_sync_ok = false
+
+sys.subscribe("IP_READY", function()
+        -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
+        if not sntp_sync_ok then
+            socket.sntp()
+            -- socket.sntp("ntp.aliyun.com") --自定义sntp服务器地址
+            -- socket.sntp({"ntp.aliyun.com","ntp1.aliyun.com","ntp2.aliyun.com"}) --sntp自定义服务器地址
+            -- socket.sntp(nil, socket.ETH0) --sntp自定义适配器序号
+        end
+end)
+
+sys.subscribe("NTP_UPDATE", function()    
+    sntp_sync_ok = true
+    -- 设置到RTC时钟芯片
+    clock.write()
+end)
+
 
 return clock

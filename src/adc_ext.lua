@@ -8,6 +8,8 @@
 local tag = "adc_ext"
 local adc_ext = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = false,
     chip = "AD7616", -- 型号
@@ -26,12 +28,9 @@ local default_options = {
 local options = {}
 
 -- ADC芯片初始化
-function adc_ext.init(opts)
-    local ret
-
+function adc_ext.init()
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -51,19 +50,18 @@ function adc_ext.init(opts)
     end
 
     -- 初始化spi接口
-    ret = spi.setup(options.spi, options.cs_pin)
+    local ret = spi.setup(options.spi, options.cs_pin)
     if ret ~= 0 then
         log.info(tag, "open spi ", ret)
         return
     end
 
     -- 使能
-    --gpio.setup(options.enable_pin, gpio.PULLUP)
+    -- gpio.setup(options.enable_pin, gpio.PULLUP)
 
     -- 初始化指令
     spi.send(options.spi, options.init)
 end
-
 
 --- 关闭ADC芯片
 function adc_ext.close()
@@ -73,7 +71,6 @@ function adc_ext.close()
         gpio.setup(options.power_pin, gpio.PULLDOWN)
     end
 end
-
 
 --- 读取ADC数据
 function adc_ext.read()
@@ -108,5 +105,8 @@ function adc_ext.read()
 
     return true
 end
+
+-- 启动
+adc_ext.init()
 
 return adc_ext

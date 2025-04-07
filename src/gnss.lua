@@ -9,6 +9,8 @@ local gnss = {}
 
 local led = require("led")
 
+local configs = require("configs")
+
 local default_options = {
     enable = true, -- 启用
     debug = false,
@@ -20,12 +22,9 @@ local options = {}
 
 
 --- 初始化GPS
-function gnss.init(opts)
-    log.info(tag, "init")
-    
+function gnss.init()    
     -- 加载配置
-    options = opts or default_options
-
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
@@ -101,5 +100,8 @@ end
 function gnss.close()
     pm.power(pm.GPS, false)
 end
+
+-- 启动
+gnss.init()
 
 return gnss

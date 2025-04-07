@@ -7,6 +7,8 @@
 local tag = "battery"
 local battery = {}
 
+local configs = require("configs")
+
 local default_options = {
     enable = true, -- 启用
     vbat = 3800, -- 供电电压mV（合宙的推荐设计是4.2）
@@ -20,11 +22,11 @@ local default_options = {
 local options = {}
 
 --- 电池初始化
-function battery.init(opts)
+function battery.init()
     log.info(tag, "init")
     
     -- 加载配置
-    options = opts or default_options
+    options = configs.load_default(tag, default_options)
 
     if not options.enable then
         return
@@ -71,5 +73,8 @@ function battery.get()
         percent = percent > 0 and percent or 0
     }
 end
+
+-- 启动
+battery.init()
 
 return battery
