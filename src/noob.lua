@@ -158,8 +158,7 @@ end
 
 function noob.init()
     -- 加载配置
-    local ret
-    ret, options = configs.load_default(tag, default_options)
+    options = configs.load_default(tag, default_options)
     if not options.enable then
         log.info(tag, "disabled")
         return
