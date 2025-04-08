@@ -9,11 +9,9 @@ local commands = {}
 
 local utils = require("utils")
 local configs = require("configs")
-local battery = require("battery")
 local links = require("links")
 local devices = require("devices")
 local ota = require("ota")
-local gnss = require("gnss")
 
 local function response(ret, msg, data)
     return {
