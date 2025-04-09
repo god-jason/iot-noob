@@ -20,6 +20,9 @@ if wdt then
     sys.timerLoopStart(wdt.feed, 3000)
 end
 
+-- 日志等级改为info
+log.setLevel(2)
+
 -- 主进程
 sys.taskInit(function()
     log.info(tag, "main task")

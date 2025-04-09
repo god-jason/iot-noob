@@ -18,7 +18,7 @@ end
 function boot.walk(path, base, offset)
     offset = offset or 0
     base = base or ""
-    --log.info(tag, "walk", path, base, offset)
+    -- log.info(tag, "walk", path, base, offset)
 
     local ret, data = io.lsdir(path, 50, offset)
     if not ret then
@@ -40,9 +40,9 @@ function boot.walk(path, base, offset)
             end
 
             -- 降低启动速度，避免日志输出太快，从而导致丢失
-            -- if string.startsWith(e.name, "driver_") then
-            sys.wait(60)
-            -- end
+            if log.getLevel() < 2 then
+                sys.wait(100)
+            end
         end
     end
 

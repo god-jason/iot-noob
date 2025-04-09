@@ -24,7 +24,7 @@ end
 ---@return table|nil
 ---@return string 最终文件名
 function configs.load(name)
-    log.info(tag, "load", name)
+    --log.info(tag, "load", name)
 
     -- 1、找原始JSON文件hen
     local path = "/" .. name .. ".json"
@@ -46,7 +46,7 @@ function configs.load(name)
     elseif io.exists(path3) then
         path = path3
     else
-        log.info(tag, "not found config", name)
+        --log.info(tag, name, "not found")
         return false
     end
 
@@ -58,7 +58,7 @@ function configs.load(name)
     -- end
 
     local data = io.readFile(path)
-    log.info(tag, "from", path, #data)
+    --log.info(tag, "from", path, #data)
 
     -- 解压
     if compressed then
