@@ -12,8 +12,8 @@ local configs = require("configs")
 local links = require("links")
 local devices = require("devices")
 local products = require("products")
-local battery = require("battery")
-local gnss = require("gnss")
+--local battery = require("battery")
+--local gnss = require("gnss")
 
 local MQTT = require("mqtt_ext")
 
@@ -142,16 +142,16 @@ local function report_status()
     }
 
     -- 电池使用
-    local ret2, percent = battery.get()
-    if ret2 then
-        status.battery = percent
-    end
+    -- local ret2, percent = battery.get()
+    -- if ret2 then
+    --     status.battery = percent
+    -- end
 
     -- GPS定位
-    local ret3, location = gnss.get()
-    if ret2 then
-        status.location = location
-    end
+    -- local ret3, location = gnss.get()
+    -- if ret2 then
+    --     status.location = location
+    -- end
 
     cloud:publish("noob/" .. options.id .. "/status", status)
 end

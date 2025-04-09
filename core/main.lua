@@ -33,7 +33,7 @@ sys.taskInit(function()
     -- gpio.setup(20, 1, gpio.PULLUP)
 
     -- 加载所有程序文件
-    require("loader").walk("/luadb/")
+    require("boot").walk("/luadb/")
 
     -- 加载设备
     require("devices").load()

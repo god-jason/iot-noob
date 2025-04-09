@@ -64,4 +64,19 @@ function utils.walk(path, results, offset)
     end
 end
 
+function utils.inspect(data, prefix)
+    prefix = prefix or ""
+
+    local tp = type(data)
+    log.info(tag, "inspect", prefix, tp, data)
+
+    if tp == "table" then
+        for k, v in pairs(data) do
+            if v ~= data then
+                utils.inspect(v, prefix .. "." .. k)    
+            end
+        end
+    end
+end
+
 return utils
