@@ -54,13 +54,12 @@ function links.load()
             if res then
                 _links[link.id] = lnk
                 if link.protocol then
-                    -- 实例需要保存下来
                     local res2, instanse = protocols.create(link.protocol, lnk, link.protocol_options)
                     log.info(tag, "create protocol", link.protocol, res2)
                     if res2 then
+                        -- 协议实例保存下来
                         lnk.instanse = instanse
-                        res2 = instanse:open()
-                        log.info(tag, "open protocol", link.protocol, res2)
+                        instanse:open()
                     end
                 end
             end

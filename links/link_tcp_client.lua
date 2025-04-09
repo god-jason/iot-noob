@@ -110,6 +110,9 @@ end
 
 -- 关闭串口
 function Client:close()
+    if self.instanse ~= nil then
+        self.instanse:close()
+    end
     socket.close(self.ctrl)
 end
 

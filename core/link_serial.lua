@@ -67,6 +67,9 @@ end
 
 -- 关闭串口
 function Serial:close()
+    if self.instanse ~= nil then
+        self.instanse:close()
+    end
     serial.close(self.port)
 end
 
