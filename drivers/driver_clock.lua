@@ -32,14 +32,13 @@ local options = {}
 
 --- rtc时钟芯片初始化
 function clock.init()
-    log.info(tag, "init")
-
     -- 加载配置
     options = configs.load_default(tag, default_options)
-
     if not options.enable then
         return
     end
+
+    log.info(tag, "init")
 
     -- 初始化iic接口
     i2c.setup(options.i2c, i2c.SLOW)

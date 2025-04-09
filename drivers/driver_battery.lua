@@ -23,14 +23,13 @@ local options = {}
 
 --- 电池初始化
 function battery.init()
-    log.info(tag, "init")
-
     -- 加载配置
     options = configs.load_default(tag, default_options)
-
     if not options.enable then
         return
     end
+
+    log.info(tag, "init")
 
     -- 分压
     if options.adc ~= adc.CH_VBAT and options.partial then

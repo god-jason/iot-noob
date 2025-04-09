@@ -29,14 +29,13 @@ local options = {}
 
 --- 初始化输出
 function output.init()
-    log.info(tag, "init")
-
     -- 加载配置
     options = configs.load_default(tag, default_options)
-
     if not options.enable then
         return
     end
+
+    log.info(tag, "init")
 
     -- 初始化GPIO
     for i, p in ipairs(options.pins) do

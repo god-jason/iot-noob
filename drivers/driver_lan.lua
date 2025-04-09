@@ -24,14 +24,13 @@ local options = {}
 
 --- 以太网初始化
 function lan.init()
-
-    log.info(tag, "init")
-
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
+
+    log.info(tag, "init")
 
     if options.chip == "w5500" then
 

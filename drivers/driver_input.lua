@@ -27,15 +27,14 @@ local options = {}
 
 
 --- 初始化输入
-function input.init()
-    log.info(tag, "init")
-    
+function input.init()    
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
 
+    log.info(tag, "init")
 
     --- 初始化
     for i, p in ipairs(options.pins) do

@@ -12,7 +12,7 @@ local led = require("led")
 local configs = require("configs")
 
 local default_options = {
-    enable = true, -- 启用
+    enable = false, -- 启用
     debug = false,
     uart = 2, -- 串口
     baud_rate = 115200 -- 速度

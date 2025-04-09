@@ -20,13 +20,14 @@ local options = {}
 
 --- 初始化config卡
 function sd.init()
-    log.info(tag, "init")
-
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
         return
     end
+    
+    log.info(tag, "init")
+
 
     spi.setup(options.spi, 255, 0, 0, 8, 4000000)
 
