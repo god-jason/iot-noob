@@ -35,6 +35,9 @@ function configs.load(name)
 
     local compressed = false -- 压缩引擎
 
+    -- 降低启动速度，避免日志输出太快，从而导致丢失
+    -- sys.wait(100)
+
     if io.exists(path) then
         -- do nothing 找到了未压缩的文件
     elseif fastlz and io.exists(path2) then

@@ -8,7 +8,7 @@ local tag = "loader"
 local loader = {}
 
 function loader.load(name)
-    --使用pcall 避免异常退出
+    -- 使用pcall 避免异常退出
     local ret, mod = pcall(require, name)
     log.info(tag, "load", name, ret, mod)
 end
@@ -36,6 +36,11 @@ function loader.walk(path, base, offset)
                 local name = string.sub(e.name, 1, -6)
                 loader.load(base .. name)
             end
+
+            -- 降低启动速度，避免日志输出太快，从而导致丢失
+            -- if string.startsWith(e.name, "driver_") then
+            sys.wait(100)
+            -- end
         end
     end
 
