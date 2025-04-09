@@ -481,6 +481,7 @@ function Modbus:open()
     -- 开启轮询
     local this = self
     self.task = sys.taskInit(function()
+        -- 这个写法。。。
         this:_polling()
     end)
 end
@@ -502,17 +503,28 @@ function Modbus:_polling()
         log.info(tag, "polling start")
         local start = mcu.ticks()
 
+        -- 轮询连接下面的所有设备
         for _, dev in pairs(self.devices) do
-            local ret, values = dev:poll()
-            if ret then
-                log.info(tag, "polling", dev.id, "succeed")
-                -- log.info(tag, "polling", dev.id, "values", json.encode(values))
-                -- 向平台发布消息
-                -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
-                sys.publish("DEVICE_VALUES", dev, values)
-            else
-                log.info(tag, "polling", dev.id, "failed")
+
+            -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
+            local ret, info = pcall(function()
+
+                local ret, values = dev:poll()
+                if ret then
+                    log.info(tag, "polling", dev.id, "succeed")
+                    -- log.info(tag, "polling", dev.id, "values", json.encode(values))
+                    -- 向平台发布消息
+                    -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
+                    sys.publish("DEVICE_VALUES", dev, values)
+                else
+                    log.error(tag, "polling", dev.id, "failed")
+                end
+
+            end)
+            if not ret then
+                log.error(tag, "polling", dev.id, "error", info)
             end
+
         end
 
         local finish = mcu.ticks()
