@@ -9,8 +9,10 @@ local boot = {}
 
 function boot.load(name)
     -- 使用pcall 避免异常退出
-    local ret, mod = pcall(require, name)
-    log.info(tag, "load", name, ret, mod)
+    local ret, info = pcall(require, name)
+    if not ret then
+        log.error(tag, name, info)
+    end
 end
 
 function boot.walk(path, base, offset)
@@ -39,7 +41,7 @@ function boot.walk(path, base, offset)
 
             -- 降低启动速度，避免日志输出太快，从而导致丢失
             -- if string.startsWith(e.name, "driver_") then
-            sys.wait(100)
+            sys.wait(60)
             -- end
         end
     end

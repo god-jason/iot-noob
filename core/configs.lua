@@ -69,7 +69,7 @@ function configs.load(name)
     if ret == 1 then
         return true, obj, path
     else
-        log.info(tag, "decode failed", path, err, data)
+        log.error(tag, "decode failed", path, err, data)
         return false, err
     end
 end

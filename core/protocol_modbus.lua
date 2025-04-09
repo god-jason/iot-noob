@@ -202,11 +202,11 @@ function Device:poll()
                 end
                 -- log.info(tag, "parse 4 ", json.encode(values))
             else
-                log.info(tag, "unkown code ", poller.code)
+                log.error(tag, "unkown code ", poller.code)
                 -- 暂不支持其他类型
             end
         else
-            log.info(tag, "poll read failed")
+            log.error(tag, "poll read failed")
         end
     end
     return ret, values
@@ -252,7 +252,7 @@ function Modbus:ask(request, len)
     if request ~= nil and #request > 0 then
         local ret = self.link:write(request)
         if not ret then
-            log.info(tag, "write failed")
+            log.error(tag, "write failed")
             self.asking = false
             return false
         end
@@ -265,14 +265,14 @@ function Modbus:ask(request, len)
         -- TODO 应该不是每次都要等待
         local ret = self.link:wait(self.timeout)
         if not ret then
-            log.info(tag, "read timeout")
+            log.error(tag, "read timeout")
             self.asking = false
             return false
         end
 
         local r, d = self.link:read()
         if not r then
-            log.info(tag, "read failed")
+            log.error(tag, "read failed")
             self.asking = false
             return false
         end
@@ -300,7 +300,7 @@ function Modbus:readTCP(slave, code, addr, len)
     if #buf > 8 then
         local code = string.byte(buf, 8)
         if code > 0x80 then
-            log.info(tag, "error code", code)
+            log.error(tag, "error code", code)
             return false
         end
     end
@@ -348,7 +348,7 @@ function Modbus:read(slave, code, addr, len)
     if #buf > 3 then
         local code = string.byte(buf, 2)
         if code > 0x80 then
-            log.info(tag, "error code", code)
+            log.error(tag, "error code", code)
             return false
         end
     end
@@ -385,7 +385,7 @@ function Modbus:writeTCP(slave, code, addr, data)
     if #buf > 8 then
         local code = string.byte(buf, 8)
         if code > 0x80 then
-            log.info(tag, "error code", code)
+            log.error(tag, "error code", code)
             return false
         end
     end
@@ -447,7 +447,7 @@ function Modbus:write(slave, code, addr, data)
     if #buf > 3 then
         local code = string.byte(buf, 2)
         if code > 0x80 then
-            log.info(tag, "error code", code)
+            log.error(tag, "error code", code)
             return false
         end
     end
@@ -458,7 +458,7 @@ end
 ---打开主站
 function Modbus:open()
     if self.opened then
-        log.info(tag, "already opened")
+        log.error(tag, "already opened")
         return
     end
     self.opened = true

@@ -124,7 +124,7 @@ function points.parseBit(point, data, address)
     local offset = point.address - address
     local cursor = math.floor(offset / 8) + 1
     if #data <= cursor then
-        log.info(tag, "parseBit over index")
+        log.error(tag, "parseBit over index")
         return false
     end
     local byte = string.byte(data, cursor)
@@ -142,13 +142,13 @@ function points.parseWord(point, data, address)
     --log.info(tag, "parseWord", point.name, point.address, #data, address)
     local feagure = feagures[point.type]
     if not feagure then
-        log.info(tag, "parseWord unkown type", point.type)
+        log.error(tag, "parseWord unkown type", point.type)
         return false
     end
 
     local cursor = (point.address - address) * 2 + 1 -- lua索引从1开始...
     if #data <= cursor then
-        log.info(tag, "parseWord over index")
+        log.error(tag, "parseWord over index")
         return false
     end
 
@@ -179,13 +179,13 @@ end
 function points.parse(point, data, address)
     local feagure = feagures[point.type]
     if not feagure then
-        log.info(tag, "parse unkown type", point.type)
+        log.error(tag, "parse unkown type", point.type)
         return false
     end
 
     local cursor = point.address - address + 1 -- lua索引从1开始...
     if #data <= cursor then
-        log.info(tag, "parse over index")
+        log.error(tag, "parse over index")
         return false
     end
 
@@ -215,7 +215,7 @@ end
 function points.encode(point, value)
     local feagure = feagures[point.type]
     if not feagure then
-        log.info(tag, "encode unkown type", point.type)
+        log.error(tag, "encode unkown type", point.type)
         return false
     end
 

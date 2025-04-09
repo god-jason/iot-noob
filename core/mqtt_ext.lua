@@ -64,13 +64,13 @@ end
 ---@return boolean 成功与否
 function MQTT:open()
     if mqtt == nil then
-        log.info(tag, "bsp does not have mqtt lib")
+        log.error(tag, "bsp does not have mqtt lib")
         return false
     end
 
     self.client = mqtt.create(nil, self.options.host, self.options.port)
     if self.client == nil then
-        log.info(tag, "create client failed")
+        log.error(tag, "create client failed")
         return false
     end
 

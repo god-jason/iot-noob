@@ -43,7 +43,7 @@ end
 function serial.available(id)
     local port = options.ports[id]
     if not port then
-        log.info(tag, id, "not found")
+        log.error(tag, id, "not found")
         return false
     end
     if not port.enable then

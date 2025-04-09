@@ -253,7 +253,7 @@ function cron.start(crontab, callback)
     -- 新规则
     local ret, job = parse(crontab)
     if not ret then
-        log.info(tag, "parse failed", crontab)
+        log.error(tag, "parse failed", crontab)
         return false
     end
     jobs[crontab] = job
