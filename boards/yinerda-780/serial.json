@@ -1,0 +1,7 @@
+[
+    {
+        "enable": true,
+        "name": "RS485",
+        "rs485_gpio": 25
+    }
+]

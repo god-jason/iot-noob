@@ -9,31 +9,26 @@ local serial = {}
 
 local configs = require("configs")
 
-local default_options = {
-    ports = {{
-        enable = true, -- 启用
-        name = "RS485",
-        rs485_gpio = 25
-    }, {
-        enable = false, -- 启用
-        name = "GNSS"
-    }, {
-        enable = true, -- 启用
-        name = "RS232"
-    }}
-}
+local default_ports = {{
+    enable = true, -- 启用
+    name = "RS485",
+    rs485_gpio = 25
+}, {
+    enable = false, -- 启用
+    name = "GNSS"
+}, {
+    enable = true, -- 启用
+    name = "RS232"
+}}
 
-local options = {}
+local ports = {}
 
 --- 串口初始化
 function serial.init()
     log.info(tag, "init")
 
     -- 加载配置
-    options = configs.load_default(tag, default_options)
-    if not options.enable then
-        return
-    end
+    ports = configs.load_default(tag, default_ports)
 
 end
 
@@ -41,7 +36,7 @@ end
 ---@param id number
 ---@return boolean
 function serial.available(id)
-    local port = options.ports[id]
+    local port = ports[id]
     if not port then
         log.error(tag, id, "not found")
         return false
@@ -65,7 +60,7 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
         return false
     end
 
-    local port = options.ports[id]
+    local port = ports[id]
     -- log.info(tag, "open", port.id, port.name, baud_rate, data_bits, stop_bits, parity)
 
     local p = uart.None
