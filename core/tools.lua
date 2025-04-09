@@ -27,7 +27,12 @@ local function on_data(id, len)
         if ret == 1 then
             local handler = commands[pkt.cmd]
             if handler then
-                response = handler(pkt)
+                --response = handler(pkt)
+                --加入异常处理
+                ret, response = pcall(handler, pkt)
+                if not ret then
+                    response = commands.error(response)
+                end
             else
                 response = commands.error("invalid command")
             end

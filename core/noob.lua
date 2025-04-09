@@ -12,8 +12,8 @@ local configs = require("configs")
 local links = require("links")
 local devices = require("devices")
 local products = require("products")
---local battery = require("battery")
---local gnss = require("gnss")
+-- local battery = require("battery")
+-- local gnss = require("gnss")
 
 local MQTT = require("mqtt_ext")
 
@@ -68,7 +68,12 @@ local function on_command(topic, payload)
     if ret == 1 then
         local handler = commands[pkt.cmd]
         if handler then
-            response = handler(pkt)
+            -- response = handler(pkt)   
+            -- 加入异常处理         
+            ret, response = pcall(handler, pkt)
+            if not ret then
+                response = commands.error(response)
+            end
         else
             response = commands.error("invalid command")
         end
@@ -76,9 +81,9 @@ local function on_command(topic, payload)
         response = commands.error(err)
     end
 
-    -- 复制ID
-    if pkt.mid ~= nil then
-        response.mid = pkt.mid
+    -- 复制消息ID
+    if pkt._id ~= nil then
+        response._id = pkt._id
     end
 
     if response ~= nil then
