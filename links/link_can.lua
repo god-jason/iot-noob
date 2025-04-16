@@ -21,9 +21,12 @@ function Can:new(opts)
     self.__index = self
     obj.id = opts.id or "can-" .. opts.port
     obj.port = opts.port or 0
+    obj.listen = opts.listen or false -- 监听模式
     obj.node = opts.node -- 节点ID
+    obj.acr = opts.acr or 0 -- 接收代码寄存器
+    obj.amr = opts.amr or 0xffffffff -- 接收屏蔽寄存器
     obj.type = opts.ext and can.EXT or can.STD -- 扩展帧
-    obj.baud_rate = opts.baud_rate or 1000000 -- 默认1Mbps
+    obj.baud_rate = opts.baud_rate or 100000 -- 默认100Kbps，上限1Mbps
     obj.pts = opts.pts or 5 -- 传输时间段 1-8
     obj.pbs1 = opts.pbs1 or 4 -- 相位缓冲段1 1-8
     obj.pbs2 = opts.pbs2 or 3 -- 相位缓冲段2 2-8
@@ -63,16 +66,15 @@ function Can:open()
         return false, "timing false"
     end
 
-    -- 配置节点
-    ret = can.node(self.id, self.node, self.type) -- 默认扩展帧
-    if not ret then
-        return false, "node false"
-    end
+    if self.listen then
+        -- 监听模式
+        can.filter(self.id, false, self.acr, self.amr)
+        can.mode(self.id, CAN.MODE_LISTEN)
 
-    -- 配置模式
-    ret = can.mode(self.id, CAN.MODE_NORMAL)
-    if not ret then
-        return false, "mode false"
+    else
+        -- 节点模式，只能收到发给自己的数据
+        can.node(self.id, self.node, self.type)
+        can.mode(self.id, CAN.MODE_NORMAL)
     end
 
     return true
