@@ -6,6 +6,11 @@
 
 物联小白是开源物联网平台[物联大师](https://github.com/god-jason/iot-master)的一部分，可以与之无缝结合。
 
+![alt](https://image.lceda.cn/pullimage/BBpgLdzxAeu0cEkItb8gZoAhCBcdp3c8SK4OoKvZ.png)
+
+[嘉立创开源地址https://oshwhub.com/zgwit/iot-noob](https://oshwhub.com/zgwit/iot-noob)
+
+
 # 主要功能和特点
 
 -   支持物联大师 MQTT 协议标准
