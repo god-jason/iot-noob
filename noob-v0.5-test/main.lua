@@ -6,7 +6,7 @@ VERSION = "0.0.1"
 sys = require "sys"
 
 -- 优先SIM0，然后SIM1
--- mobile.simid(2, true)
+mobile.simid(2, true)
 
 function testKey()
 
@@ -156,28 +156,26 @@ function testLan()
 
 end
 
-function testUart(id)
-    log.info("testUart", id)
+function test485()
+    local id = 1
+    log.info("test485", id)
     -- uart.setup(id, 9600)	
-    gpio.setup(22, 0, gpio.PULLDOWN)
-    -- uart.setup(id, 9600, 8, 1, uart.NONE, uart.LSB, 1024, 22)
-    uart.setup(id, 9600)
+    uart.setup(id, 115200, 8, 1, uart.NONE, uart.LSB, 1024, 1)
+    --uart.setup(id, 9600)
     uart.on(id, "receive", function(id, len)
         local data = uart.read(id, len)
         log.info("uart receive", id, len, data)
         -- uart.write(id, data) --on里面不能直接回复消息，会不会是rs485未翻转
         -- uart.write(id, "ack")
-        sys.publish("UART_MSG_" .. id, data)
+        sys.publish("UART_MSG", data)
     end)
-    uart.on(1, "sent", function(id, len)
-        log.info(id, "sent", len)
-    end)
+
     sys.timerLoopStart(function()
         log.info(id, "sent hello")
         uart.write(id, "hello")
     end, 5000)
 
-    sys.subscribe("UART_MSG_" .. id, function(data)
+    sys.subscribe("UART_MSG", function(data)
         uart.write(id, "reply:" .. data)
     end)
 end
@@ -216,24 +214,35 @@ function testCan()
 	log.info("can state:", can.STATE_STOP,can.STATE_ACTIVE,can.STATE_PASSIVE,
 		can.STATE_BUSOFF,can.STATE_LISTEN,can.STATE_TEST,can.STATE_SLEEP)
 
-	can.debug(true)
+	--can.debug(true)
 
-	local rx_id = 0x12345677
-    local tx_id = 0x12345678
+	local rx_id = 0x1234567
+    local tx_id = 0x1234568
 
 	local can_id = 0
-    can.init(can_id, 128)
+    local ret = can.init(can_id, 128)
+    log.info("can.init ret", ret)
+
     can.on(can_id, can_cb)
     --can.timing(can_id, 1000000, 5, 4, 3, 2)
 	--can.timing(can_id, 1000000, 6, 6, 4, 2)
-	can.timing(can_id, 100000, 6, 6, 3, 2)
+	ret = can.timing(can_id, 100000, 6, 6, 3, 2)
+    log.info("can.timing ret", ret)
+    --can.timing(can_id, 25000, 9, 6, 4, 2)
+    --can.timing(can_id, 20000)
 	--can.node(can_id, rx_id, can.EXT)
+    can.filter(can_id, false, 0xffffffff, 0xffffffff) --不过滤，全显示
 	--can.mode(can_id, can.MODE_NORMAL)
-	can.mode(can_id, can.MODE_LISTEN)
+	ret = can.mode(can_id, can.MODE_NORMAL)
+    log.info("can.mode ret", ret)
+	--can.mode(can_id, can.MODE_LISTEN)
 
 	sys.timerLoopStart(function()
-		can.tx(can_id, tx_id, can.EXT, false, true, "1234")
-    end, 5000)
+		--can.tx(can_id, tx_id, can.EXT, false, true, "\x01\x03\x05")
+        --sys.wait(500)
+        log.info("can send 12345678")
+		can.tx(can_id, tx_id, can.EXT, false, false, "12345678")
+    end, 1000)
 end
 
 sys.taskInit(function()
@@ -243,13 +252,11 @@ sys.taskInit(function()
 
     -- testOled()
 
-    testLan()
+    --testLan()
 
-    -- testUart(0)
-    -- testUart(1)
-    -- testUart(2)
+    test485()
 
-	testCan()
+	--testCan()
 
     while true do
 
