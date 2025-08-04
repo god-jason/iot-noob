@@ -2,11 +2,11 @@ local tillan = {}
 
 local function can_cb(id, cb_type, param)
     if cb_type == can.CB_MSG then
-        --log.info("有新的消息")
+        -- log.info("有新的消息")
 
         local succ, id, id_type, rtr, data = can.rx(id)
         while succ do
-            --log.info(mcu.x32(id), #data, data:toHex())
+            -- log.info(mcu.x32(id), #data, data:toHex())
 
             -- 处理数据
             tillan.handle(id, data)
@@ -29,14 +29,47 @@ local function can_cb(id, cb_type, param)
 end
 
 local products = {}
+local devices = {}
+
+--[[ 数据结构定义
+
+devices = Map<key, Device>
+key = product_id + "-" + device_id
+
+class Device {
+  id: string 设备ID，最终入库
+  update: timestamp 更新时间
+  values: Map<key, Value> 值
+  changes: Map<key, Value> 变化的值
+}
+
+class Value {
+  time: timestamp 更新时间戳
+  value: any 最终值
+}
+
+]]
 
 function tillan.handle(id, data)
 
-    local proto = id >> 26
+    local proto = (id >> 26)
     local type = (id >> 24) & 0x3
     local product_id = (id >> 16) & 0xff
     local device_id = (id >> 8) & 0xff
     local param_id = id & 0xff
+
+    -- TODO 是否要使用平台最终ID，或SN
+    local dev_id = product_id .. "-" .. device_id
+    local device = devices[dev_id]
+    if device == nil then
+        device = {
+            id = "xxxx",
+            update = os.time(),
+            values = {}, -- 数据
+            changes = {} -- 变化数据
+        }
+        devices[dev_id] = device
+    end
 
     -- local _, seq, ok = pack.unpack(data, "c2")
 
@@ -52,6 +85,8 @@ function tillan.handle(id, data)
         return
     end
 
+    local time = os.time()
+
     local seq, ok, val
 
     if point.type == "s8" then
@@ -66,6 +101,31 @@ function tillan.handle(id, data)
         _, seq, ok, val = pack.unpack(data, "b2>i")
     elseif point.type == "u32" then
         _, seq, ok, val = pack.unpack(data, "b2>I")
+    elseif point.type == "bits" then
+        -- 位类型，特殊处理
+
+        _, seq, ok, val = pack.unpack(data, "b2>I")
+        for i, b in ipairs(point.bits) do
+            local bit = val & (0x1 << b.bit) > 0
+
+            local value = device.values[b.name]
+            if value == nil then
+                value = {
+                    time = time,
+                    value = val
+                }
+                device.values[b.name] = value
+            end
+
+            value.time = time
+            if value.value ~= bit then
+                value.value = bit
+                device.changes[b.name] = value -- 加入修改
+            end
+        end
+
+        device.update = time
+        return
     else
         log.info("未知点位类型", product_id, param_id, point.type)
         return
@@ -76,7 +136,24 @@ function tillan.handle(id, data)
         val = val / point.rate
     end
 
-    log.info("获取到数据：", seq, ok, product.name or product_id, device_id, point.desc or point.id, val)
+    local value = device.values[point.name]
+    if value == nil then
+        value = {
+            time = time,
+            value = val
+        }
+        device.values[point.name] = value
+    end
+
+    value.time = time
+    if value.value ~= val then
+        value.value = val
+        device.changes[point.name] = value -- 加入修改
+    end
+    device.update = time
+
+    -- 只在调试时打开，否则日志太多
+    -- log.info("获取到数据：", seq, ok, product.name or product_id, device_id, point.desc or point.id, val)
 
 end
 
@@ -91,14 +168,14 @@ function tillan.load_product(id)
         products[id] = false -- 避免再次加载
 
         if data == nil then
-            return false
+            return nil
         end
 
         -- 解析
         local prod, ret, err = json.decode(data)
         if not ret then
             log.info("解析产品错误", err)
-            return false
+            return nil
         end
 
         products[id] = prod
