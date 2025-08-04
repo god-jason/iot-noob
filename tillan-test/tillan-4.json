@@ -22,6 +22,20 @@
         {"id":19, "name":"co2", "type":"u16", "mode":"r", "desc":"空间质量CO2"},
         {"id":20, "name":"tvoc", "type":"u16", "mode":"r", "desc":"空间质量TVOC"},
         {"id":21, "name":"foward_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"供水温度"},
-        {"id":22, "name":"back_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"回水温度"}
+        {"id":22, "name":"back_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"回水温度"},
+
+        {"id":29, "type":"bits", "bits":[
+            {"bit":0, "name":"has_ac_mode", "desc":"空调模式"},
+            {"bit":1, "name":"has_floor_mode", "desc":"地板模式"},
+            {"bit":2, "name":"has_ac_floor_mode", "desc":"空间+地板模式"},
+            {"bit":3, "name":"has_dry_mode", "desc":"除湿模式"},
+            {"bit":4, "name":"has_wind_mode", "desc":"通风模式"},
+            {"bit":7, "name":"enable_flow_cold", "desc":"地板供冷"},
+            {"bit":8, "name":"enable_hot_pre_cold", "desc":"供热防冷风"},
+            {"bit":9, "name":"enable_dry_func", "desc":"干燥功能"},
+            {"bit":10, "name":"wind_switch", "desc":"风量切换"},
+            {"bit":11, "name":"enable_poweroff_keep", "desc":"断电开关保持"}
+
+        ]}
     ]
 }
