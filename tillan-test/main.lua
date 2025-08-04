@@ -1,6 +1,8 @@
 PROJECT = "tillan-test"
 VERSION = "0.0.1"
 
+mcu.hardfault(2)
+
 sys = require "sys"
 
 -- 优先SIM0，然后SIM1
@@ -40,6 +42,9 @@ sys.taskInit(function()
     sys.wait(1000)
 
     testLcd()
+
+
+    require("cloud").init()
 
     require("tillan").init()
     

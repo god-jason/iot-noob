@@ -1,32 +1,6 @@
 local tillan = {}
 
-local function can_cb(id, cb_type, param)
-    if cb_type == can.CB_MSG then
-        -- log.info("有新的消息")
-
-        local succ, id, id_type, rtr, data = can.rx(id)
-        while succ do
-            -- log.info(mcu.x32(id), #data, data:toHex())
-
-            -- 处理数据
-            tillan.handle(id, data)
-
-            -- 继续接收
-            succ, id, id_type, rtr, data = can.rx(id)
-        end
-
-    elseif cb_type == can.CB_TX then
-        if param then
-            log.info("发送成功")
-        else
-            log.info("发送失败")
-        end
-    elseif cb_type == can.CB_ERR then
-        log.info("CAN错误码", mcu.x32(param))
-    elseif cb_type == can.CB_STATE then
-        log.info("CAN新状态", param)
-    end
-end
+local cloud = require("cloud")
 
 local products = {}
 local devices = {}
@@ -50,7 +24,45 @@ class Value {
 
 ]]
 
-function tillan.handle(id, data)
+local function load_product(id)
+    local product = products[id]
+    if product == nil then
+        local path = "/luadb/tillan-" .. id .. ".json"
+        local data = io.readFile(path)
+
+        log.info("加载产品", id, path)
+
+        products[id] = false -- 避免再次加载
+
+        if data == nil then
+            return nil
+        end
+
+        -- 解析
+        local prod, ret, err = json.decode(data)
+        if not ret then
+            log.info("解析产品错误", err)
+            return nil
+        end
+
+        products[id] = prod
+
+        prod.indexed_points = {}
+
+        -- 索引
+        for i, p in ipairs(prod.points) do
+            prod.indexed_points[p.id] = p
+        end
+
+        return prod
+    elseif product == false then
+        return nil
+    else
+        return product
+    end
+end
+
+local function handle_can(id, data)
 
     local proto = (id >> 26)
     local type = (id >> 24) & 0x3
@@ -66,14 +78,15 @@ function tillan.handle(id, data)
             id = "xxxx",
             update = os.time(),
             values = {}, -- 数据
-            changes = {} -- 变化数据
+            changes = {}, -- 变化数据
+            changed = false
         }
         devices[dev_id] = device
     end
 
     -- local _, seq, ok = pack.unpack(data, "c2")
 
-    local product = tillan.load_product(product_id)
+    local product = load_product(product_id)
     if product == nil then
         log.info("未知产品", product_id)
         return
@@ -121,6 +134,7 @@ function tillan.handle(id, data)
             if value.value ~= bit then
                 value.value = bit
                 device.changes[b.name] = value -- 加入修改
+                device.changed = true
             end
         end
 
@@ -132,7 +146,7 @@ function tillan.handle(id, data)
     end
 
     -- 倍率
-    if val ~= 0 and point.rate ~= nil and point.rate ~= 1 and point.rate ~= 0 then
+    if point.rate ~= nil and point.rate ~= 1 and point.rate ~= 0 then
         val = val / point.rate
     end
 
@@ -149,6 +163,7 @@ function tillan.handle(id, data)
     if value.value ~= val then
         value.value = val
         device.changes[point.name] = value -- 加入修改
+        device.changed = true
     end
     device.update = time
 
@@ -157,41 +172,42 @@ function tillan.handle(id, data)
 
 end
 
-function tillan.load_product(id)
-    local product = products[id]
-    if product == nil then
-        local path = "/luadb/tillan-" .. id .. ".json"
-        local data = io.readFile(path)
+local function can_cb(id, cb_type, param)
+    if cb_type == can.CB_MSG then
+        -- log.info("有新的消息")
 
-        log.info("加载产品", id, path)
+        local succ, id, id_type, rtr, data = can.rx(id)
+        while succ do
+            -- log.info(mcu.x32(id), #data, data:toHex())
 
-        products[id] = false -- 避免再次加载
+            -- 处理数据
+            handle_can(id, data)
 
-        if data == nil then
-            return nil
+            -- 继续接收
+            succ, id, id_type, rtr, data = can.rx(id)
         end
 
-        -- 解析
-        local prod, ret, err = json.decode(data)
-        if not ret then
-            log.info("解析产品错误", err)
-            return nil
+    elseif cb_type == can.CB_TX then
+        if param then
+            log.info("发送成功")
+        else
+            log.info("发送失败")
         end
+    elseif cb_type == can.CB_ERR then
+        log.info("CAN错误码", mcu.x32(param))
+    elseif cb_type == can.CB_STATE then
+        log.info("CAN新状态", param)
+    end
+end
 
-        products[id] = prod
-
-        prod.indexed_points = {}
-
-        -- 索引
-        for i, p in ipairs(prod.points) do
-            prod.indexed_points[p.id] = p
+local function upload()
+    log.info("upload()", json.encode(devices))
+    for k, device in pairs(devices) do
+        if device.changed then
+            cloud.publish("tillan/upload", device.changes)
+            device.changed = false
+            device.changes = {}
         end
-
-        return prod
-    elseif product == false then
-        return nil
-    else
-        return product
     end
 end
 
@@ -210,6 +226,9 @@ function tillan.init()
 
     ret = can.mode(0, can.MODE_NORMAL)
     log.info("can.mode ret", ret)
+
+    -- 定时上传
+    sys.timerLoopStart(upload, 10000)
 end
 
 function tillan.send()
