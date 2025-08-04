@@ -122,6 +122,76 @@ function testOled()
 
 end
 
+function testLcd()
+    --spi_lcd = spi.deviceSetup(0,20,0,0,8,2000000,spi.MSB,1,1)
+    lcd.init("st7789", {
+        port = lcd.HWID_0,
+        pin_dc = 0xff, --38, -- 0xff, -- RS
+        pin_pwr = 23, -- BL 25,
+        pin_rst = 36, -- RES
+        direction = 0,
+        w = 240,
+        h = 240,
+        --xoffset = 1,
+        --yoffset = 26
+    }, lcd.HWID_0)
+
+    lcd.on()
+
+    lcd.setupBuff(nil, true)
+    lcd.autoFlush(false)
+
+    local ret = lcd.clear()
+    log.info("clear()", ret)
+
+    ret = lcd.showImage(30,0,"/luadb/9.jpg")
+    log.info("showImage()", ret)
+
+    ret = lcd.setColor(0xFFFF, 0x0000)
+    log.info("setColor()", ret)
+
+    ret = lcd.fill(20,30,220,30,0x1000)
+    log.info("fill()", ret)
+
+    ret = lcd.setFont(lcd.font_opposansm12)
+    log.info("setFont()", ret)
+
+    ret = lcd.drawStr(40,10,"iot-noob")
+    log.info("drawStr()", ret)
+
+    ret = lcd.flush()
+    log.info("flush()", ret)
+end
+
+function testLcd2()
+    --spi_lcd = spi.deviceSetup(0,20,0,0,8,2000000,spi.MSB,1,1)
+    lcd.init("st7789", {
+        port = lcd.HWID_0,
+        pin_dc = 0xff, --38, -- 0xff, -- RS
+        pin_pwr = 23, -- BL 25,
+        pin_rst = 36, -- RES
+        direction = 0,
+        w = 240,
+        h = 320,
+        --xoffset = 1,
+        --yoffset = 26
+    }, lcd.HWID_0)
+
+    lcd.on()
+
+    lcd.setupBuff(nil, true)
+    lcd.autoFlush(false)
+
+    local ret = lcd.clear()
+    log.info("clear()", ret)
+
+    ret = lcd.showImage(0,0,"/luadb/92.jpg")
+    log.info("showImage()", ret)
+
+    ret = lcd.flush()
+    log.info("flush()", ret)
+end
+
 function testLan()
 
     local result = spi.setup(
@@ -254,9 +324,12 @@ sys.taskInit(function()
 
     --testLan()
 
-    test485()
+    --test485()
 
 	--testCan()
+
+    --testLcd()
+    testLcd2()
 
     while true do
 

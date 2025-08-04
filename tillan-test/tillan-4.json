@@ -1,0 +1,27 @@
+{
+    "name": "空调控制器",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        {"id":2, "name":"type", "type":"u16", "mode":"r", "desc":"当前主机类型"},
+        {"id":3, "name":"mode", "type":"u16", "mode":"rw", "desc":"主机模式"},
+        {"id":4, "name":"lock", "type":"u16", "mode":"rw", "desc":"童锁"},
+        {"id":5, "name":"power_on", "type":"u16", "mode":"rw", "desc":"开关机"},
+        {"id":6, "name":"run_mode", "type":"u16", "mode":"rw", "desc":"运行模式"},
+        {"id":7, "name":"wind_mode", "type":"u16", "mode":"rw", "desc":"风机模式"},
+        {"id":8, "name":"close_all", "type":"u16", "mode":"rw", "desc":"一键关机模式"},
+        {"id":9, "name":"wind_percent", "type":"u16", "mode":"rw", "desc":"风机自动档当前运行百分比"},
+
+        {"id":10, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"供冷设置温度"},
+        {"id":11, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"供暖设置温度"},
+        
+        {"id":14, "name":"current_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"控温当前差值"},
+        {"id":15, "name":"point_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"室内露点温度"},
+        {"id":16, "name":"indoor_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"室内温度"},
+        {"id":17, "name":"indoor_humidity", "type":"s16", "rate":10, "mode":"rw", "desc":"室内湿度"},
+        {"id":18, "name":"pm25", "type":"u16", "mode":"r", "desc":"空间质量PM2.5"},
+        {"id":19, "name":"co2", "type":"u16", "mode":"r", "desc":"空间质量CO2"},
+        {"id":20, "name":"tvoc", "type":"u16", "mode":"r", "desc":"空间质量TVOC"},
+        {"id":21, "name":"foward_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"供水温度"},
+        {"id":22, "name":"back_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"回水温度"}
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "name": "混水阀控制器",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        {"id":2, "name":"type", "type":"u16", "mode":"rw", "desc":"当前主机类型"},
+        {"id":5, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"供冷设置温度"},
+        {"id":6, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"供暖设置温度"},
+        {"id":8, "name":"t1_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"T1供水温度"},
+        {"id":9, "name":"t2_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"T2回水温度"},
+        {"id":16, "name":"pump_pwm_duty_ratio", "type":"u16", "mode":"r", "desc":"水泵PWM占空比"},
+        {"id":17, "name":"valve_percent", "type":"u16", "mode":"r", "desc":"水阀开度"}
+    ]
+}

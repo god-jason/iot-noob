@@ -1,0 +1,12 @@
+{
+    "name": "主机联动模块",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        {"id":2, "name":"type", "type":"u16", "mode":"rw", "desc":"当前主机类型"},
+        {"id":5, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"r"},
+        {"id":6, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"r"},
+        {"id":17, "name":"t1_temperature", "type":"s16", "rate":10, "mode":"r"},
+        {"id":18, "name":"t2_temperature", "type":"s16", "rate":10, "mode":"r"},
+        {"id":19, "name":"t3_temperature", "type":"s16", "rate":10, "mode":"r"}
+    ]
+}
