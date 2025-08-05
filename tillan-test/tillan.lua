@@ -142,18 +142,6 @@ local function handle_can(id, data)
     elseif point.type == "hex" then
         val = string.sub(data, 3)
         val = string.toHex(data, val)
-        -- elseif point.type == "bits" then
-        --     -- 位类型，特殊处理
-
-        --     _, seq, ok, val = pack.unpack(data, "b2>I")
-        --     for i, b in ipairs(point.bits) do
-        --         -- local bit = val & (0x1 << b.bit) > 0
-        --         local bit = (val >> b.bit) & 0x1 --使用 0 1 代表bool
-        --         set_device_value(device, b.name, bit, time)
-        --     end
-
-        --     device.update = time
-        --     return
     elseif point.type == "bits" then
         -- val = string.sub(data, 3)
         _, seq, ok, val = pack.unpack(data, "b2>I")
@@ -168,7 +156,9 @@ local function handle_can(id, data)
                     val = val / p.rate
                 end    
             end
-            
+
+            log.info("获取到子数据：", p.desc or p.name, val)
+
             set_device_value(device, p.name, v, time)
         end
 
