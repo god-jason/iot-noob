@@ -62,6 +62,26 @@ local function load_product(id)
     end
 end
 
+local function set_device_value(device, key, val, time)
+    local value = device.values[key]
+    if value == nil then
+        value = {
+            time = time,
+            value = val
+        }
+        device.values[key] = value
+    end
+
+    value.time = time
+    if value.value ~= val then
+        value.value = val
+        device.changes[key] = value -- 加入修改
+        device.changed = true
+    end
+
+    device.update = time
+end
+
 local function handle_can(id, data)
 
     local proto = (id >> 26)
@@ -70,9 +90,9 @@ local function handle_can(id, data)
     local device_id = (id >> 8) & 0xff
     local param_id = id & 0xff
 
-    --log.info("message", id, proto, type, product_id, device_id, param_id)
+    -- log.info("message", id, proto, type, product_id, device_id, param_id)
     if type ~= 3 then
-        return --只处理数据上报
+        return -- 只处理数据上报
     end
 
     -- TODO 是否要使用平台最终ID，或SN
@@ -119,31 +139,39 @@ local function handle_can(id, data)
         _, seq, ok, val = pack.unpack(data, "b2>i")
     elseif point.type == "u32" then
         _, seq, ok, val = pack.unpack(data, "b2>I")
+    elseif point.type == "hex" then
+        val = string.sub(data, 3)
+        val = string.toHex(data, val)
+        -- elseif point.type == "bits" then
+        --     -- 位类型，特殊处理
+
+        --     _, seq, ok, val = pack.unpack(data, "b2>I")
+        --     for i, b in ipairs(point.bits) do
+        --         -- local bit = val & (0x1 << b.bit) > 0
+        --         local bit = (val >> b.bit) & 0x1 --使用 0 1 代表bool
+        --         set_device_value(device, b.name, bit, time)
+        --     end
+
+        --     device.update = time
+        --     return
     elseif point.type == "bits" then
-        -- 位类型，特殊处理
-
+        -- val = string.sub(data, 3)
         _, seq, ok, val = pack.unpack(data, "b2>I")
-        for i, b in ipairs(point.bits) do
-            local bit = val & (0x1 << b.bit) > 0
 
-            local value = device.values[b.name]
-            if value == nil then
-                value = {
-                    time = time,
-                    value = val
-                }
-                device.values[b.name] = value
-            end
+        for i, p in ipairs(point.bits) do
+            local size = p.size or 1
+            local v = (val >> p.bit) & (0x1 << size - 1)
 
-            value.time = time
-            if value.value ~= bit then
-                value.value = bit
-                device.changes[b.name] = value -- 加入修改
-                device.changed = true
+            -- 倍率
+            if size > 1 then
+                if p.rate ~= nil and p.rate ~= 1 and p.rate ~= 0 then
+                    val = val / p.rate
+                end    
             end
+            
+            set_device_value(device, p.name, v, time)
         end
 
-        device.update = time
         return
     else
         log.info("未知点位类型", product_id, param_id, point.type)
@@ -155,22 +183,7 @@ local function handle_can(id, data)
         val = val / point.rate
     end
 
-    local value = device.values[point.name]
-    if value == nil then
-        value = {
-            time = time,
-            value = val
-        }
-        device.values[point.name] = value
-    end
-
-    value.time = time
-    if value.value ~= val then
-        value.value = val
-        device.changes[point.name] = value -- 加入修改
-        device.changed = true
-    end
-    device.update = time
+    set_device_value(device, point.name, val, time)
 
     -- 只在调试时打开，否则日志太多
     log.info("获取到数据：", seq, ok, product.name or product_id, device_id, point.desc or point.id, val)
