@@ -208,10 +208,12 @@ local function can_cb(id, cb_type, param)
     end
 end
 
-local function upload()
+local function upload(all)
     log.info("upload()", json.encode(devices))
     for k, device in pairs(devices) do
-        if device.changed then
+        if all then
+            cloud.publish("tillan/upload", device.values)
+        elseif device.changed then
             cloud.publish("tillan/upload", device.changes)
             device.changed = false
             device.changes = {}
@@ -236,7 +238,8 @@ function tillan.init()
     log.info("can.mode ret", ret)
 
     -- 定时上传
-    sys.timerLoopStart(upload, 10000)
+    sys.timerLoopStart(upload, 10 * 1000) -- 10秒传一次变化
+    sys.timerLoopStart(upload, 30*60*1000, true) -- 30分钟传一次全部
 end
 
 function tillan.send()

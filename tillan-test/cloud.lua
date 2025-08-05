@@ -15,8 +15,8 @@ end
 function cloud.publish(topic, payload, qos)
     if type(payload) ~= "string" then
         local err
-        --payload, err = json.encode(payload, "2f")
-        payload, err = json.encode(payload)
+        payload, err = json.encode(payload, "2f")
+        --payload, err = json.encode(payload)
         if payload == nil then
             payload = "payload json encode error:" .. err
         end
