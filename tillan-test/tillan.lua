@@ -141,7 +141,7 @@ local function handle_can(id, data)
         _, seq, ok, val = pack.unpack(data, "b2>I")
     elseif point.type == "hex" then
         val = string.sub(data, 3)
-        val = string.toHex(data, val)
+        val = string.toHex(val)
     elseif point.type == "bits" then
         -- val = string.sub(data, 3)
         _, seq, ok, val = pack.unpack(data, "b2>I")
