@@ -70,6 +70,11 @@ local function handle_can(id, data)
     local device_id = (id >> 8) & 0xff
     local param_id = id & 0xff
 
+    --log.info("message", id, proto, type, product_id, device_id, param_id)
+    if type ~= 3 then
+        return --只处理数据上报
+    end
+
     -- TODO 是否要使用平台最终ID，或SN
     local dev_id = product_id .. "-" .. device_id
     local device = devices[dev_id]
@@ -168,7 +173,7 @@ local function handle_can(id, data)
     device.update = time
 
     -- 只在调试时打开，否则日志太多
-    -- log.info("获取到数据：", seq, ok, product.name or product_id, device_id, point.desc or point.id, val)
+    log.info("获取到数据：", seq, ok, product.name or product_id, device_id, point.desc or point.id, val)
 
 end
 
