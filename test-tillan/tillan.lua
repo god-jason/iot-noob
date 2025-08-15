@@ -96,11 +96,11 @@ local function handle_can(id, data)
     end
 
     -- TODO 是否要使用平台最终ID，或SN
-    local dev_id = product_id .. "-" .. device_id
+    local dev_id = mobile.imei() .. "-" .. product_id .. "-" .. device_id
     local device = devices[dev_id]
     if device == nil then
         device = {
-            id = "xxxx",
+            id = dev_id,
             update = os.time(),
             values = {}, -- 数据
             changes = {}, -- 变化数据
@@ -154,7 +154,7 @@ local function handle_can(id, data)
             if size > 1 then
                 if p.rate ~= nil and p.rate ~= 1 and p.rate ~= 0 then
                     val = val / p.rate
-                end    
+                end
             end
 
             log.info("获取到子数据：", p.desc or p.name, val)
@@ -212,9 +212,9 @@ local function upload(all)
     log.info("upload()", json.encode(devices))
     for k, device in pairs(devices) do
         if all then
-            cloud.publish("tillan/upload", device.values)
+            cloud.publish("device/" .. device.id .. "/property", device.values)
         elseif device.changed then
-            cloud.publish("tillan/upload", device.changes)
+            cloud.publish("device/" .. device.id .. "/property", device.changes)
             device.changed = false
             device.changes = {}
         end
@@ -239,7 +239,7 @@ function tillan.init()
 
     -- 定时上传
     sys.timerLoopStart(upload, 10 * 1000) -- 10秒传一次变化
-    sys.timerLoopStart(upload, 30*60*1000, true) -- 30分钟传一次全部
+    sys.timerLoopStart(upload, 30 * 60 * 1000, true) -- 30分钟传一次全部
 end
 
 function tillan.send()

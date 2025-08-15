@@ -3,7 +3,7 @@ local cloud = {}
 local client = nil
 
 function cloud.init()
-    client = mqtt.create(nil,"git.zgwit.com", 1883)
+    client = mqtt.create(nil,"36.151.72.58", 1883)
     
     client:auth(mobile.imei(), "", "")
 
