@@ -1,0 +1,36 @@
+{
+    "name": "空气质量",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        {"id":2, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn1", "desc":"SN1"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn2", "desc":"SN2"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn3", "desc":"SN3"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn4", "desc":"SN4"}
+        ]},
+        {"id":3, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn5", "desc":"SN5"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn6", "desc":"SN6"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn7", "desc":"SN7"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn8", "desc":"SN8"}
+        ]},    
+        
+        
+        {"id":5, "name":"temperature", "type":"s16", "rate":10, "mode":"r", "desc":"温度"},
+        {"id":6, "name":"humidity", "type":"u16", "rate":10, "mode":"r", "desc":"湿度"},
+        {"id":7, "name":"pm25", "type":"u16", "mode":"rw", "desc":"PM2.5"},
+        {"id":8, "name":"pm10", "type":"u16", "mode":"rw", "desc":"PM10"},
+        {"id":9, "name":"co2", "type":"u16", "mode":"rw", "desc":"CO2"},
+        {"id":10, "name":"hcho", "type":"u16", "mode":"rw", "desc":"HCHO"},
+        {"id":10, "name":"tvoc", "type":"u16", "mode":"rw", "desc":"TVOC"},
+
+        {"id":13, "type":"bits", "desc":"故障状态", "bits":[
+            {"bit":0, "name":"error_temp_sensor", "desc":"温湿度传感器故障"},
+            {"bit":1, "name":"error_pm25_sensor", "desc":"PM2.5传感器故障"},
+            {"bit":2, "name":"error_pm10_sensor", "desc":"PM10传感器故障"},
+            {"bit":3, "name":"error_co2_sensor", "desc":"CO2传感器故障"},
+            {"bit":4, "name":"error_hcho_sensor", "desc":"HCHO传感器故障"},
+            {"bit":5, "name":"error_tvoc_sensor", "desc":"TVOC传感器故障"}
+        ]}
+    ]
+}

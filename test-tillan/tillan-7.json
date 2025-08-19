@@ -1,0 +1,44 @@
+{
+    "name": "集中控制器",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        {"id":2, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn1", "desc":"SN1"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn2", "desc":"SN2"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn3", "desc":"SN3"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn4", "desc":"SN4"}
+        ]},
+        {"id":3, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn5", "desc":"SN5"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn6", "desc":"SN6"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn7", "desc":"SN7"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn8", "desc":"SN8"}
+        ]},    
+        
+        
+        {"id":5, "name":"relay1", "type":"u16", "mode":"rw", "desc":"继电器1"},
+        {"id":6, "name":"relay2", "type":"u16", "mode":"rw", "desc":"继电器2"},
+        {"id":7, "name":"relay3", "type":"u16", "mode":"rw", "desc":"继电器3"},
+        {"id":8, "name":"relay4", "type":"u16", "mode":"rw", "desc":"继电器4"},
+        {"id":9, "name":"relay5", "type":"u16", "mode":"rw", "desc":"继电器5"},
+        {"id":10, "name":"relay6", "type":"u16", "mode":"rw", "desc":"继电器6"},
+
+        {"id":13, "type":"bits", "desc":"继电器状态", "bits":[
+            {"bit":0, "name":"relay1_status", "desc":"继电器状态1"},
+            {"bit":1, "name":"relay2_status", "desc":"继电器状态2"},
+            {"bit":2, "name":"relay3_status", "desc":"继电器状态3"},
+            {"bit":3, "name":"relay4_status", "desc":"继电器状态4"},
+            {"bit":4, "name":"relay5_status", "desc":"继电器状态5"},
+            {"bit":5, "name":"relay6_status", "desc":"继电器状态6"},
+            {"bit":8, "name":"relay_valve_status", "desc":"继电器状态（球阀）"},
+            {"bit":9, "name":"relay_pump_status", "desc":"继电器状态（水泵）"},
+            {"bit":10, "name":"relay_link_status", "desc":"继电器状态（联动）"},
+            {"bit":11, "name":"frost_protection_status", "desc":"水冷防冻"}
+        ]},
+
+        {"id":14, "type":"bits", "bits":[
+            {"bit":0, "size":16, "mode":"r", "rate":10, "name":"supply_temp", "desc":"供水温度"},
+            {"bit":16, "size":16, "mode":"r", "rate":10, "name":"back_temp", "desc":"回水温度"}
+        ]}
+    ]
+}

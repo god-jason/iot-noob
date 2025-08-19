@@ -2,11 +2,145 @@
     "name": "主机联动模块",
     "points":[
         {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
-        {"id":2, "name":"type", "type":"u16", "mode":"rw", "desc":"当前主机类型"},
-        {"id":5, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"r"},
-        {"id":6, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"r"},
+        {"id":2, "name":"type", "type":"u16", "mode":"r", "desc":"当前主机类型"},
+        
+        {"id":5, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"供冷设置温度"},
+        {"id":6, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"rw", "desc":"供暖设置温度"},
+
+        
+        {"id":10, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn1", "desc":"SN1"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn2", "desc":"SN2"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn3", "desc":"SN3"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn4", "desc":"SN4"}
+        ]},
+        {"id":11, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn5", "desc":"SN5"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn6", "desc":"SN6"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn7", "desc":"SN7"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn8", "desc":"SN8"}
+        ]},
+
+        {"id":14, "type":"bits", "bits":[
+            {"bit":0, "size":16, "mode":"rw", "name":"software_version", "desc":"软件版本号"},
+            {"bit":16, "size":16, "mode":"rw", "name":"hardware_version", "desc":"硬件版本号"}
+        ]},
+
         {"id":17, "name":"t1_temperature", "type":"s16", "rate":10, "mode":"r"},
         {"id":18, "name":"t2_temperature", "type":"s16", "rate":10, "mode":"r"},
-        {"id":19, "name":"t3_temperature", "type":"s16", "rate":10, "mode":"r"}
+        {"id":19, "name":"t3_temperature", "type":"s16", "rate":10, "mode":"r"},
+
+        {"id":32, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"mode", "desc":"主机运行模式"},
+            {"bit":1, "mode":"r", "name":"power_on", "desc":"开关机状态"},
+            {"bit":2, "mode":"r", "name":"circle_pump_a_status", "desc":"循环泵A状态"},
+            {"bit":3, "mode":"r", "name":"circle_pump_b_status", "desc":"循环泵B状态"},
+            {"bit":4, "mode":"r", "name":"wall_hung_boiler_status", "desc":"壁挂炉状态"}
+        ]},
+        {"id":33, "type":"bits", "bits":[
+            {"bit":2, "mode":"r", "name":"offline", "desc":"与主机断开连接"},
+            {"bit":3, "mode":"r", "name":"t1_temp_error", "desc":"T1感温包故障"},
+            {"bit":4, "mode":"r", "name":"t2_temp_error", "desc":"T2感温包故障"},
+            {"bit":5, "mode":"r", "name":"t3_temp_error", "desc":"T3感温包故障"},
+            {"bit":6, "mode":"r", "name":"frost_protection", "desc":"防冻保护"},
+            {"bit":16, "size":16, "mode":"r", "name":"error_code", "desc":"机组故障代码"}
+        ]},
+
+        {"id":34, "name":"param_power_on", "type":"u16", "mode":"rw", "desc":"主机参数：开关机"},
+        {"id":35, "name":"param_mode", "type":"u16", "mode":"rw", "desc":"主机参数：运行模式"},
+        {"id":36, "name":"param_cold_setting_temperature", "type":"u16", "rate":10, "mode":"rw", "desc":"主机参数：供冷设置温度"},
+        {"id":37, "name":"param_hot_setting_temperature", "type":"u16", "rate":10, "mode":"rw", "desc":"主机参数：供暖设置温度"},
+
+        {"id":38, "name":"param_temp_control_type", "type":"u16", "mode":"rw", "desc":"主机参数：温度控制方式"},
+        {"id":39, "name":"param_current_env_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：当前环境温度"},
+        {"id":40, "name":"param_current_supply_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：当前供水温度"},
+        {"id":41, "name":"param_current_back_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：当前回水温度"},
+
+        {"id":42, "name":"param_current_exhaust_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：当前排气温度"},
+        {"id":43, "name":"param_current_intake_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：当前进气温度"},
+
+        {"id":44, "name":"param_fin_inner_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：翅片盘管中部温度"},
+        {"id":45, "name":"param_fin_out_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：翅片盘管出口温度"},
+
+        {"id":46, "name":"param_circle_bump_temperature", "type":"u16", "rate":10, "mode":"r", "desc":"主机参数：循环泵状态"},
+        {"id":47, "name":"param_circle_bump_speed", "type":"u16", "mode":"r", "desc":"主机参数：循环泵转速"},
+        {"id":48, "name":"param_compressor_frequency", "type":"u16", "mode":"r", "desc":"主机参数：压机频率"},
+
+        {"id":49, "name":"param_ac_voltage", "type":"u16", "mode":"r", "desc":"主机参数：AC电压"},
+        {"id":50, "name":"param_ac_current", "type":"u16", "mode":"r", "rate":10, "desc":"主机参数：AC电流"},
+        {"id":51, "name":"param_dc_voltage", "type":"u16", "mode":"r", "rate":10, "desc":"主机参数：DC电压"},
+        {"id":52, "name":"param_dc_current", "type":"u16", "mode":"r", "rate":10, "desc":"主机参数：DC电流"},
+
+
+        {"id":53, "name":"param_ipm_temperature", "type":"u16", "mode":"r", "rate":10, "desc":"主机参数：IPM温度"},
+        {"id":54, "name":"param_eeva_valve", "type":"u16", "mode":"r", "desc":"主机参数：EEVA主阀开度"},
+        {"id":55, "name":"param_eevb_valve", "type":"u16", "mode":"r", "desc":"主机参数：EEVB辅阀开度"},
+        {"id":56, "name":"param_wind_ac", "type":"u16", "mode":"r", "desc":"主机参数：风机档位(AC)"},
+        {"id":57, "name":"param_wind_1_speed", "type":"u16", "mode":"r", "desc":"主机参数：风机1转速(DC)"},
+        {"id":58, "name":"param_wind_2_speed", "type":"u16", "mode":"r", "desc":"主机参数：风机2转速(DC)"},
+
+
+        
+        {"id":69, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"error_env_temp_sensor", "desc":"环境温度传感器故障"},
+            {"bit":1, "mode":"r", "name":"error_supply_temp_sensor", "desc":"供水温度传感器故障"},
+            {"bit":2, "mode":"r", "name":"error_back_temp_sensor", "desc":"回水温度传感器故障"},
+            {"bit":3, "mode":"r", "name":"error_exhaust_temp_sensor", "desc":"排气温度传感器故障"},
+            {"bit":4, "mode":"r", "name":"error_intake_temp_sensor", "desc":"吸气温度传感器故障"},
+            {"bit":5, "mode":"r", "name":"error_fin_inner_temp_sensor", "desc":"翅片盘管中部温度传感器故障"},
+            {"bit":6, "mode":"r", "name":"error_fin_out_temp_sensor", "desc":"翅片盘管出口温度传感器故障"},
+            {"bit":7, "mode":"r", "name":"error_exchange_temp_sensor", "desc":"氟水换热器温度传感器故障(冷凝/蒸发)"},
+            {"bit":10, "mode":"r", "name":"error_high_pressure_sensor", "desc":"高压传感器故障"},
+            {"bit":11, "mode":"r", "name":"error_low_pressure_sensor", "desc":"高压传感器故障"}
+        ]},
+
+        {"id":70, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"error_eeprom", "desc":"EEPROM存储故障"},
+            {"bit":1, "mode":"r", "name":"error_compressor_communication", "desc":"压缩机驱动板通迅故障"},
+            {"bit":2, "mode":"r", "name":"error_compressor_board", "desc":"压缩机驱动板产生的故障"},
+            {"bit":3, "mode":"r", "name":"error_compressor_overload", "desc":"压缩机过载故障"},
+            {"bit":4, "mode":"r", "name":"error_out_wind", "desc":"外风机故障"},
+            {"bit":5, "mode":"r", "name":"error_out_wind_board", "desc":"外风机驱动板故障"},
+            {"bit":6, "mode":"r", "name":"error_out_wind_overload", "desc":"外风机过载故障"},
+            {"bit":7, "mode":"r", "name":"error_power_protection", "desc":"电源保护(高压/低压/过流/)"},
+            {"bit":8, "mode":"r", "name":"error_high_pressure", "desc":"高压故障（电压过高）"},
+            {"bit":11, "mode":"r", "name":"error_pump_overload", "desc":"水泵过载"},
+            {"bit":12, "mode":"r", "name":"error_4_valve", "desc":"四通阀切换失败保护(四通阀故障)"}
+        ]},
+
+
+        
+        {"id":71, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"error_env_temp", "desc":"环境温度传感器故障"},
+            {"bit":1, "mode":"r", "name":"error_supply_temp", "desc":"供水温度传感器故障"},
+            {"bit":2, "mode":"r", "name":"error_back_temp", "desc":"回水温度传感器故障"},
+            {"bit":3, "mode":"r", "name":"error_exhaust_temp", "desc":"排气温度传感器故障"},
+            {"bit":4, "mode":"r", "name":"error_intake_temp", "desc":"吸气温度传感器故障"},
+            {"bit":5, "mode":"r", "name":"error_fin_inner_temp", "desc":"翅片盘管中部温度传感器故障"},
+            {"bit":6, "mode":"r", "name":"error_fin_out_temp", "desc":"翅片盘管出口温度传感器故障"},
+            {"bit":7, "mode":"r", "name":"error_exchange_temp", "desc":"氟水换热器温度传感器故障(冷凝/蒸发)"},
+            {"bit":8, "mode":"r", "name":"error_cold_temp_low", "desc":"制冷环温过低"},
+            {"bit":9, "mode":"r", "name":"error_hot_temp_high", "desc":"制热环温过高"},
+            {"bit":10, "mode":"r", "name":"error_cold_out_temp_low", "desc":"制冷出水温度过低"},
+            {"bit":11, "mode":"r", "name":"error_hot_out_temp_high", "desc":"制热出水温度过高"},
+            {"bit":12, "mode":"r", "name":"error_water_flow_lack", "desc":"水流量不足故障(水流故障)"},
+            {"bit":13, "mode":"r", "name":"error_cryogen_lack", "desc":"制冷剂泄露故障"},
+            {"bit":14, "mode":"r", "name":"error_inout_temp_diff_high", "desc":"进出水温差过大"},
+            {"bit":15, "mode":"r", "name":"error_inout_temp_sensor_cross", "desc":"进出水温度传感器接反"}
+        ]},
+
+        {"id":72, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"error_lock", "desc":"机组未解锁"},
+            {"bit":1, "mode":"r", "name":"error_frost_protection_invalid", "desc":"防冻失效保护"},
+            {"bit":2, "mode":"r", "name":"error_vfd_not_match", "desc":"变频器型号不匹配"}
+        ]},
+
+
+        {"id":73, "name":"error_code_12", "type":"u16", "mode":"r", "desc":"主机故障代码1-2"},
+        {"id":74, "name":"error_code_34", "type":"u16", "mode":"r", "desc":"主机故障代码3-4"},
+        {"id":75, "name":"error_code_56", "type":"u16", "mode":"r", "desc":"主机故障代码5-6"},
+        {"id":76, "name":"error_code_78", "type":"u16", "mode":"r", "desc":"主机故障代码7-8"}
+
+
     ]
 }
