@@ -8,10 +8,12 @@ local devices = {}
 --[[ 数据结构定义
 
 devices = Map<key, Device>
-key = product_id + "-" + device_id
+key1 = product_id + "-" + device_id
+key2 =sn
 
 class Device {
   id: string 设备ID，最终入库
+  sn: xxxx
   update: timestamp 更新时间
   values: Map<key, Value> 值
   changes: Map<key, Value> 变化的值
@@ -95,12 +97,13 @@ local function handle_can(id, data)
         return -- 只处理数据上报
     end
 
-    -- TODO 是否要使用平台最终ID，或SN
-    local dev_id = mobile.imei() .. "-" .. product_id .. "-" .. device_id
+    -- 使用平台最终ID，或SN
+    local dev_id = product_id .. "-" .. device_id
     local device = devices[dev_id]
     if device == nil then
         device = {
-            id = dev_id,
+            id = device_id,
+            product_id = product_id,
             update = os.time(),
             values = {}, -- 数据
             changes = {}, -- 变化数据
@@ -148,16 +151,16 @@ local function handle_can(id, data)
 
         for i, p in ipairs(point.bits) do
             local size = p.size or 1
-            local v = (val >> p.bit) & (0x1 << size - 1)
+            local v = (val >> p.bit) & ((0x1 << size) - 1)
 
             -- 倍率
             if size > 1 then
                 if p.rate ~= nil and p.rate ~= 1 and p.rate ~= 0 then
-                    val = val / p.rate
+                    v = v / p.rate
                 end
             end
 
-            log.info("获取到子数据：", p.desc or p.name, val)
+            log.info("获取到子数据：", p.desc or p.name, v)
 
             set_device_value(device, p.name, v, time)
         end
@@ -211,13 +214,35 @@ end
 local function upload(all)
     log.info("upload()", json.encode(devices))
     for k, device in pairs(devices) do
-        if all then
-            cloud.publish("device/" .. device.id .. "/property", device.values)
-        elseif device.changed then
-            cloud.publish("device/" .. device.id .. "/property", device.changes)
-            device.changed = false
-            device.changes = {}
+        if device.sn == nil then
+            if device.values.sn1 ~= nil and device.values.sn5 ~= nil then
+                -- device.sn = 
+                device.sn = pack.pack("b8", device.values.sn1.value, device.values.sn2.value, device.values.sn3.value,
+                    device.values.sn4.value, device.values.sn5.value, device.values.sn6.value, device.values.sn7.value,
+                    device.values.sn8.value)
+
+                cloud.publish("tillan/device/register", {
+                    id = device.sn,
+                    product_id = "tillan-" .. device.product_id,
+                    station = {
+                        id = device.id,
+                        product_id = device.product_id
+                    }
+                })
+
+            end
         end
+
+        if device.sn ~= nil then
+            if all then
+                cloud.publish("device/" .. device.sn .. "/property", device.values)
+            elseif device.changed then
+                cloud.publish("device/" .. device.sn .. "/property", device.changes)
+                device.changed = false
+                device.changes = {}
+            end
+        end
+
     end
 end
 
