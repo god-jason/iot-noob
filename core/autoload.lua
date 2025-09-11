@@ -1,13 +1,13 @@
 --- 程序加载器
---- @module "boot"
+--- @module "autoload"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.04.07
-local tag = "boot"
-local boot = {}
+local tag = "autoload"
+local autoload = {}
 
-function boot.load(name)
+local function load(name)
     -- 使用pcall 避免异常退出
     local ret, info = pcall(require, name)
     if not ret then
@@ -15,7 +15,7 @@ function boot.load(name)
     end
 end
 
-function boot.walk(path, base, offset)
+local function walk(path, base, offset)
     offset = offset or 0
     base = base or ""
     -- log.info(tag, "walk", path, base, offset)
@@ -30,13 +30,13 @@ function boot.walk(path, base, offset)
         if e.type == 1 then
             -- 文件夹
             -- log.info(tag, "walk children", fn)
-            boot.walk(fn .. "/", base .. e.name .. ".")
+            walk(fn .. "/", base .. e.name .. ".")
         elseif string.endsWith(e.name, ".luac") then
             -- log.info(tag, "walk found", fn, e.size)
             -- 为入口，重复加载会导致死循环
             if fn ~= "/luadb/main.luac" then
                 local name = string.sub(e.name, 1, -6)
-                boot.load(base .. name)
+                load(base .. name)
             end
 
             -- 降低启动速度，避免日志输出太快，从而导致丢失
@@ -48,8 +48,11 @@ function boot.walk(path, base, offset)
 
     -- 继续遍历
     if #data == 50 then
-        boot.walk(path, base, offset + 50)
+        walk(path, base, offset + 50)
     end
 end
 
-return boot
+--遍历所以编译的文件，然后require，实现自动加载
+walk("/luadb/")
+
+return autoload
