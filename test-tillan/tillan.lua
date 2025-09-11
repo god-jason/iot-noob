@@ -212,8 +212,9 @@ local function can_cb(id, cb_type, param)
 end
 
 local function upload(all)
-    log.info("upload()", json.encode(devices))
+    -- log.info("upload()", json.encode(devices))
     for k, device in pairs(devices) do
+        log.info("device", device.id, device.sn)
         if device.sn == nil then
             if device.values.sn1 ~= nil and device.values.sn5 ~= nil then
                 -- device.sn = 
@@ -233,11 +234,13 @@ local function upload(all)
             end
         end
 
-        if device.sn ~= nil then
+        if device.sn ~= nil then            
+            local device_id = device.sn .. "-" ..device.product_id.."-"..device.id
+
             if all then
-                cloud.publish("device/" .. device.sn .. "/property", device.values)
+                cloud.publish("device/" .. device_id .. "/property", device.values)
             elseif device.changed then
-                cloud.publish("device/" .. device.sn .. "/property", device.changes)
+                cloud.publish("device/" .. device_id .. "/property", device.changes)
                 device.changed = false
                 device.changes = {}
             end

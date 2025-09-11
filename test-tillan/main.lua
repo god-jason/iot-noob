@@ -1,5 +1,5 @@
 PROJECT = "noob-tillan"
-VERSION = "000.000.005"
+VERSION = "000.000.006"
 
 log.info(PROJECT, VERSION)
 
