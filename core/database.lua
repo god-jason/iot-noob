@@ -8,17 +8,11 @@ local tag = "database"
 
 local database = {}
 
-local tables = {
-    owner = "iot-noob",
-    version = "1.0",
-    update = os.time()
-}
-
-local database_file = "database.json"
-
--- 读取数据
+--- 读取数据
+--- @param col string 表
+--- @return table 数据 {k->v}
 local function load(col)
-    local data = io.readFile(col..".db")
+    local data = io.readFile(col .. ".db")
     local obj, result, err = json.decode(data)
     if result == 0 then
         return {}
@@ -27,32 +21,43 @@ local function load(col)
     end
 end
 
--- 保存数据
+--- 保存数据
+--- @param col string 表
+--- @param objs table 数据{k->v}
 local function save(col, objs)
     local data = json.encode(objs)
-    return io.writeFile(col..".db", data)
+    return io.writeFile(col .. ".db", data)
 end
 
--- 清空表
+--- 清空表
+--- @param col string 表
 function database.clear(col)
-    os.remove(col..".db")
+    os.remove(col .. ".db")
 end
 
--- 插入数据
+--- 插入数据
+--- @param col string 表
+--- @param id string ID
+--- @param obj table 数据
 function database.insert(col, id, obj)
     local tab = load(col)
     tab[id] = obj
     save(col, tab)
 end
 
--- 修改数据（目前与insert相同）
+--- 修改数据（目前与insert相同）
+--- @param col string 表
+--- @param id string ID
+--- @param obj table 数据
 function database.update(col, id, obj)
     local tab = load(col)
     tab[id] = obj
     save(col, tab)
 end
 
--- 插入多条
+--- 插入多条
+--- @param col string 表
+--- @param objs table 数据
 function database.insertMany(col, objs)
     local tab = load(col)
     for id, obj in pairs(objs) do
@@ -61,7 +66,21 @@ function database.insertMany(col, objs)
     save(col, tab)
 end
 
--- 删除
+--- 插入多条
+--- @param col string 表
+--- @param objs table 数据
+function database.insertArray(col, objs)
+    local tab = load(col)
+    for obj in ipairs(objs) do
+        local id = objs["id"]
+        tab[id] = obj
+    end
+    save(col, tab)
+end
+
+--- 删除
+--- @param col string 表
+--- @param id string ID
 function database.delete(col, id)
     local tab = load(col)
     if tab ~= nil then
@@ -70,7 +89,10 @@ function database.delete(col, id)
     end
 end
 
--- 获取数据
+--- 获取数据
+--- @param col string 表
+--- @param id string ID
+--- @return table 数据
 function database.get(col, id)
     local tab = load(col)
     if tab ~= nil then
@@ -78,26 +100,30 @@ function database.get(col, id)
     end
 end
 
--- 查询数据库
+--- 查询数据库
+--- @param col string 表
+--- @param key string 键
+--- @param value any 值
+--- @return table 数组
 function database.find(col, ...)
     local tab = load(col)
 
     local results = {}
 
-    local args = { ... }
+    local args = {...}
 
     -- 复制所有数据出来
     if #args == 0 then
         for i, v in pairs(tab) do
             table.insert(results, v)
         end
-        return 
+        return
     end
 
     -- 生成过滤条件
     local filter = {}
     for i = 1, #args, 2 do
-        filter[args[i]] = args[i+1]
+        filter[args[i]] = args[i + 1]
     end
 
     -- 遍历所有数据（此处不用在意性能，因为网关一般不会存太多数据）
@@ -116,6 +142,5 @@ function database.find(col, ...)
 
     return results
 end
-
 
 return database
