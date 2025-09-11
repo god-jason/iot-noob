@@ -1,5 +1,5 @@
---- Modbus协议实现
---- @module "Mobus"
+--- Modbus 协议实现
+--- @module "modbus"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi
@@ -101,7 +101,7 @@ function Device:get(key)
     end
 end
 
----读取数据
+---写入数据
 ---@param key string 点位
 ---@param value any 值
 ---@return boolean 成功与否
@@ -213,16 +213,16 @@ function Device:poll()
 end
 
 ---Modbus Master 类型
----@class Modbus
-local Modbus = {}
+---@class Master
+local Master = {}
 
-require("protocols").register("modbus", Modbus)
+require("protocols").register("modbus", Master)
 
 ---创建实例
 ---@param link any 连接实例
 ---@param opts table 协议参数
----@return Modbus
-function Modbus:new(link, opts)
+---@return Master
+function Master:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
@@ -235,55 +235,8 @@ function Modbus:new(link, opts)
     return obj
 end
 
----询问
----@param request string 发送数据
----@param len integer 期望长度
----@return boolean 成功与否
----@return string 返回数据
-function Modbus:ask(request, len)
 
-    -- 重入锁，等待其他操作完成
-    while self.asking do
-        sys.wait(100)
-    end
-    self.asking = true
-
-    -- log.info(tag, "ask", request, len)
-    if request ~= nil and #request > 0 then
-        local ret = self.link:write(request)
-        if not ret then
-            log.error(tag, "write failed")
-            self.asking = false
-            return false
-        end
-    end
-
-    -- 解决分包问题
-    -- 循环读数据，直到读取到需要的长度
-    local buf = ""
-    repeat
-        -- TODO 应该不是每次都要等待
-        local ret = self.link:wait(self.timeout)
-        if not ret then
-            log.error(tag, "read timeout")
-            self.asking = false
-            return false
-        end
-
-        local r, d = self.link:read()
-        if not r then
-            log.error(tag, "read failed")
-            self.asking = false
-            return false
-        end
-        buf = buf .. d
-    until #buf >= len
-
-    self.asking = false
-    return true, buf
-end
-
-function Modbus:readTCP(slave, code, addr, len)
+function Master:readTCP(slave, code, addr, len)
     log.info(tag, "readTCP", slave, code, addr, len)
 
     local data = pack.pack("b2>H2", slave, code, addr, len)
@@ -291,7 +244,7 @@ function Modbus:readTCP(slave, code, addr, len)
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self:ask(header .. data, 12)
+    local ret, buf = self.link:ask(header .. data, 12)
     if not ret then
         return false
     end
@@ -312,7 +265,7 @@ function Modbus:readTCP(slave, code, addr, len)
     -- 取剩余数据
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
-        local r, d = self:ask(nil, len - #buf)
+        local r, d = self.link:ask(nil, len - #buf)
         if not r then
             return false
         end
@@ -329,7 +282,7 @@ end
 ---@param len integer 长度
 ---@return boolean 成功与否
 ---@return string 只有数据
-function Modbus:read(slave, code, addr, len)
+function Master:read(slave, code, addr, len)
     if self.tcp then
         return self:readTCP(slave, code, addr, len)
     end
@@ -339,7 +292,7 @@ function Modbus:read(slave, code, addr, len)
     local data = pack.pack("b2>H2", slave, code, addr, len)
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self:ask(data .. crc, 7)
+    local ret, buf = self.link:ask(data .. crc, 7)
     if not ret then
         return false
     end
@@ -358,7 +311,7 @@ function Modbus:read(slave, code, addr, len)
     local len = 5 + cnt
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
-        local r, d = self:ask(nil, len - #buf)
+        local r, d = self.link:ask(nil, len - #buf)
         if not r then
             return false
         end
@@ -368,7 +321,7 @@ function Modbus:read(slave, code, addr, len)
     return true, string.sub(buf, 4, len - 2)
 end
 
-function Modbus:writeTCP(slave, code, addr, data)
+function Master:writeTCP(slave, code, addr, data)
     log.info(tag, "writeTCP", slave, code, addr, data)
 
     local data = pack.pack("b2>H", slave, code, addr) .. data
@@ -376,7 +329,7 @@ function Modbus:writeTCP(slave, code, addr, data)
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self:ask(header .. data, 12)
+    local ret, buf = self.link:ask(header .. data, 12)
     if not ret then
         return false
     end
@@ -397,7 +350,7 @@ function Modbus:writeTCP(slave, code, addr, data)
     -- 取剩余数据
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
-        local r, d = self:ask(nil, len - #buf)
+        local r, d = self.link:ask(nil, len - #buf)
         if not r then
             return false
         end
@@ -413,7 +366,7 @@ end
 ---@param addr integer 地址
 ---@param data string 数据
 ---@return boolean 成功与否
-function Modbus:write(slave, code, addr, data)
+function Master:write(slave, code, addr, data)
     if code == 1 then
         code = 5
         if data then
@@ -438,7 +391,7 @@ function Modbus:write(slave, code, addr, data)
     local data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self:ask(data .. crc, 7)
+    local ret, buf = self.link:ask(data .. crc, 7)
     if not ret then
         return false
     end
@@ -456,7 +409,7 @@ function Modbus:write(slave, code, addr, data)
 end
 
 ---打开主站
-function Modbus:open()
+function Master:open()
     if self.opened then
         log.error(tag, "already opened")
         return
@@ -487,13 +440,13 @@ function Modbus:open()
 end
 
 --- 关闭
-function Modbus:close()
+function Master:close()
     self.opened = false
     self.devices = {}
 end
 
 --- 轮询
-function Modbus:_polling()
+function Master:_polling()
 
     -- 轮询间隔
     local interval = self.poller_interval or 60

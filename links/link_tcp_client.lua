@@ -22,6 +22,7 @@ function Client:new(opts)
     obj.port = opts.port
     obj.adapter = opts.adapter or socket.ETH0 -- 默认以太网卡
     obj.index = increment
+    obj.asking = false
 
     increment = increment + 1 -- 自增ID
     return obj
@@ -119,6 +120,55 @@ end
 function Client:ready()
     local state, str = socket.state(self.ctrl)
     return state == 5 -- 在线状态
+end
+
+
+-- 询问
+---@param request string 发送数据
+---@param len integer 期望长度
+---@return boolean 成功与否
+---@return string 返回数据
+function Client:ask(request, len)
+
+    -- 重入锁，等待其他操作完成
+    while self.asking do
+        sys.wait(100)
+    end
+    self.asking = true
+
+    -- log.info(tag, "ask", request, len)
+    if request ~= nil and #request > 0 then
+        local ret = self:write(request)
+        if not ret then
+            log.error(tag, "write failed")
+            self.asking = false
+            return false
+        end
+    end
+
+    -- 解决分包问题
+    -- 循环读数据，直到读取到需要的长度
+    local buf = ""
+    repeat
+        -- TODO 应该不是每次都要等待
+        local ret = self:wait(self.timeout)
+        if not ret then
+            log.error(tag, "read timeout")
+            self.asking = false
+            return false
+        end
+
+        local r, d = self:read()
+        if not r then
+            log.error(tag, "read failed")
+            self.asking = false
+            return false
+        end
+        buf = buf .. d
+    until #buf >= len
+
+    self.asking = false
+    return true, buf
 end
 
 return Client
