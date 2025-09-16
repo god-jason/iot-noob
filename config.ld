@@ -7,6 +7,7 @@ file = "."
 dir = "doc"
 readme = "README.md"
 style = "!new"
+boilerplate = true
 kind_names = {
    topic = "Manual",
    script = "Programs"
