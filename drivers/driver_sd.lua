@@ -5,7 +5,7 @@
 
 
 --- sd/tf卡相关
--- @module sd
+-- @module driver_sd
 local sd = {}
 
 

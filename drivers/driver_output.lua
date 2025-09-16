@@ -5,7 +5,7 @@
 
 
 --- IO输出相关
--- @module output
+-- @module driver_output
 local output = {}
 
 

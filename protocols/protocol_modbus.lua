@@ -5,7 +5,8 @@
 
 
 --- Modbus 协议实现
--- @module Device
+-- @module protocol_modbus
+
 local Device = {}
 
 local tag = "modbus"

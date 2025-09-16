@@ -4,7 +4,8 @@
 -- @copyright benyi 2025
 
 --- CJT188协议实现
--- @module Device
+-- @module protocol_cjt188
+
 local Device = {}
 
 local tag = "cjt188"
