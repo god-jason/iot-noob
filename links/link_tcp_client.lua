@@ -16,6 +16,9 @@ local increment = 1; -- 自增ID
 
 require("links").register("tcp-client", Client)
 
+---创建TCP实例
+-- @param opts table
+-- @return table
 function Client:new(opts)
     local obj = {}
     setmetatable(obj, self)
@@ -31,7 +34,8 @@ function Client:new(opts)
     return obj
 end
 
--- 打开
+--- 打开
+-- @return boolean 成功与否
 function Client:open()
     -- 使用可用网络
     if self.adapter == nil then
@@ -92,18 +96,24 @@ function Client:open()
     return true
 end
 
--- 写数据
+--- 写数据
+-- @param data string 数据
+-- @return boolean 成功与否
 function Client:write(data)
     -- return uart.write(self._id, data)
     socket.tx(self.ctrl, data)
 end
 
--- 等待数据
+--- 等待数据
+-- @param timeout integer 超时 ms
+-- @return boolean 成功与否
 function Client:wait(timeout)
     return sys.waitUntil("TCP_CLIENT_DATA_" .. self.index, timeout)
 end
 
--- 读数据
+--- 读数据
+-- @return boolean 成功与否
+-- @return string|nil 数据
 function Client:read()
     -- 检测缓冲区是否有数据
     local ok, len = socket.rx(self.ctrl)
@@ -118,7 +128,7 @@ function Client:read()
     return false
 end
 
--- 关闭串口
+--- 关闭
 function Client:close()
     if self.instanse ~= nil then
         self.instanse:close()

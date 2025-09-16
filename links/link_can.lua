@@ -90,14 +90,14 @@ function Can:write(data)
     return can.tx(self.port, id, type, rtr, ack, data)
 end
 
--- 等待数据
+--- 等待数据
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
 function Can:wait(timeout)
     return sys.waitUntil("CAN_DATA_" .. self.port, timeout)
 end
 
--- 读数据
+--- 读数据
 -- @return boolean 成功与否
 -- @return table|nil 数据
 function Can:read()
@@ -114,7 +114,7 @@ function Can:read()
     }
 end
 
--- 关闭CAN总线
+--- 关闭CAN总线
 function Can:close()
     can.deinit(self.port)
 end

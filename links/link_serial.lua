@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 串口类相关
--- @classmod Serial
+-- @module link_serial
 local Serial = {}
 
 local tag = "Serial"
@@ -51,21 +51,21 @@ function Serial:write(data)
     return serial.write(self.port, data)
 end
 
--- 等待数据
+--- 等待数据
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
 function Serial:wait(timeout)
     return sys.waitUntil("SERIAL_DATA_" .. self.port, timeout)
 end
 
--- 读数据
+--- 读数据
 -- @return boolean 成功与否
 -- @return string|nil 数据
 function Serial:read()
     return serial.read(self.port)
 end
 
--- 关闭串口
+--- 关闭串口
 function Serial:close()
     if self.instanse ~= nil then
         self.instanse:close()
@@ -73,7 +73,7 @@ function Serial:close()
     serial.close(self.port)
 end
 
--- 询问
+--- 询问
 -- @param request string 发送数据
 -- @param len integer 期望长度
 -- @return boolean 成功与否
