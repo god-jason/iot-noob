@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 串口类相关
--- @module link_serial
+-- @classmod Serial
 local Serial = {}
 
 local tag = "Serial"
