@@ -10,6 +10,10 @@
 
 [嘉立创开源地址https://oshwhub.com/zgwit/iot-noob](https://oshwhub.com/zgwit/iot-noob)
 
+# 使用文档
+
+[god-jason.github.io/iot-noob](https://god-jason.github.io/iot-noob)
+
 
 # 主要功能和特点
 

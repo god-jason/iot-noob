@@ -1,4 +1,4 @@
-project = "IoT NooB"
+project = "物联小白"
 title = "物联小白"
 description = "物联小白API文档"
 format = "discount"

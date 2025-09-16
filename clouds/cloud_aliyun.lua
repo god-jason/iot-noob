@@ -3,9 +3,8 @@
 -- @license GPLv3
 -- @copyright benyi 2025
 
---- 阿里云
+--- 阿里云 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
 -- @module aliyun
--- @see 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
 local aliyun = {}
 
 local tag = "aliyun"
