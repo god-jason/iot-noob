@@ -87,6 +87,7 @@ function serial.open(id, baud_rate, data_bits, stop_bits, parity)
 end
 
 ---写入串口数据
+-- @param id integer ID号
 -- @param data string 写入数据
 -- @return boolean 成功与否
 -- @return integer|nil 写入的长度

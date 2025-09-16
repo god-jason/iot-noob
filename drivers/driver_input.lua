@@ -38,7 +38,7 @@ function input.init()
 
     log.info(tag, "init")
 
-    --- 初始化
+    -- 初始化
     for i, p in ipairs(options.pins) do
         gpio.setup(p.pin, function(val)
             sys.publish("INPUT", i, val, p.pin)

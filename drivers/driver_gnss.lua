@@ -62,9 +62,6 @@ function gnss.isValid()
     return libgnss.isFix()
 end
 
---- 获取GPS定位
--- @return boolean 成功与否
--- @return table
 --[[
 {
     "course":0,
@@ -81,6 +78,10 @@ end
     "sec":20,       // 秒,0-59
 }
 ]]
+
+--- 获取GPS定位
+-- @return boolean 成功与否
+-- @return table
 function gnss.get()
     log.info(tag, "get", libgnss.getIntLocation())
     -- log.info(tag, json.encode(libgnss.getRmc(2)))
