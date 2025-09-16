@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 配置文件相关
--- @module 配置文件
+-- @module configs
 local configs = {}
 
 local tag = "configs"

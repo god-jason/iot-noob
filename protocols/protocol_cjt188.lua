@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- CJT188协议实现
--- @module CJT188协议
+-- @module protocol_cjt188
 
 local Device = {}
 

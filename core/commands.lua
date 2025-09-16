@@ -5,7 +5,7 @@
 
 
 --- 指令处理
--- @module 指令交互
+-- @module commands
 local commands = {}
 
 --local tag = "commands"

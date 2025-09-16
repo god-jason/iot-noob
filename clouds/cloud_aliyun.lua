@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 阿里云 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
--- @module 阿里云
+-- @module cloud_aliyun
 local aliyun = {}
 
 local tag = "aliyun"

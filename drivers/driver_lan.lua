@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 网卡相关
--- @module 网口驱动
+-- @module driver_lan
 local lan = {}
 
 local tag = "lan"

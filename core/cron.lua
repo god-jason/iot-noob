@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 定时任务相关
--- @module 计划任务
+-- @module cron
 local cron = {}
 
 local tag = "cron"
