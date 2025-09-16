@@ -79,7 +79,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUntil(5000, "UDP_CLIENT_READY_" .. self.index)
+    local res = sys.waitUntil(5000, "UDP_CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -106,9 +106,9 @@ function Client:read()
         return false
     end
     if len > 0 then
-        local ok, data = socket.read(self.ctrl, len)
+        local ok2, data = socket.read(self.ctrl, len)
         socket.wait(self.ctrl) -- 等待新状态
-        return ok, data
+        return ok2, data
     end
     return false
 end
@@ -122,7 +122,7 @@ function Client:close()
 end
 
 function Client:ready()
-    local state, str = socket.state(self.ctrl)
+    local state = socket.state(self.ctrl)
     return state == 5 -- 在线状态
 end
 

@@ -88,7 +88,7 @@ function aliyun.init()
             --     options.ip = 443
             --     options.isssl = true
             --     options.ca_file = {client_cert = connect_config.tls.client_cert}
-            --     options.client_id,options.user_name = 
+            --     options.client_id,options.user_name =
             -- iotauth.aliyun(options.product_id,options.device_name,"",options.method,nil,true)
         else -- 密钥证书都没有
             return false

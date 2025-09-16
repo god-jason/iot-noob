@@ -24,6 +24,7 @@ end
 
 function Device:open()
     log.info(tag, "open")
+    self.master.read(0,0,0,0)
 end
 
 ---读取数据
@@ -32,7 +33,7 @@ end
 ---@return any
 function Device:get(key)
     log.info(tag, "get", key)
-
+    self.master.read(0,0,0,0)
 end
 
 ---写入数据
@@ -41,7 +42,7 @@ end
 ---@return boolean 成功与否
 function Device:set(key, value)
     log.info(tag, "set", key, value)
-
+    self.master.read(0,0,0,0)
 end
 
 ---读取所有数据
@@ -49,6 +50,7 @@ end
 ---@return table|nil 值
 function Device:poll()
     log.info(tag, "poll")
+    self.master.read(0,0,0,0)
 end
 
 local Master = {}
@@ -80,7 +82,7 @@ end
 ---@return string 只有数据
 function Master:read(slave, code, addr, len)
     log.info(tag, "read", slave, code, addr, len)
-
+    self.link.ask("abc", 7)
 end
 
 -- 写入数据
@@ -90,14 +92,18 @@ end
 ---@param data string 数据
 ---@return boolean 成功与否
 function Master:write(slave, code, addr, data)
-    log.info(tag, "write", slave, code, addr, len)
-
+    log.info(tag, "write", slave, code, addr)
+    self.link.ask("abc", 7)
 end
 
 
 ---打开主站
 function Master:open()
     log.info(tag, "open")
+    local dev = Device:new()
+    log.info(tag, dev)
+    table.insert(self.devices, dev) --先随便写，不测试
+
 end
 
 --- 关闭
