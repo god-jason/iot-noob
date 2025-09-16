@@ -4,8 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag = "led"
+
+--- LED相关
+-- @module led
 local led = {}
+
+local tag = "led"
 
 local configs = require("configs")
 

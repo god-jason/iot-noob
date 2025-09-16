@@ -139,5 +139,4 @@ sys.subscribe("DEVICE_VALUES", function(dev, values)
     aliyun.publish(topic, value)
 end)
 
---- @export
 return aliyun

@@ -1,12 +1,15 @@
---- 内存数据库
+--- 数据库
 --- @module "database"
 --- @author 杰神
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.09.11
-local tag = "database"
 
+--- 文件数据库
+-- @module database
 local database = {}
+
+local tag = "database"
 
 --- 读取数据
 --- @param col string 表

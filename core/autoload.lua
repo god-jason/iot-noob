@@ -4,8 +4,13 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.04.07
-local tag = "autoload"
+
+
+--- 程序加载器
+-- @module autoload
 local autoload = {}
+
+local tag = "autoload"
 
 local function load(name)
     -- 使用pcall 避免异常退出

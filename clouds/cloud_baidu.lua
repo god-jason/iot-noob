@@ -5,9 +5,12 @@
 --- @copyright benyi
 --- @release 2025.03.18
 --- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
-local tag = "baidu"
 
+--- 百度云平台
+-- @module baidu
 local baidu = {}
+
+local tag = "baidu"
 
 local configs = require("configs")
 

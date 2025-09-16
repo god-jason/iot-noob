@@ -4,8 +4,13 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.30
---local tag = "commands"
+
+
+--- 指令处理
+-- @module commands
 local commands = {}
+
+--local tag = "commands"
 
 local utils = require("utils")
 local configs = require("configs")

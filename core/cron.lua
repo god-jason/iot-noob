@@ -4,8 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.18
-local tag = "cron"
+
+--- 定时任务相关
+-- @module cron
 local cron = {}
+
+local tag = "cron"
 
 local increment = 1 -- 自增ID
 

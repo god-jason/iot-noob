@@ -4,9 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag = "configs"
 
+--- 配置文件相关
+-- @module configs
 local configs = {}
+
+local tag = "configs"
 
 --local utils = require("utils")
 

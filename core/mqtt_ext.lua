@@ -4,10 +4,13 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.30
-local tag = "MQTT"
 
---- @class MQTT
+--- 连接相关
+-- @module links
+-- @class MQTT
 local MQTT = {}
+
+local tag = "MQTT"
 
 -- 自增ID
 local increment = 1

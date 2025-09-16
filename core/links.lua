@@ -4,8 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag = "links"
+
+--- 连接相关
+-- @module links
 local links = {}
+
+local tag = "links"
 
 local factory = {}
 

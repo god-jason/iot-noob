@@ -4,8 +4,13 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag = "device"
+
+
+--- 设备相关
+-- @module devices
 local devices = {}
+
+local tag = "device"
 
 local _devices = {}
 local _raw = {}

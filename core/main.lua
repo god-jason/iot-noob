@@ -4,6 +4,9 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
+
+--- 主程序入口
+
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
 local tag = "main"
