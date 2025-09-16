@@ -25,9 +25,8 @@ local default_options = {
 
 local options = {}
 
-
 --- 初始化输入
-function input.init()    
+function input.init()
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
@@ -44,7 +43,6 @@ function input.init()
         end)
     end
 end
-
 
 --- 获取输入状态
 --- @return integer 1高电平，0低电平

@@ -31,7 +31,7 @@ local function parse_item(str)
 
     -- 散列
     local is = string.split(str, ",")
-    for i, s in ipairs(is) do
+    for _, s in ipairs(is) do
         local ss = string.split(s, "-")
         if #ss == 1 then
             -- table.insert(item, tonumber(s), true)
@@ -64,7 +64,7 @@ local function parse(crontab)
         table.insert(cs, 1, "0")
     end
 
-    local ret = false
+    local ret
 
     local items = {"sec", "min", "hour", "day", "month", "wday"}
     for i, f in ipairs(items) do
@@ -83,6 +83,7 @@ local function calc_wday(time, field)
     local added = false
     local wday = time.wday
     if field.every then
+        added = false
     elseif field.mod then
         while wday % field.mod ~= 0 do
             wday = wday + 1
@@ -206,11 +207,11 @@ local function execute()
     -- 找到下一个执行时间点，但后
     local now = os.time()
     local next
-    for c, job in pairs(jobs) do
+    for _, job in pairs(jobs) do
         if not job.next then
             calc_next(job, now)
         elseif job.next <= now then
-            for id, cb in pairs(job.callbacks) do
+            for _, cb in pairs(job.callbacks) do
                 -- 异步执行(不知道有没有数量限制，会不会影响性能)
                 sys.taskInit(cb)
             end
@@ -251,7 +252,9 @@ function cron.start(crontab, callback)
     end
 
     -- 新规则
-    local ret, job = parse(crontab)
+    local ret
+    
+    ret, job = parse(crontab)
     if not ret then
         log.error(tag, "parse failed", crontab)
         return false

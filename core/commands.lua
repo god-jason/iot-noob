@@ -4,12 +4,12 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.03.30
-local tag = "commands"
+--local tag = "commands"
 local commands = {}
 
 local utils = require("utils")
 local configs = require("configs")
-local links = require("links")
+--local links = require("links")
 local devices = require("devices")
 local ota = require("ota")
 
@@ -67,7 +67,7 @@ function commands.version()
     return data(_G.PROJECT .. _G.VERSION)
 end
 
-function commands.reboot(msg)
+function commands.reboot()
     sys.timerStart(rtos.reboot, 5000)
     return ok("reboot after 5s")
 end
@@ -78,9 +78,9 @@ function commands.ota(msg)
 end
 
 function commands.config_read(msg)
-    local ret, data, path = configs.load(msg.name)
+    local ret, dat, path = configs.load(msg.name)
     if ret then
-        return response(1, path, data)
+        return response(1, path, dat)
     else
         return error("not found")
     end
@@ -118,8 +118,8 @@ function commands.fs_clear()
 end
 
 function commands.fs_read(msg)
-    local data = io.readFile(msg.path)
-    return data(data)
+    local dat = io.readFile(msg.path)
+    return data(dat)
 end
 
 function commands.fs_write(msg)

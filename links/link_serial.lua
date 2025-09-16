@@ -39,7 +39,7 @@ function Serial:open()
     end
 
     serial.watch(self.port, function(id, len)
-        sys.publish("SERIAL_DATA_" .. id)
+        sys.publish("SERIAL_DATA_" .. id, len)
     end)
 
     return ret

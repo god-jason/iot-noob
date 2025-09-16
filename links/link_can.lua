@@ -69,12 +69,12 @@ function Can:open()
     if self.listen then
         -- 监听模式
         can.filter(self.id, false, self.acr, self.amr)
-        can.mode(self.id, CAN.MODE_LISTEN)
+        can.mode(self.id, can.MODE_LISTEN)
 
     else
         -- 节点模式，只能收到发给自己的数据
         can.node(self.id, self.node, self.type)
-        can.mode(self.id, CAN.MODE_NORMAL)
+        can.mode(self.id, can.MODE_NORMAL)
     end
 
     return true

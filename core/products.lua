@@ -57,7 +57,7 @@ end
 function products.wanted()
     local has = false
     local cs = {}
-    for k, v in pairs(wanted_configs) do
+    for k, _ in pairs(wanted_configs) do
         table.insert(cs, k)
         has = true
     end

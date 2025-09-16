@@ -10,7 +10,7 @@ local noob = {}
 local commands = require("commands")
 local configs = require("configs")
 local links = require("links")
-local devices = require("devices")
+--local devices = require("devices")
 local products = require("products")
 -- local battery = require("battery")
 -- local gnss = require("gnss")
@@ -29,7 +29,7 @@ local default_options = {
 }
 
 -- 开始透传
-local function on_pipe_start(topic, payload)
+local function on_pipe_start(_, payload)
     log.info(tag, "on_pipe_start", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
@@ -37,7 +37,7 @@ local function on_pipe_start(topic, payload)
     end
     -- data.link TODO close protocol
     local link = links.get(data.link)
-    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(topic, payload)
+    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(_, payload)
         link.write(payload)
     end)
     link:watch(function(data)
@@ -46,7 +46,7 @@ local function on_pipe_start(topic, payload)
 end
 
 -- 结束透传
-local function on_pipe_stop(topic, payload)
+local function on_pipe_stop(_, payload)
     log.info(tag, "on_pipe_stop", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
@@ -58,7 +58,7 @@ local function on_pipe_stop(topic, payload)
     link:watch(nil)
 end
 
-local function on_command(topic, payload)
+local function on_command(_, payload)
     log.info(tag, "on_command", payload)
     -- local base = "noob/" .. options.id .. "/command/"
     -- local cmd = string.sub(topic, #base + 1)
@@ -103,18 +103,18 @@ local function register()
     }
 
     -- 同步信息，服务器接收后，远程下发数据
-    local ret, links = configs.load("links")
+    local ret, lnks = configs.load("links")
     if ret then
-        info.links = #links
+        info.links = #lnks
     end
-    local ret, devices = configs.load("devices")
-    if ret then
+    local ret2, devices = configs.load("devices")
+    if ret2 then
         info.devices = #devices
     end
 
     -- 需要同步的配置
-    local ret, configs = products.wanted()
-    if ret then
+    local ret3, configs = products.wanted()
+    if ret3 then
         info.wanted_configs = configs
     end
 

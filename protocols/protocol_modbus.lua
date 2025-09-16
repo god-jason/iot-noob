@@ -251,15 +251,15 @@ function Master:readTCP(slave, code, addr, len)
 
     -- 取错误码
     if #buf > 8 then
-        local code = string.byte(buf, 8)
-        if code > 0x80 then
-            log.error(tag, "error code", code)
+        local code2 = string.byte(buf, 8)
+        if code2 > 0x80 then
+            log.error(tag, "error code", code2)
             return false
         end
     end
 
     -- 解析包头
-    local id, _, ln = pack.unpack(buf, ">H3")
+    local _, _, ln = pack.unpack(buf, ">H3")
     len = ln + 6
 
     -- 取剩余数据
@@ -308,23 +308,24 @@ function Master:read(slave, code, addr, len)
 
     -- 先取字节数
     local cnt = string.byte(buf, 3)
-    local len = 5 + cnt
-    if #buf < len then
-        log.info(tag, "wait more", len, #buf)
-        local r, d = self.link:ask(nil, len - #buf)
+    local len2 = 5 + cnt
+    if #buf < len2 then
+        log.info(tag, "wait more", len2, #buf)
+        local r, d = self.link:ask(nil, len2 - #buf)
         if not r then
             return false
         end
         buf = buf .. d
     end
 
-    return true, string.sub(buf, 4, len - 2)
+    return true, string.sub(buf, 4, len2 - 2)
 end
 
 function Master:writeTCP(slave, code, addr, data)
     log.info(tag, "writeTCP", slave, code, addr, data)
 
-    local data = pack.pack("b2>H", slave, code, addr) .. data
+    data = pack.pack("b2>H", slave, code, addr) .. data
+
     -- 事务ID, 0000, 长度
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
@@ -336,15 +337,15 @@ function Master:writeTCP(slave, code, addr, data)
 
     -- 取错误码
     if #buf > 8 then
-        local code = string.byte(buf, 8)
-        if code > 0x80 then
-            log.error(tag, "error code", code)
+        local code2 = string.byte(buf, 8)
+        if code2 > 0x80 then
+            log.error(tag, "error code", code2)
             return false
         end
     end
 
     -- 解析包头
-    local id, _, ln = pack.unpack(buf, ">H3")
+    local _, _, ln = pack.unpack(buf, ">H3")
     local len = ln + 6
 
     -- 取剩余数据
@@ -388,7 +389,7 @@ function Master:write(slave, code, addr, data)
     end
 
     log.info(tag, "write", slave, code, addr, data)
-    local data = pack.pack("b2>H", slave, code, addr) .. data
+    data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
     local ret, buf = self.link:ask(data .. crc, 7)
@@ -398,9 +399,9 @@ function Master:write(slave, code, addr, data)
 
     -- 取错误码
     if #buf > 3 then
-        local code = string.byte(buf, 2)
-        if code > 0x80 then
-            log.error(tag, "error code", code)
+        local code2 = string.byte(buf, 2)
+        if code2 > 0x80 then
+            log.error(tag, "error code", code2)
             return false
         end
     end

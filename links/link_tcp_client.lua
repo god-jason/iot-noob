@@ -46,17 +46,23 @@ function Client:open()
         end
 
         if event == socket.LINK then
+            log.info(tag, "LINK")
         elseif event == socket.ON_LINE then
+            log.info(tag, "ON LINE")
             -- 连接成功
             -- self.ready = true
             sys.publish("TCP_CLIENT_READY_" .. self.index)
         elseif event == socket.EVENT then
+            log.info(tag, "EVENT")
+
             sys.publish("TCP_CLIENT_DATA_" .. self.index)
             -- socket.rx(ctrl, rxbuf)
             -- socket.wait(ctrl)
         elseif event == socket.TX_OK then
+            log.info(tag, "TX_OK")
             socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
+            log.info(tag, "CLOSED")
             sys.publish("TCP_CLIENT_CLOSE_" .. self.index)
         end
     end)
@@ -75,7 +81,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res, data = sys.waitUntil(5000, "TCP_CLIENT_READY_" .. self.index)
+    local res = sys.waitUntil(5000, "TCP_CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -102,9 +108,9 @@ function Client:read()
         return false
     end
     if len > 0 then
-        local ok, data = socket.read(self.ctrl, len)
+        local ok2, data = socket.read(self.ctrl, len)
         socket.wait(self.ctrl) -- 等待新状态
-        return ok, data
+        return ok2, data
     end
     return false
 end
@@ -118,7 +124,7 @@ function Client:close()
 end
 
 function Client:ready()
-    local state, str = socket.state(self.ctrl)
+    local state = socket.state(self.ctrl)
     return state == 5 -- 在线状态
 end
 

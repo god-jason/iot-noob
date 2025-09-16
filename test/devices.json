@@ -1,8 +1,0 @@
-[
-    {
-        "id": "test-device",
-        "product_id": "temp",
-        "link_id": "test-serial",
-        "station": { "slave": 1 }
-    }
-]

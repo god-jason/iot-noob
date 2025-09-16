@@ -12,6 +12,7 @@ local database = {}
 --- @param col string 表
 --- @return table 数据 {k->v}
 local function load(col)
+    log.info(tag, "load", col)
     local data = io.readFile(col .. ".db")
     local obj, result, err = json.decode(data)
     if result == 0 then
@@ -25,6 +26,7 @@ end
 --- @param col string 表
 --- @param objs table 数据{k->v}
 local function save(col, objs)
+    log.info(tag, "save", col)
     local data = json.encode(objs)
     return io.writeFile(col .. ".db", data)
 end

@@ -18,7 +18,7 @@ function ota.download(url)
             fota = true -- 780EPM改用fota模块
             -- dst = "/update.bin"
         }).wait()
-        log.info(tag, "download result", code, body)
+        log.info(tag, "download result", code, headers, body)
 
         if code == 200 then
             -- TODO gateway.close() 可以发布全局消息以解耦

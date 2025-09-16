@@ -20,10 +20,12 @@ local options = {
 
 local client = nil -- mqtt客户端
 
-local function aliyun_callback(client, event, topic, payload)
-    log.info(tag, "event", event, client, topic, payload)
+local function aliyun_callback(cli, event, topic, payload)
+    log.info(tag, "event", event, topic, payload)
 
     if event == "conack" then
+        log.info(tag, "conack")
+        -- todo 鉴权
         -- options:subscribe("/ota/device/upgrade/" .. options.product_id .. "/" .. options.device_name) -- 订阅ota主题
         -- options:publish("/ota/device/inform/" .. options.product_id .. "/" .. options.device_name,
         --     "{\"id\":1,\"params\":{\"version\":\"" .. _G.VERSION .. "\"}}") -- 上报ota版本信息
@@ -32,10 +34,10 @@ local function aliyun_callback(client, event, topic, payload)
             fskv.set("aliyun_register", payload)
         end
     elseif event == "sent" then
-        -- log.info(tag, "sent", "pkgid", data)
+        log.info(tag, "sent", "pkgid", topic)
     elseif event == "disconnect" then
         -- 非自动重连时,按需重启mqttc
-        client:connect()
+        cli:connect()
     end
 end
 
@@ -117,6 +119,8 @@ local increment = 1
 
 -- 上传设备属性
 sys.subscribe("DEVICE_VALUES", function(dev, values)
+    log.info(tag, dev, values)
+    
     local topic = "/sys/" .. options.product_id .. "/" .. options.device_name .. "thing/event/property/post"
     local value = {
         id = tostring(increment),
@@ -128,7 +132,7 @@ sys.subscribe("DEVICE_VALUES", function(dev, values)
         method = "thing.event.property.post"
     }
     increment = increment + 1
-    aliyun.publish(topic, values)
+    aliyun.publish(topic, value)
 end)
 
 return aliyun

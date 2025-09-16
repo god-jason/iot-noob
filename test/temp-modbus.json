@@ -1,9 +1,0 @@
-{
-    "mapper": {
-        "holding_registers": [
-            { "name": "temperature", "be": true, "address": 0, "type": "uint16", "rate":0.1 },
-            { "name": "humidity", "be": true, "address": 1, "type": "uint16", "rate":0.1 }
-        ]
-    },
-    "pollers": [{ "code": 3, "address": 0, "length": 2 }]
-}

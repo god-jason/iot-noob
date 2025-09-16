@@ -42,12 +42,12 @@ local function on_data(id, len)
         cache = ""
 
         if response ~= nil then
-            local data, err = json.encode(response)
-            if data == nil then
-                response = commands.error("json encode failed" .. err)
-                data = json.encode(response)
+            local data2, err2 = json.encode(response)
+            if data2 == nil then
+                response = commands.error("json encode failed" .. err2)
+                data2 = json.encode(response)
             end
-            uart.write(uart.VUART_0, "\r\n" .. data .. "\r\n")
+            uart.write(uart.VUART_0, "\r\n" .. data2 .. "\r\n")
         end
     end
 end

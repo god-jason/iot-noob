@@ -7,7 +7,7 @@
 local tag = "MQTT"
 
 --- @class MQTT
-MQTT = {}
+local MQTT = {}
 
 -- 自增ID
 local increment = 1
@@ -35,7 +35,7 @@ end
 local function find_callback(node, topics, topic, payload)
     -- 叶子节点，执行回调
     if #topics == 0 then
-        for i, cb in ipairs(node.callbacks) do
+        for _, cb in ipairs(node.callbacks) do
             cb(topic, payload)
         end
         return
@@ -85,7 +85,9 @@ function MQTT:open()
     -- 注册回调
     self.client:on(function(client, event, topic, payload)
         -- log.info(tag, "event", event, client, topic, payload)
-        if event == "conack" then
+        if event == "recv" then
+            sys.publish("MQTT_MESSAGE_" .. self.id, topic, payload)
+        elseif event == "conack" then
             sys.publish("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
@@ -94,9 +96,6 @@ function MQTT:open()
                     client:subscribe(filter)
                 end
             end
-        elseif event == "recv" then
-            sys.publish("MQTT_MESSAGE_" .. self.id, topic, payload)
-        elseif event == "sent" then
         elseif event == "disconnect" then
             sys.publish("MQTT_DISCONNECT_" .. self.id)
         end

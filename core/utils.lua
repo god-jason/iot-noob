@@ -73,7 +73,7 @@ function utils.inspect(data, prefix)
     if tp == "table" then
         for k, v in pairs(data) do
             if v ~= data then
-                utils.inspect(v, prefix .. "." .. k)    
+                utils.inspect(v, prefix .. "." .. k)
             end
         end
     end

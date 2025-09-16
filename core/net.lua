@@ -4,7 +4,7 @@
 --- @license GPLv3
 --- @copyright benyi
 --- @release 2025.01.20
-local tag = "net"
+--local tag = "net"
 local net = {}
 
 ---网络状态

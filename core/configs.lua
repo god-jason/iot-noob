@@ -8,7 +8,7 @@ local tag = "configs"
 
 local configs = {}
 
-local utils = require("utils")
+--local utils = require("utils")
 
 local function luadb_config(name)
     if #name <= 26 then -- 带后缀名，长度不能大于31
@@ -40,6 +40,7 @@ function configs.load(name)
 
     if io.exists(path) then
         -- do nothing 找到了未压缩的文件
+        log.info(tag, "found", path)
     elseif fastlz and io.exists(path2) then
         compressed = true
         path = path2
@@ -163,7 +164,7 @@ function configs.download(name, url)
 
     sys.taskInit(function()
         local code, headers, body = http.request("GET", url).wait()
-        log.info(tag, "download result", code, body)
+        log.info(tag, "download result", code, headers, body)
         -- 阻塞执行的
         if code == 200 then
             configs.save(name, body)

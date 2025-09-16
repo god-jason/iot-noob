@@ -38,7 +38,7 @@ function output.init()
     log.info(tag, "init")
 
     -- 初始化GPIO
-    for i, p in ipairs(options.pins) do
+    for _, p in ipairs(options.pins) do
         gpio.setup(p.pin, p.value or 0, p.pull or gpio.PULLDOWN)
     end
 

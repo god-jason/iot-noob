@@ -25,9 +25,8 @@ function sd.init()
     if not options.enable then
         return
     end
-    
-    log.info(tag, "init")
 
+    log.info(tag, "init")
 
     spi.setup(options.spi, 255, 0, 0, 8, 4000000)
 

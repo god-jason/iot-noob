@@ -100,7 +100,7 @@ function clock.write()
     local tm = os.date("*t")
 
     local data = {}
-    for i, v in ipairs(options.fields) do
+    for _, v in ipairs(options.fields) do
         if v == "year" then
             table.insert(data, hex_to_bcd(tm.year - 2000))
         elseif v == "month" then
