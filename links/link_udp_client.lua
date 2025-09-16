@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- UDP客户端，类定义
--- @classmod UdpClient
+-- @module link_udp_client
 local Client = {}
 
 

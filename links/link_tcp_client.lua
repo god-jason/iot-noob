@@ -5,7 +5,7 @@
 
 
 --- TCP客户端，类定义
--- @classmod TcpClient
+-- @module link_tcp_client
 local Client = {}
 
 
