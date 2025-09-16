@@ -5,7 +5,7 @@
 
 --- 阿里云
 -- @module aliyun
--- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
+-- @see 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
 local aliyun = {}
 
 local tag = "aliyun"

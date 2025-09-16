@@ -5,12 +5,11 @@
 
 --- 连接相关
 -- @module links
--- @class MQTT
 local MQTT = {}
 
 local tag = "MQTT"
 
--- 自增ID
+--- 自增ID
 local increment = 1
 
 ---创建实例

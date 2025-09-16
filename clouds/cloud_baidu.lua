@@ -5,7 +5,7 @@
 
 --- 百度云平台
 -- @module baidu
--- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
+-- @see 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
 local baidu = {}
 
 local tag = "baidu"
