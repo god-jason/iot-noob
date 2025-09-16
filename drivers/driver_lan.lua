@@ -12,7 +12,6 @@ local configs = require("configs")
 
 local default_options = {
     enable = false, -- 启用 (默认CORE不带驱动，需要重新编译固件)
-    chip = "w5500", -- 型号 w5500 ch390
     spi = 0,
     speed = 25600000,
     scs = 8,
@@ -32,24 +31,7 @@ function lan.init()
 
     log.info(tag, "init")
 
-    if options.chip == "w5500" then
-
-        if w5500 == nil then
-            log.error(tag, "当前固件未包含w5500库")
-            return
-        end
-
-        -- 初始化SPI和5500
-        w5500.init(options.spi, options.speed, options.scs, options.int, options.rst)
-
-        -- 配置IP
-        w5500.config() -- 默认是DHCP模式
-        -- w5500.config("192.168.1.29", "255.255.255.0", "192.168.1.1") --静态IP模式
-        -- w5500.config("192.168.1.122", "255.255.255.0", "192.168.1.1", string.fromHex("102a3b4c5d6e")) --mac地址
-
-        w5500.bind(socket.ETH0)
-        -- lan.w5500_ready = true
-    elseif options.chip == "ch390" then
+    if netdrv ~= nil then
 
         netdrv.setup(socket.LWIP_ETH)
 
@@ -74,10 +56,7 @@ function lan.ready()
         return false
     end
 
-    if options.chip == "w5500" then
-        -- return lan.w5500_ready --没有底层接口
-        return true
-    elseif options.chip == "ch390" then
+    if netdrv ~= nil then
         return netdrv.ready(socket.LWIP_ETH)
     else
         return false

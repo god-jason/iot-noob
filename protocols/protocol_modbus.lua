@@ -299,9 +299,9 @@ function Master:read(slave, code, addr, len)
 
     -- 取错误码
     if #buf > 3 then
-        local code = string.byte(buf, 2)
-        if code > 0x80 then
-            log.error(tag, "error code", code)
+        local code2 = string.byte(buf, 2)
+        if code2 > 0x80 then
+            log.error(tag, "error code", code2)
             return false
         end
     end
@@ -358,7 +358,7 @@ function Master:writeTCP(slave, code, addr, data)
         buf = buf .. d
     end
 
-    return true
+    return true, buf
 end
 
 -- 写入数据
@@ -406,7 +406,7 @@ function Master:write(slave, code, addr, data)
         end
     end
 
-    return true
+    return true, buf
 end
 
 ---打开主站

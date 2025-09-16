@@ -10,7 +10,7 @@ local noob = {}
 local commands = require("commands")
 local configs = require("configs")
 local links = require("links")
---local devices = require("devices")
+-- local devices = require("devices")
 local products = require("products")
 -- local battery = require("battery")
 -- local gnss = require("gnss")
@@ -37,11 +37,11 @@ local function on_pipe_start(_, payload)
     end
     -- data.link TODO close protocol
     local link = links.get(data.link)
-    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(_, payload)
-        link.write(payload)
+    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(_, dat)
+        link.write(dat)
     end)
-    link:watch(function(data)
-        cloud:publish("noob/" .. options.id .. "/" .. data.link .. "/up", data)
+    link:watch(function(dat)
+        cloud:publish("noob/" .. options.id .. "/" .. data.link .. "/up", dat)
     end)
 end
 
@@ -68,8 +68,7 @@ local function on_command(_, payload)
     if ret == 1 then
         local handler = commands[pkt.cmd]
         if handler then
-            -- response = handler(pkt)   
-            -- 加入异常处理         
+            -- 加入异常处理
             ret, response = pcall(handler, pkt)
             if not ret then
                 response = commands.error(response)
@@ -113,9 +112,9 @@ local function register()
     end
 
     -- 需要同步的配置
-    local ret3, configs = products.wanted()
+    local ret3, cfgs = products.wanted()
     if ret3 then
-        info.wanted_configs = configs
+        info.wanted_configs = cfgs
     end
 
     cloud:publish("noob/" .. options.id .. "/register", info)
@@ -140,11 +139,13 @@ local function report_status()
 
     -- 文件系统使用
     local ret, block_total, block_used, block_size = fs.fsstat()
-    status.fs = {
-        total = block_total * block_size,
-        used = block_used * block_size,
-        block = block_size
-    }
+    if ret then
+        status.fs = {
+            total = block_total * block_size,
+            used = block_used * block_size,
+            block = block_size
+        }
+    end
 
     -- 电池使用
     -- local ret2, percent = battery.get()

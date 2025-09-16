@@ -16,6 +16,7 @@ local function load(col)
     local data = io.readFile(col .. ".db")
     local obj, result, err = json.decode(data)
     if result == 0 then
+        log.error(tag, err)
         return {}
     else
         return obj
@@ -116,7 +117,7 @@ function database.find(col, ...)
 
     -- 复制所有数据出来
     if #args == 0 then
-        for i, v in pairs(tab) do
+        for _, v in pairs(tab) do
             table.insert(results, v)
         end
         return
@@ -129,7 +130,7 @@ function database.find(col, ...)
     end
 
     -- 遍历所有数据（此处不用在意性能，因为网关一般不会存太多数据）
-    for id, obj in pairs(tab) do
+    for _, obj in pairs(tab) do
         local ok = true
         for k, v in pairs(filter) do
             if obj[k] ~= v then

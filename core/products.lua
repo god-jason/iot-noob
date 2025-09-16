@@ -19,6 +19,7 @@ local wanted_configs = {}
 --- @return boolean 成功
 --- @return table|nil 配置内容
 function products.load_config(id, config)
+    log.info(tag, "load_config", id, config)
     -- 取缓存
     if cached_configs[id] == nil then
         cached_configs[id] = {}

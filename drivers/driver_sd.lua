@@ -33,7 +33,7 @@ function sd.init()
     gpio.setup(options.cs_pin, 1)
     -- fatfs.debug(1)
 
-    fatfas.mount(fatfs.SPI, "SD", options.spi, options.cs_pin, options.speed)
+    fatfs.mount(fatfs.SPI, "SD", options.spi, options.cs_pin, options.speed)
 
 end
 

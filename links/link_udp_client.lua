@@ -45,17 +45,22 @@ function Client:open()
         end
 
         if event == socket.LINK then
+            log.info(tag, "LINK")
         elseif event == socket.ON_LINE then
+            log.info(tag, "ON_LINE")
             -- 连接成功
             -- self.ready = true
             sys.publish("UDP_CLIENT_READY_" .. self.index)
         elseif event == socket.EVENT then
+            log.info(tag, "EVENT")
             sys.publish("UDP_CLIENT_DATA_" .. self.index)
             -- socket.rx(ctrl, rxbuf)
             -- socket.wait(ctrl)
         elseif event == socket.TX_OK then
+            log.info(tag, "TX_OK")
             socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
+            log.info(tag, "CLOSED")
             sys.publish("UDP_CLIENT_CLOSE_" .. self.index)
         end
     end)

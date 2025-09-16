@@ -43,7 +43,7 @@ end
 
 function commands.commands()
     local cmds = {}
-    for k, v in pairs(commands) do
+    for k, _ in pairs(commands) do
         table.insert(cmds, k)
     end
     return data(cmds)

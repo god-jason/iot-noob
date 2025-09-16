@@ -116,6 +116,7 @@ local function calc_field(time, field, key, upper, min, max)
     if field.every then
         -- log.info(tag, "calc_next every", f)
         -- 所有，不用计算了
+        return false
     elseif field.mod then
         -- 计算模
         -- log.info(tag, "calc_next mod", f)
@@ -175,7 +176,6 @@ local function calc_next(job, now)
 
     -- 迭代计算下一个时间
     while added do
-        added = false
 
         local tm = os.date("!*t", next)
         -- log.info(tag, "next begin", json.encode(tm))
@@ -253,7 +253,7 @@ function cron.start(crontab, callback)
 
     -- 新规则
     local ret
-    
+
     ret, job = parse(crontab)
     if not ret then
         log.error(tag, "parse failed", crontab)

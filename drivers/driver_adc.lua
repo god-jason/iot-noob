@@ -102,8 +102,6 @@ function adc_ext.read()
         table.remove(values, 1)
         return true, values
     end
-
-    return true
 end
 
 -- 启动

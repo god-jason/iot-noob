@@ -23,7 +23,7 @@ function Device:new(master, dev)
 end
 
 function Device:open()
-
+    log.info(tag, "open")
 end
 
 ---读取数据
@@ -31,6 +31,7 @@ end
 ---@return boolean 成功与否
 ---@return any
 function Device:get(key)
+    log.info(tag, "get", key)
 
 end
 
@@ -39,6 +40,7 @@ end
 ---@param value any 值
 ---@return boolean 成功与否
 function Device:set(key, value)
+    log.info(tag, "set", key, value)
 
 end
 
@@ -46,7 +48,7 @@ end
 ---@return boolean 成功与否
 ---@return table|nil 值
 function Device:poll()
-
+    log.info(tag, "poll")
 end
 
 local Master = {}
@@ -57,7 +59,7 @@ require("protocols").register("cjt188", Master)
 ---@param link any 连接实例
 ---@param opts table 协议参数
 ---@return Master
-function Master:new(link, options)
+function Master:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
@@ -77,6 +79,7 @@ end
 ---@return boolean 成功与否
 ---@return string 只有数据
 function Master:read(slave, code, addr, len)
+    log.info(tag, "read", slave, code, addr, len)
 
 end
 
@@ -87,13 +90,14 @@ end
 ---@param data string 数据
 ---@return boolean 成功与否
 function Master:write(slave, code, addr, data)
+    log.info(tag, "write", slave, code, addr, len)
 
 end
 
 
 ---打开主站
 function Master:open()
-
+    log.info(tag, "open")
 end
 
 --- 关闭

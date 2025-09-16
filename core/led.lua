@@ -14,8 +14,6 @@ local default_options = {
     pins = {
         net = 27,
         ready = 26
-        -- cloud = 
-        -- power = 49 -- 待定
     }
 }
 
@@ -32,7 +30,7 @@ function led.init()
     end
 
     -- 读取GPIO配置表
-    for k, v in pairs(options.pins) do
+    for _, v in pairs(options.pins) do
         gpio.setup(v, 0, gpio.PULLDOWN)
     end
 
