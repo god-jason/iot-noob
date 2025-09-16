@@ -4,10 +4,7 @@
 -- @copyright benyi 2025
 
 --- CAN总线类相关
--- @module can
-
---- Can类
--- @classmod Can
+-- @module link_can
 local Can = {}
 
 local tag = "Can"
