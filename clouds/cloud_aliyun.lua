@@ -5,10 +5,9 @@
 --- @copyright benyi
 --- @release 2025.03.18
 --- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
+local aliyun = {}
 
 local tag = "aliyun"
-
-local aliyun = {}
 
 local configs = require("configs")
 
