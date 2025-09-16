@@ -7,6 +7,7 @@
 -- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
 
 --- 阿里云
+-- @module aliyun
 local aliyun = {}
 
 local tag = "aliyun"
@@ -138,4 +139,5 @@ sys.subscribe("DEVICE_VALUES", function(dev, values)
     aliyun.publish(topic, value)
 end)
 
+--- @export
 return aliyun
