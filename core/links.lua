@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 连接相关
--- @module links
+-- @module 连接管理
 local links = {}
 
 local tag = "links"

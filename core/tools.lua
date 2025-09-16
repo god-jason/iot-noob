@@ -5,7 +5,7 @@
 
 
 --- 虚拟串口处理指令
--- @module tools
+-- @module 虚拟串口（指令交互）
 local tools = {}
 
 local tag = "tools"

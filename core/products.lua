@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 产品相关
--- @module products
+-- @module 产品管理
 local products = {}
 
 local tag = "product"

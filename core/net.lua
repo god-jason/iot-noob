@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 网络相关
--- @module net
+-- @module 网络管理
 local net = {}
 
 --local tag = "net"

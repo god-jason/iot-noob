@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- LED相关
--- @module led
+-- @module LED
 local led = {}
 
 local tag = "led"

@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- GPS相关
--- @module driver_gnss
+-- @module GPS驱动
 local gnss = {}
 
 local tag = "gnss"

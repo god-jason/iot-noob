@@ -5,7 +5,7 @@
 
 
 --- 工具库
--- @module utils
+-- @module 工具库
 local utils = {}
 
 local tag = "utils"

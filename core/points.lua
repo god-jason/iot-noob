@@ -5,7 +5,7 @@
 
 
 --- 点位相关
--- @module points
+-- @module 数据点处理
 local points = {}
 
 local tag = "points"

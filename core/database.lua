@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 文件数据库
--- @module database
+-- @module 数据库
 local database = {}
 
 local tag = "database"

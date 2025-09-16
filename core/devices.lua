@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 设备相关
--- @module devices
+-- @module 设备管理
 local devices = {}
 
 local tag = "device"

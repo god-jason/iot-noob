@@ -5,7 +5,7 @@
 
 
 --- IO输入相关
--- @module driver_input
+-- @module 开关输入
 local input = {}
 
 local tag = "input"

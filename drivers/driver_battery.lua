@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 电池相关
--- @module driver_battery
+-- @module 电池驱动
 local battery = {}
 
 local tag = "battery"

@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 连接相关
--- @module MQTT
+-- @module MQTT扩展
 local MQTT = {}
 
 local tag = "MQTT"

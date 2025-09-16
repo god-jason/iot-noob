@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 百度云平台 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
--- @module cloud_baidu
+-- @module 百度云
 local baidu = {}
 
 local tag = "baidu"

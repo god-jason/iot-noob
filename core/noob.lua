@@ -5,7 +5,7 @@
 
 
 --- 小白主程序
--- @module noob
+-- @module 物联小白
 local noob = {}
 
 local tag = "noob"

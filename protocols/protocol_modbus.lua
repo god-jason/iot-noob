@@ -5,7 +5,7 @@
 
 
 --- Modbus 协议实现
--- @module protocol_modbus
+-- @module Modbus协议
 
 local Device = {}
 

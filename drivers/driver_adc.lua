@@ -5,7 +5,7 @@
 
 
 --- 外部adc芯片接口
--- @module driver_adc_ext
+-- @module ADC驱动
 local adc_ext = {}
 
 local tag = "adc_ext"

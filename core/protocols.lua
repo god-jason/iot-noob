@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- 协议相关
--- @module protocols
+-- @module 协议管理
 local protocols = {}
 
 local tag = "protocols"

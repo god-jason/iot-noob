@@ -1,3 +1,7 @@
+[![Lua Check](https://github.com/god-jason/iot-noob/actions/workflows/check.yml/badge.svg)](https://github.com/god-jason/iot-noob/actions/workflows/check.yml)
+[![Lua Doc](https://github.com/god-jason/iot-noob/actions/workflows/doc.yml/badge.svg)](https://github.com/god-jason/iot-noob/actions/workflows/doc.yml)
+
+
 # 物联小白
 
 物联小白是基于 Luatos 实现的开源物联网网关系统，主要运行在合宙 Air780 系列模组上。因为是基于 4G 芯片二次开发，物联小白可以从最大程度上降低硬件成本。

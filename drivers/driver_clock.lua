@@ -5,7 +5,7 @@
 
 
 --- 时钟相关
--- @module driver_clock
+-- @module 时钟驱动
 local clock = {}
 
 local tag = "clock"

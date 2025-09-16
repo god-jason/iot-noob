@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- ota升级相关
--- @module ota
+-- @module OTA升级
 local ota = {}
 
 local tag = "ota"
