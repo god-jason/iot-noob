@@ -92,7 +92,7 @@ end
 ---@param data string 数据
 ---@return boolean 成功与否
 function Master:write(slave, code, addr, data)
-    log.info(tag, "write", slave, code, addr)
+    log.info(tag, "write", slave, code, addr, data)
     self.link.ask("abc", 7)
 end
 
