@@ -9,8 +9,12 @@ readme = "README.md"
 style = "!new"
 boilerplate = true
 kind_names = {
-   topic = "Manual",
-   script = "Programs"
+   topic = "主题",
+   script = "示例",
+   module = "模块",
+   classmod = "类",
+   example = "示例",
+   file = "源文件"
 }
 examples  =  {
 }
