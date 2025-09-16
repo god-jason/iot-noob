@@ -214,7 +214,7 @@ function Device:poll()
 end
 
 ---Modbus Master 类型
----@class Master
+-- module Master
 local Master = {}
 
 require("protocols").register("modbus", Master)
