@@ -1,11 +1,13 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
 --- 产品相关
---- @module "products"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "product"
+-- @module products
 local products = {}
+
+local tag = "product"
 
 local configs = require("configs")
 
@@ -14,10 +16,10 @@ local cached_configs = {}
 local wanted_configs = {}
 
 --- 加载产品配置
---- @param id any 产品ID
---- @param config any 配置文件
---- @return boolean 成功
---- @return table|nil 配置内容
+-- @param id any 产品ID
+-- @param config any 配置文件
+-- @return boolean 成功
+-- @return table|nil 配置内容
 function products.load_config(id, config)
     log.info(tag, "load_config", id, config)
     -- 取缓存
@@ -44,8 +46,8 @@ function products.load_config(id, config)
 end
 
 --- 下载产品配置
---- @param id any 产品ID
---- @param config any 配置文件
+-- @param id any 产品ID
+-- @param config any 配置文件
 function products.download(id, config)
     local name = "products/" .. id .. "/" .. config
     local url = "http://iot.busycloud.cn/product/" .. id .. "/" .. config .. ".json"
@@ -53,8 +55,8 @@ function products.download(id, config)
 end
 
 --- 获取未成功加载的配置
---- @return boolean
---- @return table
+-- @return boolean
+-- @return table
 function products.wanted()
     local has = false
     local cs = {}

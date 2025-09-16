@@ -1,11 +1,14 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- IO输入相关
---- @module "input"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "input"
+-- @module input
 local input = {}
+
+local tag = "input"
 
 local configs = require("configs")
 
@@ -45,7 +48,7 @@ function input.init()
 end
 
 --- 获取输入状态
---- @return integer 1高电平，0低电平
+-- @return integer 1高电平，0低电平
 function input.get(index)
     return gpio.get(options.pins[index].pin)
 end

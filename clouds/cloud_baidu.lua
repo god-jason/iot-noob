@@ -1,13 +1,11 @@
---- 百度云平台
---- @module "baidu"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.18
---- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 百度云平台
 -- @module baidu
+-- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
 local baidu = {}
 
 local tag = "baidu"

@@ -1,12 +1,13 @@
---- 网卡相关
---- @module "lan"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "lan"
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
+--- 网卡相关
+-- @module lan
 local lan = {}
+
+local tag = "lan"
 
 local configs = require("configs")
 
@@ -50,7 +51,7 @@ function lan.init()
 end
 
 -- 以太网是否可用
---- @return boolean
+-- @return boolean
 function lan.ready()
     if not options.enable then
         return false

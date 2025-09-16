@@ -1,15 +1,17 @@
---- UDP类相关
---- @module "UdpClient"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.18
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+--- UDP客户端，类定义
+-- @module Client
+local Client = {}
+
+
 local tag = "udp client"
 
 local increment = 1; -- 自增ID
 
--- 定义类
-local Client = {}
 
 require("links").register("udp-client", Client)
 
@@ -127,10 +129,10 @@ function Client:ready()
 end
 
 -- 询问
----@param request string 发送数据
----@param len integer 期望长度
----@return boolean 成功与否
----@return string 返回数据
+-- @param request string 发送数据
+-- @param len integer 期望长度
+-- @return boolean 成功与否
+-- @return string 返回数据
 function Client:ask(request, len)
 
     -- 重入锁，等待其他操作完成

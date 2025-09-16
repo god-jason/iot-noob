@@ -1,10 +1,7 @@
---- 主程序入口
---- @module main
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 --- 主程序入口
 
 PROJECT = "iot-noob"

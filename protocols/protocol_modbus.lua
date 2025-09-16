@@ -1,23 +1,24 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- Modbus 协议实现
---- @module "modbus"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
+-- @module Device
+local Device = {}
+
 local tag = "modbus"
 
 local devices = require("devices")
 local products = require("products")
 local points = require("points")
 
---- 设备类
---- @class Device
-local Device = {}
 
 ---创建设备
----@param master Modbus 主站实例
----@param dev table 设备参数
----@return Device 实例
+-- @param master Modbus 主站实例
+-- @param dev table 设备参数
+-- @return Device 实例
 function Device:new(master, dev)
     local obj = dev or {}
     setmetatable(obj, self)
@@ -38,10 +39,10 @@ function Device:open()
 end
 
 ---查找点位
----@param key string 点位名称
----@return boolean 成功与否
----@return table 点位
----@return integer 功能码
+-- @param key string 点位名称
+-- @return boolean 成功与否
+-- @return table 点位
+-- @return integer 功能码
 function Device:_find_point(key)
     if not self.options or not self.options.mapper then
         return false
@@ -70,9 +71,9 @@ function Device:_find_point(key)
 end
 
 ---读取数据
----@param key string 点位
----@return boolean 成功与否
----@return any
+-- @param key string 点位
+-- @return boolean 成功与否
+-- @return any
 function Device:get(key)
     log.info(tag, "get", key, self.id)
     local ret, point, code = self:_find_point(key)
@@ -102,9 +103,9 @@ function Device:get(key)
 end
 
 ---写入数据
----@param key string 点位
----@param value any 值
----@return boolean 成功与否
+-- @param key string 点位
+-- @param value any 值
+-- @return boolean 成功与否
 function Device:set(key, value)
     log.info(tag, "set", key, value, self.id)
     local ret, point, code = self:_find_point(key)
@@ -134,8 +135,8 @@ function Device:set(key, value)
 end
 
 ---读取所有数据
----@return boolean 成功与否
----@return table|nil 值
+-- @return boolean 成功与否
+-- @return table|nil 值
 function Device:poll()
     log.info(tag, "poll", self.id)
     -- log.info(tag, "poller", json.encode(self.options.pollers))
@@ -219,9 +220,9 @@ local Master = {}
 require("protocols").register("modbus", Master)
 
 ---创建实例
----@param link any 连接实例
----@param opts table 协议参数
----@return Master
+-- @param link any 连接实例
+-- @param opts table 协议参数
+-- @return Master
 function Master:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
@@ -276,12 +277,12 @@ function Master:readTCP(slave, code, addr, len)
 end
 
 -- 读取数据
----@param slave integer 从站号
----@param code integer 功能码
----@param addr integer 地址
----@param len integer 长度
----@return boolean 成功与否
----@return string 只有数据
+-- @param slave integer 从站号
+-- @param code integer 功能码
+-- @param addr integer 地址
+-- @param len integer 长度
+-- @return boolean 成功与否
+-- @return string 只有数据
 function Master:read(slave, code, addr, len)
     if self.tcp then
         return self:readTCP(slave, code, addr, len)
@@ -362,11 +363,11 @@ function Master:writeTCP(slave, code, addr, data)
 end
 
 -- 写入数据
----@param slave integer 从站号
----@param code integer 功能码
----@param addr integer 地址
----@param data string 数据
----@return boolean 成功与否
+-- @param slave integer 从站号
+-- @param code integer 功能码
+-- @param addr integer 地址
+-- @param data string 数据
+-- @return boolean 成功与否
 function Master:write(slave, code, addr, data)
     if code == 1 then
         code = 5

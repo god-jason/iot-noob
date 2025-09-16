@@ -1,20 +1,19 @@
---- CAN总线类相关
---- @module "Can"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "Can"
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
---- 定义类
---- @class Can
+--- CAN总线类相关
+-- @module Can
 local Can = {}
+
+local tag = "Can"
 
 require("links").register("can", Can)
 
 ---创建CAN总线实例
----@param opts table
----@return table
+-- @param opts table
+-- @return table
 function Can:new(opts)
     local obj = {}
     setmetatable(obj, self)
@@ -35,7 +34,7 @@ function Can:new(opts)
 end
 
 --- 打开
---- @return boolean 成功与否
+-- @return boolean 成功与否
 function Can:open()
     local ret = can.init(self.port)
     if not ret then
@@ -81,8 +80,8 @@ function Can:open()
 end
 
 --- 写数据
---- @param data table 数据
---- @return boolean 成功与否
+-- @param data table 数据
+-- @return boolean 成功与否
 function Can:write(data)
     local id = data.id -- 节点ID
     local type = data.ext and can.EXT or can.STD
@@ -92,15 +91,15 @@ function Can:write(data)
 end
 
 -- 等待数据
---- @param timeout integer 超时 ms
---- @return boolean 成功与否
+-- @param timeout integer 超时 ms
+-- @return boolean 成功与否
 function Can:wait(timeout)
     return sys.waitUntil("CAN_DATA_" .. self.port, timeout)
 end
 
 -- 读数据
---- @return boolean 成功与否
---- @return table|nil 数据
+-- @return boolean 成功与否
+-- @return table|nil 数据
 function Can:read()
     local ret, id, type, rtr, data = can.rx(self.port)
     if not ret then

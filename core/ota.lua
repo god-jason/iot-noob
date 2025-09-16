@@ -1,15 +1,17 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
 --- ota升级相关
---- @module "ota"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "ota"
+-- @module ota
 local ota = {}
 
+local tag = "ota"
+
 ---下载文件(阻塞执行的)
----@param url string 下载链接
----@return boolean 成功与否
+-- @param url string 下载链接
+-- @return boolean 成功与否
 function ota.download(url)
     log.info(tag, "download", url)
     sys.taskInit(function()

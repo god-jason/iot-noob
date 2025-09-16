@@ -1,14 +1,17 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- 工具库
---- @module "utils"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.14
-local tag = "utils"
+-- @module utils
 local utils = {}
 
+local tag = "utils"
+
 --- 删除目录,以及下面所有的子目录和文件
----@param path string 目录
+-- @param path string 目录
 function utils.remove_all(path)
     local ret, data = io.lsdir(path, 50, 0)
     if not ret then

@@ -1,9 +1,7 @@
---- LED相关
---- @module "led"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- LED相关
 -- @module led
@@ -45,13 +43,13 @@ function led.init()
 end
 
 ---点亮LED
----@param id string 名称
+-- @param id string 名称
 function led.on(id)
     gpio.set(options.pins[id], 1)
 end
 
 ---关闭LED
----@param id string 名称
+-- @param id string 名称
 function led.off(id)
     gpio.set(options.pins[id], 0)
 end

@@ -1,11 +1,13 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
 --- 电池相关
---- @module "battery"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "battery"
+-- @module battery
 local battery = {}
+
+local tag = "battery"
 
 local configs = require("configs")
 
@@ -44,8 +46,8 @@ function battery.init()
 end
 
 --- 获取电池电量
---- @return boolean 成功与否
---- @return table 百分比
+-- @return boolean 成功与否
+-- @return table 百分比
 function battery.get()
     if not options.enable then
         return false

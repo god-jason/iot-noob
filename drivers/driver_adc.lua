@@ -1,12 +1,14 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- 外部adc芯片接口
---- @module "adc_ext"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.01
---- 基于AD7616芯片开发，其他芯片需要做参数调整
-local tag = "adc_ext"
+-- @module adc_ext
 local adc_ext = {}
+
+local tag = "adc_ext"
 
 local configs = require("configs")
 

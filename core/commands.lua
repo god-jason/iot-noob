@@ -1,9 +1,7 @@
---- 指令处理
---- @module "commands"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.30
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 
 --- 指令处理

@@ -1,12 +1,13 @@
---- 协议相关
---- @module "protocols"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "protocols"
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
+--- 协议相关
+-- @module protocols
 local protocols = {}
+
+local tag = "protocols"
 
 local factory = {}
 

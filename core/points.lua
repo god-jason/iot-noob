@@ -1,11 +1,14 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- 点位相关
---- @module "points"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "points"
+-- @module points
 local points = {}
+
+local tag = "points"
 
 -- 数据点类型
 local feagures = {
@@ -107,18 +110,18 @@ local feagures = {
 }
 
 ---点位信息
----@param type string 点位类型
----@return table
+-- @param type string 点位类型
+-- @return table
 function points.feagure(type)
     return feagures[type]
 end
 
 ---解析位数据
----@param point table 点位信息
----@param data string 数据
----@param address integer 数据地址
----@return boolean
----@return any
+-- @param point table 点位信息
+-- @param data string 数据
+-- @param address integer 数据地址
+-- @return boolean
+-- @return any
 function points.parseBit(point, data, address)
     --log.info(tag, "parseBit", point, #data, address)
     local offset = point.address - address
@@ -133,11 +136,11 @@ function points.parseBit(point, data, address)
 end
 
 ---解析字数据
----@param point table 点位信息
----@param data string 数据
----@param address integer 数据地址
----@return boolean
----@return any
+-- @param point table 点位信息
+-- @param data string 数据
+-- @param address integer 数据地址
+-- @return boolean
+-- @return any
 function points.parseWord(point, data, address)
     --log.info(tag, "parseWord", point.name, point.address, #data, address)
     local feagure = feagures[point.type]
@@ -171,11 +174,11 @@ function points.parseWord(point, data, address)
 end
 
 ---解析数据
----@param point table 点位信息
----@param data string 数据
----@param address integer 数据地址
----@return boolean
----@return any
+-- @param point table 点位信息
+-- @param data string 数据
+-- @param address integer 数据地址
+-- @return boolean
+-- @return any
 function points.parse(point, data, address)
     local feagure = feagures[point.type]
     if not feagure then
@@ -208,10 +211,10 @@ function points.parse(point, data, address)
 end
 
 ---编码数据
----@param point table 点位信息
----@param value any 数据
----@return boolean 成功与否
----@return string|nil
+-- @param point table 点位信息
+-- @param value any 数据
+-- @return boolean 成功与否
+-- @return string|nil
 function points.encode(point, value)
     local feagure = feagures[point.type]
     if not feagure then

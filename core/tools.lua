@@ -1,11 +1,14 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- 虚拟串口处理指令
---- @module "commands"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.28
-local tag = "tools"
+-- @module tools
 local tools = {}
+
+local tag = "tools"
 
 local commands = require("commands")
 

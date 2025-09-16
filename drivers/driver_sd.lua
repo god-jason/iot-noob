@@ -1,11 +1,15 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- sd/tf卡相关
---- @module "sd"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "sd"
+-- @module sd
 local sd = {}
+
+
+local tag = "sd"
 
 local configs = require("configs")
 
@@ -38,7 +42,7 @@ function sd.init()
 end
 
 ---格式化config卡
----@return boolean 成功与否
+-- @return boolean 成功与否
 function sd.format()
     if not options.enable then
         return false

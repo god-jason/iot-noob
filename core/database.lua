@@ -1,9 +1,7 @@
---- 数据库
---- @module "database"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.09.11
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 文件数据库
 -- @module database
@@ -12,8 +10,8 @@ local database = {}
 local tag = "database"
 
 --- 读取数据
---- @param col string 表
---- @return table 数据 {k->v}
+-- @param col string 表
+-- @return table 数据 {k->v}
 local function load(col)
     log.info(tag, "load", col)
     local data = io.readFile(col .. ".db")
@@ -27,8 +25,8 @@ local function load(col)
 end
 
 --- 保存数据
---- @param col string 表
---- @param objs table 数据{k->v}
+-- @param col string 表
+-- @param objs table 数据{k->v}
 local function save(col, objs)
     log.info(tag, "save", col)
     local data = json.encode(objs)
@@ -36,15 +34,15 @@ local function save(col, objs)
 end
 
 --- 清空表
---- @param col string 表
+-- @param col string 表
 function database.clear(col)
     os.remove(col .. ".db")
 end
 
 --- 插入数据
---- @param col string 表
---- @param id string ID
---- @param obj table 数据
+-- @param col string 表
+-- @param id string ID
+-- @param obj table 数据
 function database.insert(col, id, obj)
     local tab = load(col)
     tab[id] = obj
@@ -52,9 +50,9 @@ function database.insert(col, id, obj)
 end
 
 --- 修改数据（目前与insert相同）
---- @param col string 表
---- @param id string ID
---- @param obj table 数据
+-- @param col string 表
+-- @param id string ID
+-- @param obj table 数据
 function database.update(col, id, obj)
     local tab = load(col)
     tab[id] = obj
@@ -62,8 +60,8 @@ function database.update(col, id, obj)
 end
 
 --- 插入多条
---- @param col string 表
---- @param objs table 数据
+-- @param col string 表
+-- @param objs table 数据
 function database.insertMany(col, objs)
     local tab = load(col)
     for id, obj in pairs(objs) do
@@ -73,8 +71,8 @@ function database.insertMany(col, objs)
 end
 
 --- 插入多条
---- @param col string 表
---- @param objs table 数据
+-- @param col string 表
+-- @param objs table 数据
 function database.insertArray(col, objs)
     local tab = load(col)
     for obj in ipairs(objs) do
@@ -85,8 +83,8 @@ function database.insertArray(col, objs)
 end
 
 --- 删除
---- @param col string 表
---- @param id string ID
+-- @param col string 表
+-- @param id string ID
 function database.delete(col, id)
     local tab = load(col)
     if tab ~= nil then
@@ -96,9 +94,9 @@ function database.delete(col, id)
 end
 
 --- 获取数据
---- @param col string 表
---- @param id string ID
---- @return table 数据
+-- @param col string 表
+-- @param id string ID
+-- @return table 数据
 function database.get(col, id)
     local tab = load(col)
     if tab ~= nil then
@@ -107,10 +105,10 @@ function database.get(col, id)
 end
 
 --- 查询数据库
---- @param col string 表
---- @param key string 键
---- @param value any 值
---- @return table 数组
+-- @param col string 表
+-- @param key string 键
+-- @param value any 值
+-- @return table 数组
 function database.find(col, ...)
     local tab = load(col)
 

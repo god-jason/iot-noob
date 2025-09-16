@@ -1,19 +1,18 @@
---- CJT188协议实现
---- @module "cjt188"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.09.11
-local tag = "cjt188"
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
---- 设备类
---- @class Device
+--- CJT188协议实现
+-- @module Device
 local Device = {}
 
+local tag = "cjt188"
+
 ---创建设备
----@param master Master 主站实例
----@param dev table 设备参数
----@return Device 实例
+-- @param master Master 主站实例
+-- @param dev table 设备参数
+-- @return Device 实例
 function Device:new(master, dev)
     local obj = dev or {}
     setmetatable(obj, self)
@@ -28,26 +27,26 @@ function Device:open()
 end
 
 ---读取数据
----@param key string 点位
----@return boolean 成功与否
----@return any
+-- @param key string 点位
+-- @return boolean 成功与否
+-- @return any
 function Device:get(key)
     log.info(tag, "get", key)
     self.master.read(0,0,0,0)
 end
 
 ---写入数据
----@param key string 点位
----@param value any 值
----@return boolean 成功与否
+-- @param key string 点位
+-- @param value any 值
+-- @return boolean 成功与否
 function Device:set(key, value)
     log.info(tag, "set", key, value)
     self.master.read(0,0,0,0)
 end
 
 ---读取所有数据
----@return boolean 成功与否
----@return table|nil 值
+-- @return boolean 成功与否
+-- @return table|nil 值
 function Device:poll()
     log.info(tag, "poll")
     self.master.read(0,0,0,0)
@@ -58,9 +57,9 @@ local Master = {}
 require("protocols").register("cjt188", Master)
 
 ---创建实例
----@param link any 连接实例
----@param opts table 协议参数
----@return Master
+-- @param link any 连接实例
+-- @param opts table 协议参数
+-- @return Master
 function Master:new(link, opts)
     local obj = {}
     setmetatable(obj, self)
@@ -74,23 +73,23 @@ function Master:new(link, opts)
 end
 
 -- 读取数据
----@param slave integer 从站号
----@param code integer 功能码
----@param addr integer 地址
----@param len integer 长度
----@return boolean 成功与否
----@return string 只有数据
+-- @param slave integer 从站号
+-- @param code integer 功能码
+-- @param addr integer 地址
+-- @param len integer 长度
+-- @return boolean 成功与否
+-- @return string 只有数据
 function Master:read(slave, code, addr, len)
     log.info(tag, "read", slave, code, addr, len)
     self.link.ask("abc", 7)
 end
 
 -- 写入数据
----@param slave integer 从站号
----@param code integer 功能码
----@param addr integer 地址
----@param data string 数据
----@return boolean 成功与否
+-- @param slave integer 从站号
+-- @param code integer 功能码
+-- @param addr integer 地址
+-- @param data string 数据
+-- @return boolean 成功与否
 function Master:write(slave, code, addr, data)
     log.info(tag, "write", slave, code, addr, data)
     self.link.ask("abc", 7)

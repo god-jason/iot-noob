@@ -1,11 +1,14 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- 时钟相关
---- @module "clock"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "clock"
+-- @module clock
 local clock = {}
+
+local tag = "clock"
 
 local function bcd_to_hex(data)
     return bit.rshift(data, 4) * 10 + bit.band(data, 0x0f)
@@ -48,8 +51,8 @@ function clock.init()
 end
 
 --- 读取芯片时钟
---- @return boolean 成功与否
---- @return table {year,mon,day,wday,hour,min,sec}
+-- @return boolean 成功与否
+-- @return table {year,mon,day,wday,hour,min,sec}
 function clock.read()
     if not options.enable then
         return false
@@ -90,7 +93,7 @@ function clock.read()
 end
 
 --- 写入芯片时钟
---- @return boolean 成功与否
+-- @return boolean 成功与否
 function clock.write()
     if not options.enable then
         return false

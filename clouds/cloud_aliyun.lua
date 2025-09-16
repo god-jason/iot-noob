@@ -1,13 +1,11 @@
---- 阿里云平台
--- @module "aliyun"
+--- 物联小白标准库
 -- @author 杰神
 -- @license GPLv3
--- @copyright benyi
--- @release 2025.03.18
--- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
+-- @copyright benyi 2025
 
 --- 阿里云
 -- @module aliyun
+-- 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/aliiot/
 local aliyun = {}
 
 local tag = "aliyun"
@@ -107,10 +105,10 @@ function aliyun.init()
 end
 
 --- 发布消息
----@param topic string 主题
----@param payload string|table|nil 数据，支持string,table
----@param qos integer|nil 质量
----@return integer 消息id
+-- @param topic string 主题
+-- @param payload string|table|nil 数据，支持string,table
+-- @param qos integer|nil 质量
+-- @return integer 消息id
 function aliyun.publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then

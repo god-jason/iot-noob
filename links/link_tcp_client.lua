@@ -1,15 +1,18 @@
---- TCP客户端，类定义
--- @module "Client"
+--- 物联小白标准库
 -- @author 杰神
 -- @license GPLv3
--- @copyright benyi
--- @release 2025.03.01
+-- @copyright benyi 2025
+
+
+--- TCP客户端，类定义
+-- @module Client
+local Client = {}
+
+
+
 local tag = "tcp client"
 
 local increment = 1; -- 自增ID
-
--- 定义类
-local Client = {}
 
 require("links").register("tcp-client", Client)
 
@@ -130,10 +133,10 @@ end
 
 
 -- 询问
----@param request string 发送数据
----@param len integer 期望长度
----@return boolean 成功与否
----@return string 返回数据
+-- @param request string 发送数据
+-- @param len integer 期望长度
+-- @return boolean 成功与否
+-- @return string 返回数据
 function Client:ask(request, len)
 
     -- 重入锁，等待其他操作完成

@@ -1,9 +1,7 @@
---- MQTT封装云平台
---- @class "MQTT"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.30
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 连接相关
 -- @module links
@@ -16,8 +14,8 @@ local tag = "MQTT"
 local increment = 1
 
 ---创建实例
----@param opts table
----@return table
+-- @param opts table
+-- @return table
 function MQTT:new(opts)
     local obj = {}
     setmetatable(obj, self)
@@ -64,7 +62,7 @@ local function find_callback(node, topics, topic, payload)
 end
 
 ---打开平台
----@return boolean 成功与否
+-- @return boolean 成功与否
 function MQTT:open()
     if mqtt == nil then
         log.error(tag, "bsp does not have mqtt lib")
@@ -127,10 +125,10 @@ function MQTT:close()
 end
 
 --- 发布消息
----@param topic string 主题
----@param payload string|table|nil 数据，支持string,table
----@param qos integer|nil 质量
----@return integer 消息id
+-- @param topic string 主题
+-- @param payload string|table|nil 数据，支持string,table
+-- @param qos integer|nil 质量
+-- @return integer 消息id
 function MQTT:publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
@@ -144,8 +142,8 @@ function MQTT:publish(topic, payload, qos)
 end
 
 --- 订阅（检查重复订阅，只添加回调）
---- @param filter string 主题
---- @param cb function 回调
+-- @param filter string 主题
+-- @param cb function 回调
 function MQTT:subscribe(filter, cb)
     log.info(tag, "subscribe", filter)
 
@@ -178,8 +176,8 @@ function MQTT:subscribe(filter, cb)
 end
 
 --- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
---- @param filter string 主题
---- @param cb function|nil 回调
+-- @param filter string 主题
+-- @param cb function|nil 回调
 function MQTT:unsubscribe(filter, cb)
     log.info(tag, "subscribe", filter)
 
@@ -220,7 +218,7 @@ function MQTT:unsubscribe(filter, cb)
 end
 
 --- 云服务器连接状态
---- @return boolean 状态
+-- @return boolean 状态
 function MQTT:ready()
     return self.client:ready()
 end

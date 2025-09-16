@@ -1,10 +1,7 @@
---- 设备相关
---- @module "devices"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 设备相关
 -- @module devices
@@ -28,8 +25,8 @@ function devices.load()
 end
 
 --- 过滤某连接的设备
----@param link_id string
----@return table[] 设备列表
+-- @param link_id string
+-- @return table[] 设备列表
 function devices.load_by_link(link_id)
     local ds = {}
     for _, dev in ipairs(_raw) do
@@ -41,15 +38,15 @@ function devices.load_by_link(link_id)
 end
 
 ---获取设备实例
----@param id string ID
----@return table
+-- @param id string ID
+-- @return table
 function devices.get(id)
     return _devices[id]
 end
 
 ---设置设备实例
----@param id any
----@param dev any
+-- @param id any
+-- @param dev any
 function devices.set(id, dev)
     _devices[id] = dev
 end

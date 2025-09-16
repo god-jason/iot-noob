@@ -1,9 +1,7 @@
---- 定时任务相关
---- @module "cron"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.03.18
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 定时任务相关
 -- @module cron
@@ -238,10 +236,10 @@ local function execute()
 end
 
 --- 创建计划任务
----@param crontab string Linux crontab格式，支持到秒，[*] * * * * *
----@param callback function
----@return boolean 成功与否
----@return integer 任务ID
+-- @param crontab string Linux crontab格式，支持到秒，[*] * * * * *
+-- @param callback function
+-- @return boolean 成功与否
+-- @return integer 任务ID
 function cron.start(crontab, callback)
     crontab = string.trim(crontab) -- 删除前后空白
 
@@ -278,7 +276,7 @@ function cron.start(crontab, callback)
 end
 
 --- 删除任务
----@param id integer
+-- @param id integer
 function cron.stop(id)
     for k, job in pairs(jobs) do
         if job.callbacks[id] ~= nil then

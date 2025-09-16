@@ -1,9 +1,7 @@
---- 配置文件相关
---- @module "configs"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 --- 配置文件相关
 -- @module configs
@@ -22,10 +20,10 @@ local function luadb_config(name)
 end
 
 ---加载配置文件，自动解析json
----@param name string 文件名，不带.json后缀
----@return boolean 成功与否
----@return table|nil
----@return string 最终文件名
+-- @param name string 文件名，不带.json后缀
+-- @return boolean 成功与否
+-- @return table|nil
+-- @return string 最终文件名
 function configs.load(name)
     --log.info(tag, "load", name)
 
@@ -79,9 +77,9 @@ function configs.load(name)
 end
 
 ---加载配置文件，如果不存在，则用默认
----@param name string 文件名，不带.json后缀
----@param default table 默认内容
----@return table
+-- @param name string 文件名，不带.json后缀
+-- @param default table 默认内容
+-- @return table
 function configs.load_default(name, default)
     -- log.info(tag, "load", name)
     local ret, data = configs.load(name)
@@ -92,10 +90,10 @@ function configs.load_default(name, default)
 end
 
 ---保存配置文件，自动编码json
----@param name string 文件名，不带.json后缀
----@param data table|string 内容
----@return boolean 成功与否
----@return string 最终文件名
+-- @param name string 文件名，不带.json后缀
+-- @param data table|string 内容
+-- @return boolean 成功与否
+-- @return string 最终文件名
 function configs.save(name, data)
     log.info(tag, "save", name, data)
 
@@ -141,7 +139,7 @@ function configs.save(name, data)
 end
 
 ---删除配置文件
----@param name string 文件名，不带.json后缀
+-- @param name string 文件名，不带.json后缀
 function configs.delete(name)
     log.info(tag, "delete", name)
 
@@ -160,8 +158,8 @@ function configs.delete(name)
 end
 
 ---下载配置文件，要求是.json或.json.flz格式
----@param name string 文件名，不带.json后缀
----@param url string 从http服务器下载
+-- @param name string 文件名，不带.json后缀
+-- @param url string 从http服务器下载
 function configs.download(name, url)
     log.info(tag, "download", name, url)
 

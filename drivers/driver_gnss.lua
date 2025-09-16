@@ -1,11 +1,13 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
 --- GPS相关
---- @module "gnss"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "gnss"
+-- @module gnss
 local gnss = {}
+
+local tag = "gnss"
 
 local led = require("led")
 
@@ -61,8 +63,8 @@ function gnss.isValid()
 end
 
 --- 获取GPS定位
---- @return boolean 成功与否
---- @return table
+-- @return boolean 成功与否
+-- @return table
 --[[
 {
     "course":0,

@@ -1,11 +1,15 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
+
 --- IO输出相关
---- @module "output"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "output"
+-- @module output
 local output = {}
+
+
+local tag = "output"
 
 local configs = require("configs")
 
@@ -45,8 +49,8 @@ function output.init()
 end
 
 --- 设置输出
---- @param index string 名称
---- @param value integer 1 0
+-- @param index string 名称
+-- @param value integer 1 0
 function output.set(index, value)
     if not options.enable then
         return

@@ -1,9 +1,7 @@
---- 程序加载器
---- @module "autoload"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.04.07
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
 
 --- 程序加载器

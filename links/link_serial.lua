@@ -1,21 +1,20 @@
---- 串口类相关
---- @module "Serial"
---- @author 杰神
---- @license GPLv3
---- @copyright benyi
---- @release 2025.01.20
-local tag = "Serial"
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
 
---- 定义类
---- @class Serial
+--- 串口类相关
+-- @module Serial
 local Serial = {}
+
+local tag = "Serial"
 
 require("links").register("serial", Serial)
 local serial = require("serial")
 
 ---创建串口实例
----@param opts table
----@return table
+-- @param opts table
+-- @return table
 function Serial:new(opts)
     local obj = {}
     setmetatable(obj, self)
@@ -31,7 +30,7 @@ function Serial:new(opts)
 end
 
 --- 打开
---- @return boolean 成功与否
+-- @return boolean 成功与否
 function Serial:open()
     local ret = serial.open(self.port, self.baud_rate, self.data_bits, self.stop_bits, self.parity)
     if not ret then
@@ -46,22 +45,22 @@ function Serial:open()
 end
 
 --- 写数据
---- @param data string 数据
---- @return boolean 成功与否
+-- @param data string 数据
+-- @return boolean 成功与否
 function Serial:write(data)
     return serial.write(self.port, data)
 end
 
 -- 等待数据
---- @param timeout integer 超时 ms
---- @return boolean 成功与否
+-- @param timeout integer 超时 ms
+-- @return boolean 成功与否
 function Serial:wait(timeout)
     return sys.waitUntil("SERIAL_DATA_" .. self.port, timeout)
 end
 
 -- 读数据
---- @return boolean 成功与否
---- @return string|nil 数据
+-- @return boolean 成功与否
+-- @return string|nil 数据
 function Serial:read()
     return serial.read(self.port)
 end
@@ -75,10 +74,10 @@ function Serial:close()
 end
 
 -- 询问
----@param request string 发送数据
----@param len integer 期望长度
----@return boolean 成功与否
----@return string 返回数据
+-- @param request string 发送数据
+-- @param len integer 期望长度
+-- @return boolean 成功与否
+-- @return string 返回数据
 function Serial:ask(request, len)
 
     -- 重入锁，等待其他操作完成
