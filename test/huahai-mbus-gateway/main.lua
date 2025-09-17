@@ -1,10 +1,4 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
---- 主程序入口
-
-PROJECT = "iot-noob"
+PROJECT = "mbus-gateway"
 VERSION = "1.0.0"
 local tag = "main"
 
@@ -23,6 +17,7 @@ end
 -- 日志等级改为info
 log.setLevel(2)
 
+
 -- 主进程
 sys.taskInit(function()
     log.info(tag, "main task")
@@ -38,9 +33,11 @@ sys.taskInit(function()
     -- 打开连接
     require("links").load()
 
-    -- TODO 定时器啥的
 
     log.info(tag, "main task exit")
 end)
+
+
+
 
 sys.run()
