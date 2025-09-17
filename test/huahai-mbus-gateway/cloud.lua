@@ -1,4 +1,6 @@
 
+local cloud = {}
+
 local broker = "nyiot.xazhny.com"
 local product_id = "2hNrGYgfUo"
 local device_name = "hub-1"
@@ -57,3 +59,15 @@ local topics = {
     sub_topo_change = topic_prefix .. "sub/topo/change", -- 订阅 通知子设备变化
     sub_topo_change_reply = topic_prefix .. "sub/topo/change/reply"
 }
+
+
+
+function cloud.connect()
+    
+
+    
+end
+
+
+
+return cloud
