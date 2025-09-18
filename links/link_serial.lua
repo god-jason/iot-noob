@@ -2,15 +2,13 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- 串口类相关
 -- @module link_serial
 local Serial = {}
 
 local tag = "Serial"
 
-require("links").register("serial", Serial)
-local serial = require("serial")
+require("gateway").register_link("serial", Serial)
 
 ---创建串口实例
 -- @param opts table
@@ -25,6 +23,7 @@ function Serial:new(opts)
     obj.data_bits = opts.data_bits or 8
     obj.stop_bits = opts.stop_bits or 1
     obj.parity = opts.parity or 'N'
+    obj.rs485_gpio = opts.rs485_gpio -- TODO 应该写在网关配置里面
     obj.asking = false
     return obj
 end
@@ -32,12 +31,21 @@ end
 --- 打开
 -- @return boolean 成功与否
 function Serial:open()
-    local ret = serial.open(self.port, self.baud_rate, self.data_bits, self.stop_bits, self.parity)
-    if not ret then
-        return false
+
+    -- 校验表示
+    local p = uart.None
+    if self.parity == 'N' or self.parity == 'n' then
+        p = uart.None
+    elseif self.parity == 'E' or self.parity == 'e' then
+        p = uart.Even
+    elseif self.parity == 'O' or self.parity == 'o' then
+        p = uart.Odd
     end
 
-    serial.watch(self.port, function(id, len)
+    local ret =
+        uart.setup(self.port, self.baud_rate, self.data_bits, self.stop_bits, p, uart.LSB, 1024, self.rs485_gpio)
+
+    uart.on(self.port, 'receive', function(id, len)
         sys.publish("SERIAL_DATA_" .. id, len)
     end)
 
@@ -48,7 +56,9 @@ end
 -- @param data string 数据
 -- @return boolean 成功与否
 function Serial:write(data)
-    return serial.write(self.port, data)
+    local len = uart.write(self.port, data)
+    log.info(tag, "write", self.port, len)
+    return len > 0, len
 end
 
 --- 等待数据
@@ -62,7 +72,13 @@ end
 -- @return boolean 成功与否
 -- @return string|nil 数据
 function Serial:read()
-    return serial.read(self.port)
+    local len = uart.rxSize(self.port)
+    if len > 0 then
+        local data = uart.read(self.port, len)
+        log.info(tag, "read", self.port, #data)
+        return true, data
+    end
+    return false
 end
 
 --- 关闭串口
@@ -70,55 +86,7 @@ function Serial:close()
     if self.instanse ~= nil then
         self.instanse:close()
     end
-    serial.close(self.port)
-end
-
---- 询问
--- @param request string 发送数据
--- @param len integer 期望长度
--- @return boolean 成功与否
--- @return string 返回数据
-function Serial:ask(request, len)
-
-    -- 重入锁，等待其他操作完成
-    while self.asking do
-        sys.wait(100)
-    end
-    self.asking = true
-
-    -- log.info(tag, "ask", request, len)
-    if request ~= nil and #request > 0 then
-        local ret = self:write(request)
-        if not ret then
-            log.error(tag, "write failed")
-            self.asking = false
-            return false
-        end
-    end
-
-    -- 解决分包问题
-    -- 循环读数据，直到读取到需要的长度
-    local buf = ""
-    repeat
-        -- TODO 应该不是每次都要等待
-        local ret = self:wait(self.timeout)
-        if not ret then
-            log.error(tag, "read timeout")
-            self.asking = false
-            return false
-        end
-
-        local r, d = self:read()
-        if not r then
-            log.error(tag, "read failed")
-            self.asking = false
-            return false
-        end
-        buf = buf .. d
-    until #buf >= len
-
-    self.asking = false
-    return true, buf
+    uart.close(self.port)
 end
 
 return Serial

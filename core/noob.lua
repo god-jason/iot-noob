@@ -18,10 +18,10 @@ local products = require("products")
 -- local battery = require("battery")
 -- local gnss = require("gnss")
 
-local MQTT = require("mqtt_ext")
+local MqttClient = require("mqtt_client")
 
---- @type MQTT
-local cloud = nil -- MQTT:new()
+--- @type MqttClient
+local cloud = nil -- MqttClient:new()
 
 local options = {}
 local default_options = {
@@ -189,7 +189,7 @@ end
 --- 打开网关
 function noob.open()
     -- 连接云平台
-    cloud = MQTT:new(options)
+    cloud = MqttClient:new(options)
     local ret = cloud:open()
 
     if not ret then

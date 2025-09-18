@@ -4,10 +4,10 @@
 -- @copyright benyi 2025
 
 --- 连接相关
--- @module MQTT
-local MQTT = {}
+-- @module mqtt_client
+local MqttClient = {}
 
-local tag = "MQTT"
+local tag = "MqttClient"
 
 --- 自增ID
 local increment = 1
@@ -15,7 +15,7 @@ local increment = 1
 ---创建实例
 -- @param opts table
 -- @return table
-function MQTT:new(opts)
+function MqttClient:new(opts)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
@@ -62,7 +62,7 @@ end
 
 ---打开平台
 -- @return boolean 成功与否
-function MQTT:open()
+function MqttClient:open()
     if mqtt == nil then
         log.error(tag, "bsp does not have mqtt lib")
         return false
@@ -118,7 +118,7 @@ function MQTT:open()
 end
 
 --- 关闭平台（不太需要）
-function MQTT:close()
+function MqttClient:close()
     self.client:close()
     self.client = nil
 end
@@ -128,7 +128,7 @@ end
 -- @param payload string|table|nil 数据，支持string,table
 -- @param qos integer|nil 质量
 -- @return integer 消息id
-function MQTT:publish(topic, payload, qos)
+function MqttClient:publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
         local err
@@ -143,7 +143,7 @@ end
 --- 订阅（检查重复订阅，只添加回调）
 -- @param filter string 主题
 -- @param cb function 回调
-function MQTT:subscribe(filter, cb)
+function MqttClient:subscribe(filter, cb)
     log.info(tag, "subscribe", filter)
 
     -- 计数，避免重复订阅
@@ -177,7 +177,7 @@ end
 --- 取消订阅（cb不为空，检查订阅，只有全部取消时，才取消。 cb为空，全取消）
 -- @param filter string 主题
 -- @param cb function|nil 回调
-function MQTT:unsubscribe(filter, cb)
+function MqttClient:unsubscribe(filter, cb)
     log.info(tag, "subscribe", filter)
 
     -- 取消订阅
@@ -218,8 +218,8 @@ end
 
 --- 云服务器连接状态
 -- @return boolean 状态
-function MQTT:ready()
+function MqttClient:ready()
     return self.client:ready()
 end
 
-return MQTT
+return MqttClient

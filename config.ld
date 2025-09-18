@@ -8,6 +8,7 @@ dir = "doc"
 readme = "README.md"
 style = "!new"
 boilerplate = true
+multimodule = true
 kind_names = {
    topic = "主题",
    script = "示例",

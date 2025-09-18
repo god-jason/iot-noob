@@ -7,21 +7,25 @@
 local database = {}
 
 local tag = "database"
-local ext = ".json"
+
+-- 统一文件名
+local function dbname(col)
+    return "/db-" .. col .. ".json"
+end
 
 --- 读取数据
 -- @param col string 表
 -- @return table 数据 {k->v}
 local function load(col)
     log.info(tag, "load", col)
-    local name = "/" .. col .. ext
+    local name = dbname(col)
     if not io.exists(name) then
         name = "/luadb" .. name
         if not io.exists(name) then
             return {}
         end
     end
-    
+
     local data = io.readFile(name)
     local obj, result, err = json.decode(data)
     if result == 0 then
@@ -38,15 +42,13 @@ end
 local function save(col, objs)
     log.info(tag, "save", col)
     local data = json.encode(objs)
-    local name = "/" .. col .. ext
-    return io.writeFile(col .. ".db", data)
+    return io.writeFile(dbname(col), data)
 end
 
 --- 清空表
 -- @param col string 表
 function database.clear(col)
-    local name = "/" .. col .. ext
-    os.remove(name)
+    os.remove(dbname(col))
 end
 
 --- 插入数据
@@ -112,6 +114,7 @@ function database.get(col, id)
     if tab ~= nil then
         return tab[id]
     end
+    return nil
 end
 
 --- 查询数据库

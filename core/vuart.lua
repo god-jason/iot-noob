@@ -2,13 +2,11 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
-
 --- 虚拟串口处理指令
--- @module tools
-local tools = {}
+-- @module vuart
+local vuart = {}
 
-local tag = "tools"
+local tag = "vuart"
 
 local commands = require("commands")
 
@@ -30,8 +28,8 @@ local function on_data(id, len)
         if ret == 1 then
             local handler = commands[pkt.cmd]
             if handler then
-                --response = handler(pkt)
-                --加入异常处理
+                -- response = handler(pkt)
+                -- 加入异常处理
                 ret, response = pcall(handler, pkt)
                 if not ret then
                     response = commands.error(response)
@@ -55,12 +53,7 @@ local function on_data(id, len)
     end
 end
 
-function tools.init()
-    uart.setup(uart.VUART_0)
-    uart.on(uart.VUART_0, "receive", on_data)
-end
+uart.setup(uart.VUART_0)
+uart.on(uart.VUART_0, "receive", on_data)
 
--- 启动
-tools.init()
-
-return tools
+return vuart
