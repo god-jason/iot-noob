@@ -127,13 +127,13 @@ local function sub_login(id, product_id)
     client:publish(topics.sub_login, data)
 end
 
-local function sub_logout(id, product_id)
-    local data = create_package({
-        productID = product_id,
-        deviceName = id
-    })
-    client:publish(topics.sub_logout, data)
-end
+-- local function sub_logout(id, product_id)
+--     local data = create_package({
+--         productID = product_id,
+--         deviceName = id
+--     })
+--     client:publish(topics.sub_logout, data)
+-- end
 
 local function on_sub_property_get(_, payload)
     log.info(tag, "on_sub_property_get", payload)
@@ -193,46 +193,46 @@ local function on_sub_service_invoke(_, payload)
     client:publish(topics.sub_service_invoke_reply, payload)
 end
 
-local function sub_topo_add(id, product_id)
-    local data = create_package({
-        productID = product_id,
-        deviceName = id,
-        sasToken = "" -- TODO Token哪里来
-    })
-    client:publish(topics.sub_topo_add, data)
-end
+-- local function sub_topo_add(id, product_id)
+--     local data = create_package({
+--         productID = product_id,
+--         deviceName = id,
+--         sasToken = "" -- TODO Token哪里来
+--     })
+--     client:publish(topics.sub_topo_add, data)
+-- end
 
-local function sub_topo_delete(id, product_id)
-    local data = create_package({
-        productID = product_id,
-        deviceName = id,
-        sasToken = ""
-    })
-    client:publish(topics.sub_topo_delete, data)
-end
+-- local function sub_topo_delete(id, product_id)
+--     local data = create_package({
+--         productID = product_id,
+--         deviceName = id,
+--         sasToken = ""
+--     })
+--     client:publish(topics.sub_topo_delete, data)
+-- end
 
-local function sub_topo_get(id)
-    local data = create_package({})
-    client:publish(topics.sub_topo_get, data)
-end
+-- local function sub_topo_get()
+--     local data = create_package({})
+--     client:publish(topics.sub_topo_get, data)
+-- end
 
-local function on_sub_topo_get_reply()
-    log.info(tag, "on_sub_topo_get_reply", payload)
-    local data, ret = json.decode(payload)
-    if ret == 0 then
-        return
-    end
-    -- data.data : [{deviceName, productID}]
-    log.info(tag, data, ret)
-end
+-- local function on_sub_topo_get_reply(_, payload)
+--     log.info(tag, "on_sub_topo_get_reply", payload)
+--     local data, ret = json.decode(payload)
+--     if ret == 0 then
+--         return
+--     end
+--     -- data.data : [{deviceName, productID}]
+--     log.info(tag, data, ret)
+-- end
 
-local function on_sub_topo_change()
+local function on_sub_topo_change(_, payload)
     log.info(tag, "on_sub_topo_change", payload)
     local data, ret = json.decode(payload)
     if ret == 0 then
         return
     end
-    -- TODO 子设备关系变化    
+    -- TODO 子设备关系变化
     log.info(tag, data, ret)
 end
 
