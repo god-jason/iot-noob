@@ -1,0 +1,58 @@
+{
+    "name": "混水阀控制器",
+    "points":[
+        {"id":1, "name":"address_repeat_check", "type":"u16", "mode":"rw", "desc":"设备地址重启检测"},
+        
+        {"id":2, "type":"bits", "bits":[
+            {"bit":0, "size":4, "mode":"r", "name":"type", "desc":"混水控类型"},
+            {"bit":8, "size":3, "mode":"r", "name":"valve_type", "desc":"水阀类型"}
+        ]},
+
+
+        {"id":5, "name":"cold_setting_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"供冷设置温度"},
+        {"id":6, "name":"hot_setting_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"供暖设置温度"},
+        
+        {"id":8, "name":"t1_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"T1供水温度"},
+        {"id":9, "name":"t2_temperature", "type":"s16", "rate":10, "mode":"r", "desc":"T2回水温度"},
+        
+        {"id":11, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn1", "desc":"SN1"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn2", "desc":"SN2"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn3", "desc":"SN3"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn4", "desc":"SN4"}
+        ]},
+        {"id":12, "type":"bits", "bits":[
+            {"bit":0, "size":8, "mode":"r", "name":"sn5", "desc":"SN5"},
+            {"bit":8, "size":8, "mode":"r", "name":"sn6", "desc":"SN6"},
+            {"bit":16, "size":8, "mode":"r", "name":"sn7", "desc":"SN7"},
+            {"bit":24, "size":8, "mode":"r", "name":"sn8", "desc":"SN8"}
+        ]},
+        
+        {"id":15, "type":"bits", "bits":[
+            {"bit":0, "size":16, "mode":"rw", "name":"software_version", "desc":"软件版本号"},
+            {"bit":16, "size":16, "mode":"rw", "name":"hardware_version", "desc":"硬件版本号"}
+        ]},
+       
+
+        {"id":16, "name":"pump_pwm_duty_ratio", "type":"u16", "mode":"r", "desc":"水泵PWM占空比"},
+        {"id":17, "name":"valve_percent", "type":"u16", "mode":"r", "desc":"水阀开度"},
+
+        {"id":18, "type":"bits", "bits":[
+            {"bit":0, "mode":"r", "name":"mode", "desc":"主机运行模式"},
+            {"bit":1, "mode":"r", "name":"power_on", "desc":"开关机状态"},
+            {"bit":2, "mode":"r", "name":"pump_status", "desc":"水泵状态"}
+        ]},
+
+        {"id":19, "type":"bits", "bits":[
+            {"bit":2, "mode":"r", "name":"error_cold_water_temp", "desc":"与主机断开连接"},
+            {"bit":3, "mode":"r", "name":"error_t1_supply_ntc", "desc":"T1感温包故障"},
+            {"bit":4, "mode":"r", "name":"error_t2_back_ntc", "desc":"T2感温包故障"},
+            {"bit":5, "mode":"r", "name":"frost_protection", "desc":"防冻保护"}
+        ]},
+
+        {"id":240, "type":"bits", "desc":"设备绑定", "bits":[
+            {"bit":0, "size":6, "mode":"rw", "name":"addr_master", "desc":"主机联动控制器地址"}
+        ]}
+        
+    ]
+}

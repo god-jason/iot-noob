@@ -2,19 +2,27 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- 文件数据库
 -- @module database
 local database = {}
 
 local tag = "database"
+local ext = ".json"
 
 --- 读取数据
 -- @param col string 表
 -- @return table 数据 {k->v}
 local function load(col)
     log.info(tag, "load", col)
-    local data = io.readFile(col .. ".db")
+    local name = "/" .. col .. ext
+    if not io.exists(name) then
+        name = "/luadb" .. name
+        if not io.exists(name) then
+            return {}
+        end
+    end
+    
+    local data = io.readFile(name)
     local obj, result, err = json.decode(data)
     if result == 0 then
         log.error(tag, err)
@@ -30,13 +38,15 @@ end
 local function save(col, objs)
     log.info(tag, "save", col)
     local data = json.encode(objs)
+    local name = "/" .. col .. ext
     return io.writeFile(col .. ".db", data)
 end
 
 --- 清空表
 -- @param col string 表
 function database.clear(col)
-    os.remove(col .. ".db")
+    local name = "/" .. col .. ext
+    os.remove(name)
 end
 
 --- 插入数据
