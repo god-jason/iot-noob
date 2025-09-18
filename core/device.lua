@@ -2,6 +2,8 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
+
 --- 设备类定义
 -- 所有协议实现的子设备必须继承Device，并实现标准接口
 -- @module Device
@@ -21,39 +23,47 @@ function Device:new(obj)
     return dev
 end
 
----  打开 
+---  打开
 -- @return boolean, error
 function Device:open()
     self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
----  关闭 
+---  关闭
 -- @return boolean, error
 function Device:close()
     self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
----  读值 
+---  读值
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
-    self.__index = self -- 避免self未使用错误提醒
+    self.__index = key -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
----  写值 
+---  写值
 -- @param key string
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
+    self.__index = key -- 避免self未使用错误提醒
+    self.__index = value
+    return false, error_unmount
+end
+
+---  轮询
+-- @return boolean, error
+function Device:poll()
     self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
----  轮询 
--- @return boolean, error
-function Device:poll()
+---  轮询
+-- @return table k->{value->any, time->int}
+function Device:values()
     self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end

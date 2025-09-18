@@ -2,6 +2,8 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
+
 --- 连接类定义
 -- 所有连接必须继承Link，并实现标准接口
 -- @module Link
@@ -9,14 +11,14 @@ local Link = {}
 
 _G.Link = Link -- 注册到全局变量
 
----  打开 
+---  打开
 -- @return boolean, error
 function Link:open()
     self.__index = self -- 避免self未使用错误提醒
     return false, "Link open() must be implemented!"
 end
 
----  关闭 
+---  关闭
 -- @return boolean, error
 function Link:close()
     self.__index = self -- 避免self未使用错误提醒

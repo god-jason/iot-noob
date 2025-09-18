@@ -3,6 +3,7 @@ local tag = "cloud"
 
 local configs = require("configs")
 local MqttClient = require("mqtt_client")
+local gateway = require("gateway")
 
 --- 平台连接
 local client = nil
@@ -16,6 +17,210 @@ local config = {
 }
 
 local topics = {}
+
+local function property_post()
+
+end
+
+local function event_post()
+
+end
+
+local function on_service_invoke(_, payload)
+    log.info(tag, "on_service_invoke", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+end
+
+local function on_property_get(_, payload)
+    log.info(tag, "on_property_get", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    payload.data = {}
+    client:publish(topics.property_get_reply, payload)
+end
+
+local function on_property_set(_, payload)
+    log.info(tag, "on_property_set", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    payload.data = {}
+    client:publish(topics.property_set_reply, payload)
+end
+
+local function pack_post(id, product_id, values)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {{
+            identify = {
+                productID = product_id,
+                deviceName = id
+            },
+            properties = values
+        }}
+    }
+
+    client:publish(topics.pack_post, payload)
+end
+
+local function history_post(id, product_id, values)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {{
+            identify = {
+                productID = product_id,
+                deviceName = id
+            },
+            properties = values
+            -- properties = {
+            --     key = {{
+            --         value = value,
+            --         time = time
+            --     },{
+            --         value = value,
+            --         time = time
+            --     },}
+            -- }
+        }}
+    }
+    client:publish(topics.history_post, payload)
+end
+
+local function sub_login(id, product_id)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {
+            productID = product_id,
+            deviceName = id
+        }
+    }
+    client:publish(topics.sub_login, payload)
+end
+
+local function sub_logout(id, product_id)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {
+            productID = product_id,
+            deviceName = id
+        }
+    }
+    client:publish(topics.sub_logout, payload)
+end
+
+local function on_sub_property_get(_, payload)
+    log.info(tag, "on_sub_property_get", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    local id = payload.params.deviceName
+    local dev = gateway.get_device_instanse(id)
+    if not dev then
+        payload.msg = "找不到设备"
+        client:publish(topics.sub_property_get_reply, payload)
+    end
+
+    payload.data = {}
+    for _, key in ipairs(payload.params) do
+        payload.data[key] = dev.get(key)
+    end
+
+    client:publish(topics.sub_property_get_reply, payload)
+end
+
+local function on_sub_property_set(_, payload)
+    log.info(tag, "on_sub_property_set", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    local id = payload.params.deviceName
+    local dev = gateway.get_device_instanse(id)
+    if not dev then
+        payload.msg = "找不到设备"
+        client:publish(topics.sub_property_set_reply, payload)
+    end
+
+    for key, value in pairs(payload.params) do
+        dev.set(key, value)
+    end
+
+    payload.data = {
+        check = nil,
+        code = 200,
+        id = "1",
+        msg = "ok"
+    }
+    client:publish(topics.sub_property_set_reply, payload)
+end
+
+local function sub_topo_add(id, product_id)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {
+            productID = product_id,
+            deviceName = id,
+            sasToken = ""
+        }
+    }
+    client:publish(topics.sub_topo_add, payload)
+end
+
+local function sub_topo_delete(id, product_id)
+    local payload = {
+        id = "1",
+        version = "1.0",
+        params = {
+            productID = product_id,
+            deviceName = id,
+            sasToken = ""
+        }
+    }
+    client:publish(topics.sub_topo_delete, payload)
+end
+
+local function sub_topo_get(id)
+    local payload = {
+        id = "1",
+        version = "1.0"
+    }
+    client:publish(topics.sub_topo_get, payload)
+end
+
+local function on_sub_topo_get_reply()
+    log.info(tag, "on_sub_topo_get_reply", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+    -- data.data : [{deviceName, productID}]
+end
+
+local function on_sub_topo_change()
+    log.info(tag, "on_sub_topo_change", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+    -- TODO 子设备关系变化    
+end
 
 --- 打开平台
 function cloud.open()

@@ -10,12 +10,16 @@ local Ask = {}
 
 local tag = "Ask"
 
--- 创建询问器
-function Ask:new(link)
+--- 创建询问器
+-- @param link Link 连接
+-- @param timeout integer 超时 ms
+-- @return Ask
+function Ask:new(link, timeout)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
     obj.link = link
+    obj.timeout = timeout
     obj.asking = false
     return obj
 end

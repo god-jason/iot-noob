@@ -2,7 +2,8 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
---
+
+
 --- 网关管理
 -- @module gateway
 local gateway = {}
@@ -12,7 +13,7 @@ local tag = "gateway"
 local database = require("database")
 local Device = require("device")
 
---- 所有设备实例
+-- 所有设备实例
 local _devices = {}
 
 --- 注册设备实例
