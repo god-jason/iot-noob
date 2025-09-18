@@ -36,20 +36,20 @@ local config = {
 
 local topics = {}
 
-local function property_post(values)
-    local payload = create_package(values)
-    client:publish(topics.pack_post, payload)
-end
+-- local function property_post(values)
+--     local payload = create_package(values)
+--     client:publish(topics.pack_post, payload)
+-- end
 
-local function event_post(name, args)
-    local payload = create_package({
-        [name] = {
-            value = args,
-            time = os.time()
-        }
-    })
-    client:publish(topics.event_post, payload)
-end
+-- local function event_post(name, args)
+--     local data = create_package({
+--         [name] = {
+--             value = args,
+--             time = os.time()
+--         }
+--     })
+--     client:publish(topics.event_post, data)
+-- end
 
 local function on_service_invoke(_, payload)
     log.info(tag, "on_service_invoke", payload)
@@ -57,8 +57,8 @@ local function on_service_invoke(_, payload)
     if ret == 0 then
         return
     end
-    payload.success = false
-    payload.msg = "不支持"
+    data.success = false
+    data.msg = "不支持"
 
     client:publish(topics.service_invoke_reply, payload)
 end
@@ -70,9 +70,9 @@ local function on_property_get(_, payload)
         return
     end
 
-    payload.success = false
-    payload.msg = "不支持"
-    client:publish(topics.property_get_reply, payload)
+    data.success = false
+    data.msg = "不支持"
+    client:publish(topics.property_get_reply, data)
 end
 
 local function on_property_set(_, payload)
@@ -82,57 +82,57 @@ local function on_property_set(_, payload)
         return
     end
 
-    payload.success = false
-    payload.msg = "不支持"
-    client:publish(topics.property_set_reply, payload)
+    data.success = false
+    data.msg = "不支持"
+    client:publish(topics.property_set_reply, data)
 end
 
 local function pack_post(id, product_id, values)
 
-    local payload = create_package({{
+    local data = create_package({{
         identify = {
             productID = product_id,
             deviceName = id
         },
         properties = values
     }})
-    client:publish(topics.pack_post, payload)
+    client:publish(topics.pack_post, data)
 end
 
-local function history_post(id, product_id, values)
-    local payload = create_package({{
-        identify = {
-            productID = product_id,
-            deviceName = id
-        },
-        properties = values
-        -- properties = {
-        --     key = {{
-        --         value = value,
-        --         time = time
-        --     },{
-        --         value = value,
-        --         time = time
-        --     },}
-        -- }
-    }})
-    client:publish(topics.history_post, payload)
-end
+-- local function history_post(id, product_id, values)
+--     local data = create_package({{
+--         identify = {
+--             productID = product_id,
+--             deviceName = id
+--         },
+--         properties = values
+--         -- properties = {
+--         --     key = {{
+--         --         value = value,
+--         --         time = time
+--         --     },{
+--         --         value = value,
+--         --         time = time
+--         --     },}
+--         -- }
+--     }})
+--     client:publish(topics.history_post, data)
+-- end
 
 local function sub_login(id, product_id)
-    local payload = create_package({
+    local data = create_package({
         productID = product_id,
         deviceName = id
     })
-    client:publish(topics.sub_login, payload)
+    client:publish(topics.sub_login, data)
 end
 
 local function sub_logout(id, product_id)
-    local payload = create_package({
+    local data = create_package({
         productID = product_id,
         deviceName = id
     })
-    client:publish(topics.sub_logout, payload)
+    client:publish(topics.sub_logout, data)
 end
 
 local function on_sub_property_get(_, payload)
@@ -142,21 +142,21 @@ local function on_sub_property_get(_, payload)
         return
     end
 
-    local id = payload.params.deviceName
+    local id = data.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
-        payload.success = false
-        payload.msg = "找不到设备"
-        client:publish(topics.sub_property_get_reply, payload)
+        data.success = false
+        data.msg = "找不到设备"
+        client:publish(topics.sub_property_get_reply, data)
     end
 
-    payload.code = 200
-    payload.data = {}
-    for _, key in ipairs(payload.params) do
-        payload.data[key] = dev.get(key)
+    data.code = 200
+    data.data = {}
+    for _, key in ipairs(data.params) do
+        data.data[key] = dev.get(key)
     end
 
-    client:publish(topics.sub_property_get_reply, payload)
+    client:publish(topics.sub_property_get_reply, data)
 end
 
 local function on_sub_property_set(_, payload)
@@ -166,18 +166,18 @@ local function on_sub_property_set(_, payload)
         return
     end
 
-    local id = payload.params.deviceName
+    local id = data.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
-        payload.msg = "找不到设备"
-        client:publish(topics.sub_property_set_reply, payload)
+        data.msg = "找不到设备"
+        client:publish(topics.sub_property_set_reply, data)
     end
 
-    for key, value in pairs(payload.params.params) do
+    for key, value in pairs(data.params.params) do
         dev.set(key, value)
     end
 
-    payload.code = 200
+    data.code = 200
     client:publish(topics.sub_property_set_reply, payload)
 end
 
@@ -188,32 +188,32 @@ local function on_sub_service_invoke(_, payload)
         return
     end
 
-    payload.success = false
-    payload.msg = "不支持"
+    data.success = false
+    data.msg = "不支持"
     client:publish(topics.sub_service_invoke_reply, payload)
 end
 
 local function sub_topo_add(id, product_id)
-    local payload = create_package({
+    local data = create_package({
         productID = product_id,
         deviceName = id,
         sasToken = "" -- TODO Token哪里来
     })
-    client:publish(topics.sub_topo_add, payload)
+    client:publish(topics.sub_topo_add, data)
 end
 
 local function sub_topo_delete(id, product_id)
-    local payload = create_package({
+    local data = create_package({
         productID = product_id,
         deviceName = id,
         sasToken = ""
     })
-    client:publish(topics.sub_topo_delete, payload)
+    client:publish(topics.sub_topo_delete, data)
 end
 
 local function sub_topo_get(id)
-    local payload = create_package({})
-    client:publish(topics.sub_topo_get, payload)
+    local data = create_package({})
+    client:publish(topics.sub_topo_get, data)
 end
 
 local function on_sub_topo_get_reply()
@@ -223,6 +223,7 @@ local function on_sub_topo_get_reply()
         return
     end
     -- data.data : [{deviceName, productID}]
+    log.info(tag, data, ret)
 end
 
 local function on_sub_topo_change()
@@ -232,6 +233,7 @@ local function on_sub_topo_change()
         return
     end
     -- TODO 子设备关系变化    
+    log.info(tag, data, ret)
 end
 
 --- 打开平台
@@ -324,7 +326,7 @@ end
 function cloud.task()
 
     cloud.open()
-    
+
     sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
     while true do
@@ -342,7 +344,7 @@ function cloud.task()
             local values = dev.modified_values()
 
             local has = false
-            for k, v in pairs(values) do
+            for _, _ in pairs(values) do
                 has = true
             end
             if has then

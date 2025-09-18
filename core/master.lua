@@ -2,6 +2,8 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
+
 --- 小白主程序
 -- @module master
 local master = {}
@@ -225,12 +227,6 @@ function master.open()
     cloud:subscribe("noob/" .. options.id .. "/device", on_device)
     cloud:subscribe("noob/" .. options.id .. "/model", on_model)
 
-end
-
---- 关闭网关
-function master.close()
-    cloud:close()
-    cloud = nil
 end
 
 function master.task()
