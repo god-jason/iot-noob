@@ -6,7 +6,7 @@
 
 --- 设备类定义
 -- 所有协议实现的子设备必须继承Device，并实现标准接口
--- @module Device
+-- @module device
 local Device = {}
 
 _G.Device = Device -- 注册到全局变量
@@ -65,14 +65,14 @@ end
 -- @return table k->{value->any, time->int}
 function Device:values()
     self.__index = self -- 避免self未使用错误提醒
-    return false, error_unmount
+    return {}
 end
 
 ---  变化的变量
 -- @return table k->{value->any, time->int}
 function Device:modified_values()
     self.__index = self -- 避免self未使用错误提醒
-    return false, error_unmount
+    return {}
 end
 
 return Device
