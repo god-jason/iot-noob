@@ -218,7 +218,6 @@ local function upload(all)
     for _, device in pairs(devices) do
         if device.sn == nil then
             if device.values.sn1 ~= nil and device.values.sn5 ~= nil then
-                -- device.sn = 
                 device.sn = pack.pack("b8", device.values.sn1.value, device.values.sn2.value, device.values.sn3.value,
                     device.values.sn4.value, device.values.sn5.value, device.values.sn6.value, device.values.sn7.value,
                     device.values.sn8.value)

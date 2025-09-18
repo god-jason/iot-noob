@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- 串口类相关
 -- @module link_serial
 local Serial = {}

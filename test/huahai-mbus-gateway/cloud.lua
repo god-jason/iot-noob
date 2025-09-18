@@ -80,15 +80,16 @@ function cloud.open()
     client = MqttClient:new({
         clientid = clientid,
         username = username,
-        password = password,
+        password = password
     })
 
     return client:open()
 end
 
 function cloud.subscribe()
-    
-
+    for _, topic in ipairs(topics) do
+        client.subscribe(topic)
+    end
 end
 
 return cloud

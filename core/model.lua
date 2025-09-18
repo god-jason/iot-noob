@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- 物模型管理
 -- @module model
 local model = {}
