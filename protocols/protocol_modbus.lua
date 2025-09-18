@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- Modbus 协议实现
 -- @module modbus_device
 local ModbusDevice = {}
@@ -366,7 +367,7 @@ gateway.register("modbus", ModbusMaster)
 -- @param opts table 协议参数
 -- @return Master
 function ModbusMaster:new(link, opts)
-    local master = setmetatable({}, ModbusMaster)
+    local master = setmetatable({}, self)
     master.link = Agent:new(link)
     master.timeout = opts.timeout or 1000 -- 1秒钟
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟
@@ -558,7 +559,8 @@ function ModbusMaster:open()
     self.opened = true
 
     -- 加载设备
-    local ds = devices.load_by_link(self.link.id)
+    -- local ds = devices.load_by_link(self.link.id)
+    local ds = database.find("device", "link_id", self.link.id)
 
     -- 启动设备
     self.devices = {}

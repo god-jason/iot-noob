@@ -108,6 +108,16 @@ local function on_link(_, payload)
     database.insert("link", data.id, data)
 end
 
+local function on_links(_, payload)
+    log.info(tag, "on_links", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    database.insertMany("link", data)
+end
+
 local function on_device(_, payload)
     log.info(tag, "on_device", payload)
     local data, ret = json.decode(payload)
@@ -116,6 +126,16 @@ local function on_device(_, payload)
     end
 
     database.insert("device", data.id, data)
+end
+
+local function on_devices(_, payload)
+    log.info(tag, "on_devices", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    database.insertMany("device",  data)
 end
 
 local function on_model(_, payload)
@@ -224,7 +244,9 @@ function master.open()
     cloud:subscribe("noob/" .. options.id .. "/pipe/stop", on_pipe_stop)
     cloud:subscribe("noob/" .. options.id .. "/command", on_command)
     cloud:subscribe("noob/" .. options.id .. "/link", on_link)
+    cloud:subscribe("noob/" .. options.id .. "/links", on_links)
     cloud:subscribe("noob/" .. options.id .. "/device", on_device)
+    cloud:subscribe("noob/" .. options.id .. "/devices", on_devices)
     cloud:subscribe("noob/" .. options.id .. "/model", on_model)
 
 end

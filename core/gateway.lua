@@ -150,30 +150,30 @@ function gateway.load_links()
     end
 end
 
---- 创建设备
+-- 创建设备
 -- @param dev table 设备
 -- @return boolean 成功与否
 -- @return Link|error 实例
-function gateway.create_device(dev)
-    local lnk = _links[dev.link_id]
-    if lnk and lnk.instanse then
-        lnk.instanse.attach(dev)
-    else
-        _devices[dev.id] = Device:new(dev)
-    end
-end
+-- function gateway.create_device(dev)
+--     local lnk = _links[dev.link_id]
+--     if lnk and lnk.instanse then
+--         lnk.instanse.attach(dev)
+--     else
+--         _devices[dev.id] = Device:new(dev)
+--     end
+-- end
 
---- 加载所有设备
-function gateway.load_devices()
-    local dvs = database.find("device")
-    if #dvs == 0 then
-        return
-    end
+-- 加载所有设备
+-- function gateway.load_devices()
+--     local dvs = database.find("device")
+--     if #dvs == 0 then
+--         return
+--     end
 
-    for _, dev in ipairs(dvs) do
-        gateway.create_device(dev)
-    end
+--     for _, dev in ipairs(dvs) do
+--         gateway.create_device(dev)
+--     end
 
-end
+-- end
 
 return gateway
