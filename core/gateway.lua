@@ -11,7 +11,6 @@ local gateway = {}
 local tag = "gateway"
 
 local database = require("database")
-local Device = require("device")
 
 -- 所有设备实例
 local _devices = {}
