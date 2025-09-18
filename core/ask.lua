@@ -8,6 +8,7 @@
 -- @module Ask
 local Ask = {}
 
+local tag = "Ask"
 
 -- 创建询问器
 function Ask:new(link)

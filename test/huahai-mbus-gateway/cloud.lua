@@ -74,12 +74,20 @@ function cloud.open()
         sub_topo_change_reply = topic_prefix .. "sub/topo/change/reply"
     }
 
-    local client_id, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key)
+    local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key)
+    log.info(tag, "auth result", clientid, username, password)
 
+    client = MqttClient:new({
+        clientid = clientid,
+        username = username,
+        password = password,
+    })
 
+    return client:open()
 end
 
-function cloud.connect()
+function cloud.subscribe()
+    
 
 end
 

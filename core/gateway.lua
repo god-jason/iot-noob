@@ -90,9 +90,9 @@ function gateway.create_link(name, opts)
     end
     -- return true, link:new(opts)
     local lnk = link:new(opts or {})
-    local ret2, err = lnk:open()
+    local ret, err = lnk:open()
     log.info(tag, "open link", link.id, ret, err)
-    if not ret2 then
+    if not ret then
         return false, err
     end
 
@@ -109,10 +109,10 @@ function gateway.create_link(name, opts)
     end
 
     local instanse = protocol:new(lnk, link.protocol_options or {})
-    local ret4, err4 = instanse:open()
-    log.info(tag, "open protocol", ret4, err4)
-    
-    if ret4 then
+    ret, err = instanse:open()
+    log.info(tag, "open protocol", ret, err)
+
+    if ret then
         -- 协议实例保存下来
         lnk.instanse = instanse
     end

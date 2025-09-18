@@ -24,18 +24,21 @@ end
 ---  打开 
 -- @return boolean, error
 function Device:open()
+    self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
 ---  关闭 
 -- @return boolean, error
 function Device:close()
+    self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 ---  读值 
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
+    self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
@@ -44,12 +47,14 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
+    self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 
 ---  轮询 
 -- @return boolean, error
 function Device:poll()
+    self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end
 

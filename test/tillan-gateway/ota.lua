@@ -1,4 +1,4 @@
-libfota2 = require "libfota2"
+local libfota2 = require "libfota2"
 
 local function fota_cb(ret)
     log.info("fota", ret)

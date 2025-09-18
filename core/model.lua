@@ -19,7 +19,9 @@ function model.get(product_id)
     if catch[product_id] then
         return catch[product_id]
     end
-    local mod = database.get("product_id", "id", product_id)
+
+    log.info(tag, "load model", product_id)
+    local mod = database.get("model", "id", product_id)
     if mod then
         catch[product_id] = mod
     end

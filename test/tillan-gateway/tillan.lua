@@ -52,7 +52,7 @@ local function load_product(id)
         prod.indexed_points = {}
 
         -- 索引
-        for i, p in ipairs(prod.points) do
+        for _, p in ipairs(prod.points) do
             prod.indexed_points[p.id] = p
         end
 
@@ -86,7 +86,7 @@ end
 
 local function handle_can(id, data)
 
-    local proto = (id >> 26)
+    -- local proto = (id >> 26)
     local type = (id >> 24) & 0x3
     local product_id = (id >> 16) & 0xff
     local device_id = (id >> 8) & 0xff
@@ -147,9 +147,10 @@ local function handle_can(id, data)
         val = string.toHex(val)
     elseif point.type == "bits" then
         -- val = string.sub(data, 3)
-        _, seq, ok, val = pack.unpack(data, "b2>I")
+        -- _, seq, ok, val = pack.unpack(data, "b2>I")
+        _, _, _, val = pack.unpack(data, "b2>I")
 
-        for i, p in ipairs(point.bits) do
+        for _, p in ipairs(point.bits) do
             local size = p.size or 1
             local v = (val >> p.bit) & ((0x1 << size) - 1)
 
@@ -187,7 +188,8 @@ local function can_cb(id, cb_type, param)
     if cb_type == can.CB_MSG then
         -- log.info("有新的消息")
 
-        local succ, id, id_type, rtr, data = can.rx(id)
+        -- local succ, id, id_type, rtr, data = can.rx(id)
+        local succ, _, _, _, data = can.rx(id)
         while succ do
             -- log.info(mcu.x32(id), #data, data:toHex())
 
@@ -195,7 +197,7 @@ local function can_cb(id, cb_type, param)
             handle_can(id, data)
 
             -- 继续接收
-            succ, id, id_type, rtr, data = can.rx(id)
+            succ, _, _, _, data = can.rx(id)
         end
 
     elseif cb_type == can.CB_TX then
@@ -213,7 +215,7 @@ end
 
 local function upload(all)
     log.info("upload()", json.encode(devices))
-    for k, device in pairs(devices) do
+    for _, device in pairs(devices) do
         if device.sn == nil then
             if device.values.sn1 ~= nil and device.values.sn5 ~= nil then
                 -- device.sn = 
