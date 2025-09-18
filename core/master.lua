@@ -2,23 +2,17 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
-
 --- 小白主程序
--- @module noob
-local noob = {}
+-- @module master
+local master = {}
 
-local tag = "noob"
+local tag = "master"
 
 local commands = require("commands")
 local configs = require("configs")
-local links = require("links")
--- local devices = require("devices")
-local products = require("products")
--- local battery = require("battery")
--- local gnss = require("gnss")
-
+local gateway = require("gateway")
 local MqttClient = require("mqtt_client")
+local database = require("database")
 
 --- @type MqttClient
 local cloud = nil -- MqttClient:new()
@@ -28,7 +22,7 @@ local default_options = {
     enable = true,
     host = "hub.busycloud.cn",
     port = 1883,
-    key = "noob"
+    key = "master"
 }
 
 -- 开始透传
@@ -38,13 +32,18 @@ local function on_pipe_start(_, payload)
     if ret == 0 then
         return
     end
-    -- data.link TODO close protocol
-    local link = links.get(data.link)
-    cloud:subscribe("noob/" .. options.id .. "/" .. data.link .. "/down", function(_, dat)
+
+    local link = gateway.get_link_instanse(data.link)
+    if not link then
+        return
+    end
+
+    cloud:subscribe("noob/" .. options.id .. "/link/" .. data.link .. "/down", function(_, dat)
         link.write(dat)
     end)
+
     link:watch(function(dat)
-        cloud:publish("noob/" .. options.id .. "/" .. data.link .. "/up", dat)
+        cloud:publish("noob/" .. options.id .. "/link/" .. data.link .. "/up", dat)
     end)
 end
 
@@ -55,9 +54,13 @@ local function on_pipe_stop(_, payload)
     if ret == 0 then
         return
     end
-    -- data.link TODO open protocol
-    local link = links.get(data.link)
-    cloud:unsubscribe("noob/" .. options.id .. "/" .. data.link .. "/down")
+
+    local link = gateway.get_link_instanse(data.link)
+    if not link then
+        return
+    end
+
+    cloud:unsubscribe("noob/" .. options.id .. "/link/" .. data.link .. "/down")
     link:watch(nil)
 end
 
@@ -77,7 +80,7 @@ local function on_command(_, payload)
                 response = commands.error(response)
             end
         else
-            response = commands.error("invalid command")
+            response = commands.error("未知命令")
         end
     else
         response = commands.error(err)
@@ -93,6 +96,36 @@ local function on_command(_, payload)
     end
 end
 
+local function on_link(_, payload)
+    log.info(tag, "on_link", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    database.insert("link", data.id, data)
+end
+
+local function on_device(_, payload)
+    log.info(tag, "on_device", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    database.insert("device", data.id, data)
+end
+
+local function on_model(_, payload)
+    log.info(tag, "on_model", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    database.insert("model", data.id, data)
+end
+
 -- 上报设备信息
 local function register()
     log.info(tag, "report_info")
@@ -103,22 +136,6 @@ local function register()
         imsi = mobile.imsi(),
         iccid = mobile.iccid()
     }
-
-    -- 同步信息，服务器接收后，远程下发数据
-    local ret, lnks = configs.load("links")
-    if ret then
-        info.links = #lnks
-    end
-    local ret2, devices = configs.load("devices")
-    if ret2 then
-        info.devices = #devices
-    end
-
-    -- 需要同步的配置
-    local ret3, cfgs = products.wanted()
-    if ret3 then
-        info.wanted_configs = cfgs
-    end
 
     cloud:publish("noob/" .. options.id .. "/register", info)
 end
@@ -165,7 +182,7 @@ local function report_status()
     cloud:publish("noob/" .. options.id .. "/status", status)
 end
 
-function noob.init()
+function master.open()
     -- 加载配置
     options = configs.load_default(tag, default_options)
     if not options.enable then
@@ -184,10 +201,7 @@ function noob.init()
     options.clienid = options.id
     options.username = options.id
     options.password = crypto.md5(options.id .. options.key)
-end
 
---- 打开网关
-function noob.open()
     -- 连接云平台
     cloud = MqttClient:new(options)
     local ret = cloud:open()
@@ -207,38 +221,38 @@ function noob.open()
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
     cloud:subscribe("noob/" .. options.id .. "/pipe/stop", on_pipe_stop)
     cloud:subscribe("noob/" .. options.id .. "/command", on_command)
-
-    -- 订阅系统消息
-
-    -- 设备属性上报
-    sys.subscribe("DEVICE_VALUES", function(dev, values)
-        cloud:publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
-    end)
-
-    -- 设备事件上报
-    sys.subscribe("DEVICE_EVENT", function(dev, event)
-        cloud:publish("device/" .. dev.product_id .. "/" .. dev.id .. "/event", event)
-    end)
+    cloud:subscribe("noob/" .. options.id .. "/link", on_link)
+    cloud:subscribe("noob/" .. options.id .. "/device", on_device)
+    cloud:subscribe("noob/" .. options.id .. "/model", on_model)
 
 end
 
 --- 关闭网关
-function noob.close()
+function master.close()
     cloud:close()
     cloud = nil
 end
 
-local noob_ok = false
+function master.task()
+    sys.wait("IP_READY")
 
-sys.subscribe("IP_READY", function()
-    -- 启动网关系统程序
-    if not noob_ok then
-        noob.open()
-        noob_ok = true
+    master.open();
+
+    register()
+    sys.timerLoopStart(report_status, 1000 * 60 * 10) -- 10分钟上传一次状态
+
+    while true do
+        -- 上报数据？
+        -- local devices = gateway.get_all_device_instanse();
+        -- for id, dev in pairs(devices) do
+        --     -- TODO 定时上传
+        --     local values = dev.values()
+        -- end
+
+        sys.wait(60 * 1000)
     end
-end)
+end
 
--- 初始化
-noob.init()
+sys.taskInit(master.task)
 
-return noob
+return master

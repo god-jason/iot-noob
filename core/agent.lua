@@ -4,17 +4,17 @@
 -- @copyright benyi 2025
 
 
---- 询问器，阻塞执行，一问一答，方便主从模式编程
--- @module Ask
-local Ask = {}
+--- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
+-- @module Agent
+local Agent = {}
 
-local tag = "Ask"
+local tag = "Agent"
 
 --- 创建询问器
 -- @param link Link 连接
 -- @param timeout integer 超时 ms
--- @return Ask
-function Ask:new(link, timeout)
+-- @return Agent
+function Agent:new(link, timeout)
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
@@ -29,7 +29,7 @@ end
 -- @param len integer 期望长度
 -- @return boolean 成功与否
 -- @return string 返回数据
-function Ask:ask(request, len)
+function Agent:ask(request, len)
 
     -- 重入锁，等待其他操作完成
     while self.asking do
@@ -73,4 +73,4 @@ function Ask:ask(request, len)
 end
 
 
-return Ask
+return Agent

@@ -114,7 +114,14 @@ function MqttClient:open()
     end)
 
     -- 连接
-    return self.client:connect()
+    local ret = self.client:connect()
+    if not ret then
+        return false
+    end
+
+    sys.waitUtil("MQTT_CONNECT_" .. self.id)
+
+    return true
 end
 
 --- 关闭平台（不太需要）
