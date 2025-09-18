@@ -12,21 +12,21 @@ local tag = "Serial"
 require("gateway").register_link("serial", Serial)
 
 ---创建串口实例
--- @param opts table
+-- @param obj table
 -- @return table
-function Serial:new(opts)
-    local obj = {}
-    setmetatable(obj, self)
+function Serial:new(obj)
+    local lnk = obj or {}
+    setmetatable(lnk, self)
     self.__index = self
-    obj.id = opts.id or "serial-" .. opts.port
-    obj.port = opts.port or 1
-    obj.baud_rate = opts.baud_rate or 9600
-    obj.data_bits = opts.data_bits or 8
-    obj.stop_bits = opts.stop_bits or 1
-    obj.parity = opts.parity or 'N'
-    obj.rs485_gpio = opts.rs485_gpio -- TODO 应该写在网关配置里面
-    obj.asking = false
-    return obj
+    lnk.id = lnk.id or "serial-" .. lnk.port
+    lnk.port = lnk.port or 1
+    lnk.baud_rate = lnk.baud_rate or 9600
+    lnk.data_bits = lnk.data_bits or 8
+    lnk.stop_bits = lnk.stop_bits or 1
+    lnk.parity = lnk.parity or 'N'
+    lnk.rs485_gpio = lnk.rs485_gpio -- TODO 应该写在网关配置里面
+    lnk.asking = false
+    return lnk
 end
 
 --- 打开
@@ -77,6 +77,10 @@ function Serial:read()
     if len > 0 then
         local data = uart.read(self.port, len)
         log.info(tag, "read", self.port, #data)
+
+        if self.watcher then
+            self.watcher(data) --转发到监听器
+        end
         return true, data
     end
     return false

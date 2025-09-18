@@ -8,8 +8,14 @@
 -- 所有连接必须继承Link，并实现标准接口
 -- @module link
 local Link = {}
+Link.__index = Link
 
-_G.Link = Link -- 注册到全局变量
+---  创建实例，子类定义可参考
+-- @param table 连接对象
+-- @return boolean, error
+function Link:new(obj)
+    return setmetatable(obj or {}, self)
+end
 
 ---  打开
 -- @return boolean, error
@@ -46,6 +52,12 @@ end
 function Link:wait(timeout)
     self.__index = timeout -- 避免self未使用错误提醒
     return false, "Link wait(timeout) must be implemented!"
+end
+
+--- 注册监听回调
+-- @param cb function(data)
+function Link:watch(cb)
+    self.watcher = cb
 end
 
 return Link

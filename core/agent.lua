@@ -7,21 +7,19 @@
 --- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
 -- @module agent
 local Agent = {}
+Agent.__index = Agent
 
 local tag = "Agent"
 
 --- 创建询问器
--- @param link Link 连接
+-- @param link Link 连接实例
 -- @param timeout integer 超时 ms
 -- @return Agent
 function Agent:new(link, timeout)
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.link = link
-    obj.timeout = timeout
-    obj.asking = false
-    return obj
+    local agent = setmetatable(link, self) --继承连接
+    agent.timeout = timeout
+    agent.asking = false
+    return agent
 end
 
 --- 询问
@@ -39,7 +37,7 @@ function Agent:ask(request, len)
 
     -- log.info(tag, "ask", request, len)
     if request ~= nil and #request > 0 then
-        local ret = self.link:write(request)
+        local ret = self:write(request)
         if not ret then
             log.error(tag, "write failed")
             self.asking = false
@@ -52,14 +50,14 @@ function Agent:ask(request, len)
     local buf = ""
     repeat
         -- 应该不是每次都要等待
-        local ret = self.link:wait(self.timeout)
+        local ret = self:wait(self.timeout)
         if not ret then
             log.error(tag, "read timeout")
             self.asking = false
             return false
         end
 
-        local r, d = self.link:read()
+        local r, d = self:read()
         if not r then
             log.error(tag, "read failed")
             self.asking = false

@@ -2,70 +2,212 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
-
 --- Modbus 协议实现
--- @module protocol_modbus
-
-local Device = {}
+-- @module modbus_device
+local ModbusDevice = {}
+ModbusDevice.__index = ModbusDevice
 
 local tag = "modbus"
 
-local devices = require("devices")
-local products = require("products")
+local Agent = require("agent")
+local Device = require("device")
+
+local database = require("database")
+local gateway = require("gateway")
 local points = require("points")
 
+local mapper_cache = {}
+
+-- 升序排列
+local function sortPoint(pt1, pt2)
+    return pt1.address < pt2.address
+end
+
+local function load_mapper(product_id)
+    if mapper_cache[product_id] then
+        return mapper_cache[product_id]
+    end
+
+    local model = database.get("model", product_id)
+    if not model then
+        return nil
+    end
+
+    local mapper = {
+        coils = {},
+        discrete_inputs = {},
+        holding_registers = {},
+        input_registers = {},
+        pollers = {}
+    }
+
+    -- 分类
+    for _, p in ipairs(model.properties or {}) do
+        for _, pt in ipairs(p.points) do
+            if pt.register == 1 then
+                table.insert(mapper.coils, pt)
+            elseif pt.register == 2 then
+                table.insert(mapper.discrete_inputs, pt)
+            elseif pt.register == 3 then
+                table.insert(mapper.holding_registers, pt)
+            elseif pt.register == 4 then
+                table.insert(mapper.input_registers, pt)
+            end
+        end
+    end
+
+    -- 排序
+    table.sort(mapper.coils, sortPoint)
+    table.sort(mapper.discrete_inputs, sortPoint)
+    table.sort(mapper.holding_registers, sortPoint)
+    table.sort(mapper.input_registers, sortPoint)
+
+    -- 计算轮询
+    if #mapper.coils > 0 then
+        local begin = mapper.coils[0]
+        local last = begin
+        for i = 2, #mapper.coils, 1 do
+            if mapper.coils[i].address > last.address + 1 then
+                table.insert(mapper.pollers, {
+                    register = 1,
+                    address = begin.address,
+                    length = last.address - begin.address + 1
+                })
+                begin = mapper.coils[i]
+            end
+            last = mapper.coils[i]
+        end
+        table.insert(mapper.pollers, {
+            register = 1,
+            address = begin.address,
+            length = last.address - begin.address + 1
+        })
+    end
+    if #mapper.discrete_inputs > 0 then
+        local begin = mapper.discrete_inputs[0]
+        local last = begin
+        for i = 2, #mapper.discrete_inputs, 1 do
+            if mapper.discrete_inputs[i].address > last.address + 1 then
+                table.insert(mapper.pollers, {
+                    register = 2,
+                    address = begin.address,
+                    length = last.address - begin.address + 1
+                })
+                begin = mapper.discrete_inputs[i]
+            end
+            last = mapper.discrete_inputs[i]
+        end
+        table.insert(mapper.pollers, {
+            register = 2,
+            address = begin.address,
+            length = last.address - begin.address + 1
+        })
+    end
+    if #mapper.holding_registers > 0 then
+        local begin = mapper.holding_registers[0]
+        local last = begin
+        for i = 2, #mapper.holding_registers, 1 do
+
+            local feagure = points.feagure[last.type]
+            if feagure then
+                if mapper.holding_registers[i].address > last.address + feagure.word then
+                    table.insert(mapper.pollers, {
+                        register = 3,
+                        address = begin.address,
+                        length = last.address - begin.address + feagure.word
+                    })
+                    begin = mapper.holding_registers[i]
+                end
+            end
+
+            last = mapper.holding_registers[i]
+        end
+
+        local feagure = points.feagure[last.type]
+        if feagure then
+            table.insert(mapper.pollers, {
+                register = 3,
+                address = begin.address,
+                length = last.address - begin.address + feagure.word
+            })
+        end
+    end
+    if #mapper.input_registers > 0 then
+        local begin = mapper.input_registers[0]
+        local last = begin
+        for i = 2, #mapper.input_registers, 1 do
+
+            local feagure = points.feagure[last.type]
+            if feagure then
+                if mapper.input_registers[i].address > last.address + feagure.word then
+                    table.insert(mapper.pollers, {
+                        register = 4,
+                        address = begin.address,
+                        length = last.address - begin.address + feagure.word
+                    })
+                    begin = mapper.input_registers[i]
+                end
+            end
+
+            last = mapper.input_registers[i]
+        end
+
+        local feagure = points.feagure[last.type]
+        if feagure then
+            table.insert(mapper.pollers, {
+                register = 4,
+                address = begin.address,
+                length = last.address - begin.address + feagure.word
+            })
+        end
+    end
+
+    mapper_cache[product_id] = mapper
+    return mapper
+end
 
 ---创建设备
+-- @param obj table 设备参数
 -- @param master Modbus 主站实例
--- @param dev table 设备参数
 -- @return Device 实例
-function Device:new(master, dev)
-    local obj = dev or {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.master = master
-    return obj
+function ModbusDevice:new(obj, master)
+    local dev = setmetatable(Device:new(obj), self) -- 继承Device
+    dev.master = master
+    return dev
 end
 
 ---打开设备
-function Device:open()
+function ModbusDevice:open()
     log.info(tag, "device open", self.id, self.product_id)
-
-    local ret
-    ret, self.options = products.load_config(self.product_id, "modbus")
-    if not ret then
-        log.error(tag, self.product_id, "modbus_mapper load failed")
-    end
+    self.mapper = load_mapper(self.product_id)
 end
 
 ---查找点位
 -- @param key string 点位名称
 -- @return boolean 成功与否
 -- @return table 点位
--- @return integer 功能码
-function Device:_find_point(key)
-    if not self.options or not self.options.mapper then
+function ModbusDevice:find_point(key)
+    if not self.mapper then
         return false
     end
-    for _, p in ipairs(self.options.mapper.coils) do
+    for _, p in ipairs(self.mapper.coils) do
         if p.name == key then
-            return true, p, 1
+            return true, p
         end
     end
-    for _, p in ipairs(self.options.mapper.discrete_inputs) do
+    for _, p in ipairs(self.mapper.discrete_inputs) do
         if p.name == key then
-            return true, p, 2
+            return true, p
         end
     end
-    for _, p in ipairs(self.options.mapper.holding_registers) do
+    for _, p in ipairs(self.mapper.holding_registers) do
         if p.name == key then
-            return true, p, 3
+            return true, p
         end
     end
-    for _, p in ipairs(self.options.mapper.input_registers) do
+    for _, p in ipairs(self.mapper.input_registers) do
         if p.name == key then
-            return true, p, 4
+            return true, p
         end
     end
     return false
@@ -75,46 +217,53 @@ end
 -- @param key string 点位
 -- @return boolean 成功与否
 -- @return any
-function Device:get(key)
+function ModbusDevice:get(key)
     log.info(tag, "get", key, self.id)
-    local ret, point, code = self:_find_point(key)
+    local ret, point = self:find_point(key)
     if not ret then
         return false
     end
 
     local data
-    if code == 1 or code == 2 then
-        ret, data = self.master:read(self.station.slave, code, point.address, 1)
+    if point.register == 1 or point.register == 2 then
+        ret, data = self.master:read(self.station.slave, point.register, point.address, 1)
         if not ret then
             return false
         end
         -- 直接判断返回值就行了 FF00 0000
-        return true, points.parseBit(point, data, point.address)
-    else
+        ret, data = points.parseBit(point, data, point.address)
+    elseif point.register == 3 or point.register == 4 then
         local feagure = points.feature(point.type)
         if not feagure then
             return false
         end
-        ret, data = self.master:read(self.station.slave, code, point.address, feagure.word)
+        ret, data = self.master:read(self.station.slave, point.register, point.address, feagure.word)
         if not ret then
             return false
         end
-        return true, points.parseWord(point, data, point.address)
+        ret, data = points.parseWord(point, data, point.address)
     end
+
+    -- 替换到缓存中
+    if ret then
+        self:put_value(key, data)
+    end
+    return ret, data
 end
 
 ---写入数据
 -- @param key string 点位
 -- @param value any 值
 -- @return boolean 成功与否
-function Device:set(key, value)
+function ModbusDevice:set(key, value)
     log.info(tag, "set", key, value, self.id)
-    local ret, point, code = self:_find_point(key)
+    local ret, point = self:find_point(key)
     if not ret then
         return false
     end
 
     local data
+    local code = point.register
 
     -- 编码数据
     if code == 1 or code == 2 then
@@ -136,69 +285,61 @@ function Device:set(key, value)
 end
 
 ---读取所有数据
--- @return boolean 成功与否
--- @return table|nil 值
-function Device:poll()
+function ModbusDevice:poll()
     log.info(tag, "poll", self.id)
     -- log.info(tag, "poller", json.encode(self.options.pollers))
 
     -- 没有轮询器，直接返回
-    if not self.options or not self.options.pollers or #self.options.pollers == 0 then
+    if not self.mapper.pollers or #self.mapper.pollers == 0 then
         log.info(tag, self.id, self.product_id, "pollers empty")
         return false
     end
 
-    local ret = false
-    local values = {}
-    for _, poller in ipairs(self.options.pollers) do
-        local res, data = self.master:read(self.station.slave, poller.code, poller.address, poller.length)
+    for _, poller in ipairs(self.mapper.pollers) do
+        local res, data = self.master:read(self.slave, poller.register, poller.address, poller.length)
         if res then
             log.info(tag, "poll read", #data)
 
-            if poller.code == 1 then
+            if poller.register == 1 then
                 -- log.info(tag, "parse 1 ", #data)
                 for _, point in ipairs(self.options.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
-                            ret = true
-                            values[point.name] = v
+                            self:put_value(point.name, v)
                         end
                     end
                 end
                 -- log.info(tag, "parse 1 ", json.encode(values))
-            elseif poller.code == 2 then
+            elseif poller.register == 2 then
                 -- log.info(tag, "parse 2 ", #data)
                 for _, point in ipairs(self.options.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
-                            ret = true
-                            values[point.name] = v
+                            self:put_value(point.name, v)
                         end
                     end
                 end
                 -- log.info(tag, "parse 2 ", json.encode(values))
-            elseif poller.code == 3 then
+            elseif poller.register == 3 then
                 -- log.info(tag, "parse 3 ", #data)
                 for _, point in ipairs(self.options.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
-                            ret = true
-                            values[point.name] = v
+                            self:put_value(point.name, v)
                         end
                     end
                 end
                 -- log.info(tag, "parse 3 ", json.encode(values))
-            elseif poller.code == 4 then
+            elseif poller.register == 4 then
                 -- log.info(tag, "parse 4 ", #data)
                 for _, point in ipairs(self.options.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
-                            ret = true
-                            values[point.name] = v
+                            self:put_value(point.name, v)
                         end
                     end
                 end
@@ -211,34 +352,31 @@ function Device:poll()
             log.error(tag, "poll read failed")
         end
     end
-    return ret, values
 end
 
----Modbus Master 类型
--- module Master
-local Master = {}
+---Modbus主站
+-- @module modbus_master
+local ModbusMaster = {}
+ModbusMaster.__index = ModbusMaster
 
-require("protocols").register("modbus", Master)
+gateway.register("modbus", ModbusMaster)
 
 ---创建实例
 -- @param link any 连接实例
 -- @param opts table 协议参数
 -- @return Master
-function Master:new(link, opts)
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.link = link
-    obj.timeout = opts.timeout or 1000 -- 1秒钟
-    obj.poller_interval = opts.poller_interval or 5 -- 5秒钟
-    obj.tcp = opts.tcp or false -- modbus tcp
-    obj.increment = 1
+function ModbusMaster:new(link, opts)
+    local master = setmetatable({}, ModbusMaster)
+    master.link = Agent:new(link)
+    master.timeout = opts.timeout or 1000 -- 1秒钟
+    master.poller_interval = opts.poller_interval or 5 -- 5秒钟
+    master.tcp = opts.tcp or false -- modbus tcp
+    master.increment = 1 -- modbus-tcp序号
 
-    return obj
+    return master
 end
 
-
-function Master:readTCP(slave, code, addr, len)
+function ModbusMaster:readTCP(slave, code, addr, len)
     log.info(tag, "readTCP", slave, code, addr, len)
 
     local data = pack.pack("b2>H2", slave, code, addr, len)
@@ -284,7 +422,7 @@ end
 -- @param len integer 长度
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Master:read(slave, code, addr, len)
+function ModbusMaster:read(slave, code, addr, len)
     if self.tcp then
         return self:readTCP(slave, code, addr, len)
     end
@@ -323,7 +461,7 @@ function Master:read(slave, code, addr, len)
     return true, string.sub(buf, 4, len2 - 2)
 end
 
-function Master:writeTCP(slave, code, addr, data)
+function ModbusMaster:writeTCP(slave, code, addr, data)
     log.info(tag, "writeTCP", slave, code, addr, data)
 
     data = pack.pack("b2>H", slave, code, addr) .. data
@@ -369,7 +507,7 @@ end
 -- @param addr integer 地址
 -- @param data string 数据
 -- @return boolean 成功与否
-function Master:write(slave, code, addr, data)
+function ModbusMaster:write(slave, code, addr, data)
     if code == 1 then
         code = 5
         if data then
@@ -412,7 +550,7 @@ function Master:write(slave, code, addr, data)
 end
 
 ---打开主站
-function Master:open()
+function ModbusMaster:open()
     if self.opened then
         log.error(tag, "already opened")
         return
@@ -426,7 +564,7 @@ function Master:open()
     self.devices = {}
     for _, d in ipairs(ds) do
         log.info(tag, "open device", json.encode(d))
-        local dev = Device:new(self, d)
+        local dev = self:new(d, ModbusMaster)
         dev:open() -- 设备也要打开
 
         self.devices[d.id] = dev
@@ -435,7 +573,7 @@ function Master:open()
     end
 
     -- 开启轮询
-    local this = self
+    local this = ModbusMaster
     self.task = sys.taskInit(function()
         -- 这个写法。。。
         this:_polling()
@@ -443,13 +581,13 @@ function Master:open()
 end
 
 --- 关闭
-function Master:close()
+function ModbusMaster:close()
     self.opened = false
     self.devices = {}
 end
 
 --- 轮询
-function Master:_polling()
+function ModbusMaster:_polling()
 
     -- 轮询间隔
     local interval = self.poller_interval or 60

@@ -6,6 +6,7 @@
 --- 连接相关
 -- @module mqtt_client
 local MqttClient = {}
+MqttClient.__index = MqttClient
 
 local tag = "MqttClient"
 
@@ -16,19 +17,17 @@ local increment = 1
 -- @param opts table
 -- @return table
 function MqttClient:new(opts)
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.id = increment
+    local client = setmetatable({}, self)
+    client.id = increment
     increment = increment + 1
-    obj.options = opts -- 参数
-    obj.client = nil -- MQTT连接
-    obj.subs = {} -- 订阅历史
-    obj.sub_tree = {
+    client.options = opts -- 参数
+    client.client = nil -- MQTT连接
+    client.subs = {} -- 订阅历史
+    client.sub_tree = {
         children = {}, -- topic->sub_tree
         callbacks = {}
     } -- 订阅树
-    return obj
+    return client
 end
 
 --- 查询订阅树
