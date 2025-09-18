@@ -61,9 +61,16 @@ function Device:poll()
     return false, error_unmount
 end
 
----  轮询
+---  变量
 -- @return table k->{value->any, time->int}
 function Device:values()
+    self.__index = self -- 避免self未使用错误提醒
+    return false, error_unmount
+end
+
+---  变化的变量
+-- @return table k->{value->any, time->int}
+function Device:modified_values()
     self.__index = self -- 避免self未使用错误提醒
     return false, error_unmount
 end

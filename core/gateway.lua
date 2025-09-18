@@ -36,6 +36,12 @@ function gateway.get_device_instanse(id)
     return _devices[id]
 end
 
+--- 获得所有设备实例
+-- @return table id->Device 实例
+function gateway.get_all_device_instanse()
+    return _devices
+end
+
 --- 连接类
 local links = {}
 

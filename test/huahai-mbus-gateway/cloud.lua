@@ -5,6 +5,24 @@ local configs = require("configs")
 local MqttClient = require("mqtt_client")
 local gateway = require("gateway")
 
+local increment = 0
+
+local function get_increment()
+    increment = increment + 1
+    if increment > 999999 then
+        increment = 1
+    end
+    return tostring(increment)
+end
+
+local function create_package(params)
+    return {
+        id = get_increment(),
+        version = "1.0",
+        params = params
+    }
+end
+
 --- 平台连接
 local client = nil
 
@@ -18,12 +36,19 @@ local config = {
 
 local topics = {}
 
-local function property_post()
-
+local function property_post(values)
+    local payload = create_package(values)
+    client:publish(topics.pack_post, payload)
 end
 
-local function event_post()
-
+local function event_post(name, args)
+    local payload = create_package({
+        [name] = {
+            value = args,
+            time = os.time()
+        }
+    })
+    client:publish(topics.event_post, payload)
 end
 
 local function on_service_invoke(_, payload)
@@ -32,7 +57,10 @@ local function on_service_invoke(_, payload)
     if ret == 0 then
         return
     end
+    payload.success = false
+    payload.msg = "不支持"
 
+    client:publish(topics.service_invoke_reply, payload)
 end
 
 local function on_property_get(_, payload)
@@ -42,7 +70,8 @@ local function on_property_get(_, payload)
         return
     end
 
-    payload.data = {}
+    payload.success = false
+    payload.msg = "不支持"
     client:publish(topics.property_get_reply, payload)
 end
 
@@ -53,71 +82,56 @@ local function on_property_set(_, payload)
         return
     end
 
-    payload.data = {}
+    payload.success = false
+    payload.msg = "不支持"
     client:publish(topics.property_set_reply, payload)
 end
 
 local function pack_post(id, product_id, values)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {{
-            identify = {
-                productID = product_id,
-                deviceName = id
-            },
-            properties = values
-        }}
-    }
 
+    local payload = create_package({{
+        identify = {
+            productID = product_id,
+            deviceName = id
+        },
+        properties = values
+    }})
     client:publish(topics.pack_post, payload)
 end
 
 local function history_post(id, product_id, values)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {{
-            identify = {
-                productID = product_id,
-                deviceName = id
-            },
-            properties = values
-            -- properties = {
-            --     key = {{
-            --         value = value,
-            --         time = time
-            --     },{
-            --         value = value,
-            --         time = time
-            --     },}
-            -- }
-        }}
-    }
+    local payload = create_package({{
+        identify = {
+            productID = product_id,
+            deviceName = id
+        },
+        properties = values
+        -- properties = {
+        --     key = {{
+        --         value = value,
+        --         time = time
+        --     },{
+        --         value = value,
+        --         time = time
+        --     },}
+        -- }
+    }})
     client:publish(topics.history_post, payload)
 end
 
 local function sub_login(id, product_id)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {
-            productID = product_id,
-            deviceName = id
-        }
-    }
+    local payload = create_package({
+        productID = product_id,
+        deviceName = id
+    })
     client:publish(topics.sub_login, payload)
 end
 
 local function sub_logout(id, product_id)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {
-            productID = product_id,
-            deviceName = id
-        }
-    }
+    local payload = create_package({
+        productID = product_id,
+        deviceName = id
+    })
     client:publish(topics.sub_logout, payload)
 end
 
@@ -131,10 +145,12 @@ local function on_sub_property_get(_, payload)
     local id = payload.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
+        payload.success = false
         payload.msg = "找不到设备"
         client:publish(topics.sub_property_get_reply, payload)
     end
 
+    payload.code = 200
     payload.data = {}
     for _, key in ipairs(payload.params) do
         payload.data[key] = dev.get(key)
@@ -157,50 +173,46 @@ local function on_sub_property_set(_, payload)
         client:publish(topics.sub_property_set_reply, payload)
     end
 
-    for key, value in pairs(payload.params) do
+    for key, value in pairs(payload.params.params) do
         dev.set(key, value)
     end
 
-    payload.data = {
-        check = nil,
-        code = 200,
-        id = "1",
-        msg = "ok"
-    }
+    payload.code = 200
     client:publish(topics.sub_property_set_reply, payload)
 end
 
+local function on_sub_service_invoke(_, payload)
+    log.info(tag, "on_sub_service_invoke", payload)
+    local data, ret = json.decode(payload)
+    if ret == 0 then
+        return
+    end
+
+    payload.success = false
+    payload.msg = "不支持"
+    client:publish(topics.sub_service_invoke_reply, payload)
+end
+
 local function sub_topo_add(id, product_id)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {
-            productID = product_id,
-            deviceName = id,
-            sasToken = ""
-        }
-    }
+    local payload = create_package({
+        productID = product_id,
+        deviceName = id,
+        sasToken = "" -- TODO Token哪里来
+    })
     client:publish(topics.sub_topo_add, payload)
 end
 
 local function sub_topo_delete(id, product_id)
-    local payload = {
-        id = "1",
-        version = "1.0",
-        params = {
-            productID = product_id,
-            deviceName = id,
-            sasToken = ""
-        }
-    }
+    local payload = create_package({
+        productID = product_id,
+        deviceName = id,
+        sasToken = ""
+    })
     client:publish(topics.sub_topo_delete, payload)
 end
 
 local function sub_topo_get(id)
-    local payload = {
-        id = "1",
-        version = "1.0"
-    }
+    local payload = create_package({})
     client:publish(topics.sub_topo_get, payload)
 end
 
@@ -229,6 +241,16 @@ function cloud.open()
         return false
     end
     config = data
+
+    -- oneNet鉴权
+    local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key)
+    log.info(tag, "auth result", clientid, username, password)
+
+    client = MqttClient:new({
+        clientid = clientid,
+        username = username,
+        password = password
+    })
 
     -- 创建主题
     local topic_prefix = "$sys/" .. config.product_id .. "/" .. config.device_name .. "/thing/"
@@ -278,23 +300,61 @@ function cloud.open()
         sub_topo_change = topic_prefix .. "sub/topo/change", -- 订阅 通知子设备变化
         sub_topo_change_reply = topic_prefix .. "sub/topo/change/reply"
     }
-
-    local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key)
-    log.info(tag, "auth result", clientid, username, password)
-
-    client = MqttClient:new({
-        clientid = clientid,
-        username = username,
-        password = password
-    })
+    -- 订阅全部主题
+    client:subscribe(topics.property_get, on_property_get)
+    client:subscribe(topics.property_set, on_property_set)
+    client:subscribe(topics.service_invoke, on_service_invoke)
+    client:subscribe(topics.sub_property_get, on_sub_property_get)
+    client:subscribe(topics.sub_property_set, on_sub_property_set)
+    client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
+    client:subscribe(topics.sub_topo_change, on_sub_topo_change)
 
     return client:open()
 end
 
-function cloud.subscribe()
-    for _, topic in ipairs(topics) do
-        client.subscribe(topic)
+local function report_all()
+    local devices = gateway.get_all_device_instanse();
+
+    for id, dev in pairs(devices) do
+        local values = dev.values()
+        pack_post(id, dev.product_id, values)
     end
 end
+
+function cloud.task()
+
+    cloud.open()
+    
+    sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
+
+    while true do
+
+        local devices = gateway.get_all_device_instanse();
+
+        for id, dev in pairs(devices) do
+            -- 1 设备上线
+            if not dev._registered then
+                sub_login(id, dev.product_id)
+                dev._registered = true
+            end
+
+            -- 2 定时上传
+            local values = dev.modified_values()
+
+            local has = false
+            for k, v in pairs(values) do
+                has = true
+            end
+            if has then
+                pack_post(id, dev.product_id, values)
+            end
+        end
+
+        sys.wait(5000)
+    end
+
+end
+
+sys.taskInit(cloud.task)
 
 return cloud
