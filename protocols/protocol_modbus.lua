@@ -564,12 +564,12 @@ function ModbusMaster:open()
     self.devices = {}
     for _, d in ipairs(ds) do
         log.info(tag, "open device", json.encode(d))
-        local dev = self:new(d, ModbusMaster)
+        local dev = ModbusDevice:new(d, self)
         dev:open() -- 设备也要打开
 
         self.devices[d.id] = dev
-        -- dev.open()
-        devices.set(d.id, dev)
+
+        gateway.register_device_instanse(d.id, dev)
     end
 
     -- 开启轮询

@@ -11,7 +11,7 @@ local Link = {}
 Link.__index = Link
 
 ---  创建实例，子类定义可参考
--- @param table 连接对象
+-- @param obj table 连接对象
 -- @return boolean, error
 function Link:new(obj)
     return setmetatable(obj or {}, self)
