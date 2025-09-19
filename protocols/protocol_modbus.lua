@@ -608,10 +608,6 @@ function ModbusMaster:_polling()
                 local ret, values = dev:poll()
                 if ret then
                     log.info(tag, "polling", dev.id, "succeed")
-                    -- log.info(tag, "polling", dev.id, "values", json.encode(values))
-                    -- 向平台发布消息
-                    -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
-                    sys.publish("DEVICE_VALUES", dev, values)
                 else
                     log.error(tag, "polling", dev.id, "failed")
                 end

@@ -171,10 +171,23 @@ local types = {
         type = "datetime",
         size = 7
     },
+    ["YYMMDDhhmmss"] = {
+        type = "datetime6",
+        size = 7
+    },
     ["YYYYMMDD"] = {
         type = "date",
         size = 4
+    },
+    ["uint8"] = {
+        type = "uint8",
+        size = 1
+    },
+    ["uint16"] = {
+        type = "uint16",
+        size = 2
     }
+
 }
 
 ---创建设备
@@ -231,10 +244,12 @@ function Cjt188Device:poll()
         if ret then
             for _, point in ipairs(points) do
                 local fmt = types[point.type]
-                if fmt then
+                if fmt and #data > point.address then
+                    local str = data:sub(point.address + 1, point.address + fmt.size)
+
                     local value
                     if fmt.type == "bcd" then
-                        value = binary.decodeBCD(fmt.size, data:sub(point.address + 1, point.address + fmt.size))
+                        value = binary.decodeBCD(fmt.size, str)
                         if point.unit then
                             value = unit_convert(point.unit, value)
                         end
@@ -245,7 +260,7 @@ function Cjt188Device:poll()
                     elseif fmt.type == "hex" then
                         value = 0
                         for i = 1, fmt.size do
-                            value = (value << 8) | data:byte(i)
+                            value = (value << 8) | str:byte(1)
                         end
                         -- 取位，布尔型
                         if point.bit > 0 then
@@ -253,10 +268,24 @@ function Cjt188Device:poll()
                         end
                         self:put_value(point.key, value)
                     elseif fmt.type == "datetime" then
-                        value = binary.encodeHex(data:sub(1, fmt.size)) -- 字符串 YYYYMMDDhhmmss
+                        value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
                         self:put_value(point.key, value)
                     elseif fmt.type == "date" then
-                        value = binary.encodeHex(data:sub(1, fmt.size)) -- 字符串 YYYYMMDD
+                        value = binary.encodeHex(str) -- 字符串 YYYYMMDD
+                        self:put_value(point.key, value)
+                    elseif fmt.type == "datetime6" then
+                        value = "20" .. binary.encodeHex(str) -- 字符串
+                    elseif fmt.type == "u8" then
+                        _, value = pack.unpack("b", str)
+                        if fmt.rate then
+                            value = value * fmt.rate
+                        end
+                        self:put_value(point.key, value)
+                    elseif fmt.type == "u16" then
+                        _, value = pack.unpack(">H", str)
+                        if fmt.rate then
+                            value = value * fmt.rate
+                        end
                         self:put_value(point.key, value)
                     else
                         log.error(tag, "poll", self.id, "unknown format type", fmt.type)
@@ -271,6 +300,8 @@ function Cjt188Device:poll()
 
 end
 
+---Cjt188主站
+-- @module cjt188_master
 local Cjt188Master = {}
 Cjt188Master.__index = Cjt188Master
 
@@ -297,13 +328,13 @@ end
 -- @param di string 数据标识
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Cjt188Master:read(addr, type, di)
+function Cjt188Master:read(addr, type, code, di)
     log.info(tag, "read", addr, di)
     self.link.ask("abc", 7)
 
-    local data = pack.pack("b2", 0x68, type) -- 起始符，仪表类型
+    local data = pack.pack("b2", 0x68, binary.decodeHex(type or "20")) -- 起始符，仪表类型
     data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
-    data = data .. pack.pack("b2", 0x01, 3) -- 控制符，长度
+    data = data .. pack.pack("b2", binary.decodeHex(code or "01"), 3) -- 控制符，长度
     data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     data = data .. pack.pack("b1", self.increment) -- 序号
     self.increment = (self.increment + 1) % 256
@@ -351,11 +382,34 @@ end
 
 ---打开主站
 function Cjt188Master:open()
-    log.info(tag, "open")
-    local dev = Cjt188Device:new()
-    log.info(tag, dev)
-    table.insert(self.devices, dev) -- 先随便写，不测试
+    if self.opened then
+        log.error(tag, "already opened")
+        return
+    end
+    self.opened = true
 
+    -- 加载设备
+    -- local ds = devices.load_by_link(self.link.id)
+    local ds = database.find("device", "link_id", self.link.id)
+
+    -- 启动设备
+    self.devices = {}
+    for _, d in ipairs(ds) do
+        log.info(tag, "open device", json.encode(d))
+        local dev = Cjt188Device:new(d, self)
+        dev:open()
+
+        self.devices[d.id] = dev
+
+        gateway.register_device_instanse(d.id, dev)
+    end
+
+    -- 开启轮询
+    local this = ModbusMaster
+    self.task = sys.taskInit(function()
+        -- 这个写法。。。
+        this:_polling()
+    end)
 end
 
 --- 关闭
@@ -383,10 +437,6 @@ function Cjt188Master:_polling()
                 local ret, values = dev:poll()
                 if ret then
                     log.info(tag, "polling", dev.id, "succeed")
-                    -- log.info(tag, "polling", dev.id, "values", json.encode(values))
-                    -- 向平台发布消息
-                    -- cloud.publish("device/" .. dev.product_id .. "/" .. dev.id .. "/property", values)
-                    sys.publish("DEVICE_VALUES", dev, values)
                 else
                     log.error(tag, "polling", dev.id, "failed")
                 end
