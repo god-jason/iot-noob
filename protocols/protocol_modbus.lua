@@ -367,8 +367,9 @@ gateway.register_protocol("modbus", ModbusMaster)
 -- @return Master
 function ModbusMaster:new(link, opts)
     local master = setmetatable({}, self)
-    master.link = Agent:new(link)
+    master.link = link
     master.timeout = opts.timeout or 1000 -- 1秒钟
+    master.agent = Agent:new(link, master.timeout)
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟
     master.tcp = opts.tcp or false -- modbus tcp
     master.increment = 1 -- modbus-tcp序号
@@ -384,7 +385,7 @@ function ModbusMaster:readTCP(slave, code, addr, len)
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self.link:ask(header .. data, 12)
+    local ret, buf = self.agent:ask(header .. data, 12)
     if not ret then
         return false
     end
@@ -405,7 +406,7 @@ function ModbusMaster:readTCP(slave, code, addr, len)
     -- 取剩余数据
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
-        local r, d = self.link:ask(nil, len - #buf)
+        local r, d = self.agent:ask(nil, len - #buf)
         if not r then
             return false
         end
@@ -432,7 +433,7 @@ function ModbusMaster:read(slave, code, addr, len)
     local data = pack.pack("b2>H2", slave, code, addr, len)
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self.link:ask(data .. crc, 7)
+    local ret, buf = self.agent:ask(data .. crc, 7)
     if not ret then
         return false
     end
@@ -451,7 +452,7 @@ function ModbusMaster:read(slave, code, addr, len)
     local len2 = 5 + cnt
     if #buf < len2 then
         log.info(tag, "wait more", len2, #buf)
-        local r, d = self.link:ask(nil, len2 - #buf)
+        local r, d = self.agent:ask(nil, len2 - #buf)
         if not r then
             return false
         end
@@ -470,7 +471,7 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
     local header = pack.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self.link:ask(header .. data, 12)
+    local ret, buf = self.agent:ask(header .. data, 12)
     if not ret then
         return false
     end
@@ -491,7 +492,7 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
     -- 取剩余数据
     if #buf < len then
         log.info(tag, "wait more", len, #buf)
-        local r, d = self.link:ask(nil, len - #buf)
+        local r, d = self.agent:ask(nil, len - #buf)
         if not r then
             return false
         end
@@ -532,7 +533,7 @@ function ModbusMaster:write(slave, code, addr, data)
     data = pack.pack("b2>H", slave, code, addr) .. data
     local crc = pack.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self.link:ask(data .. crc, 7)
+    local ret, buf = self.agent:ask(data .. crc, 7)
     if not ret then
         return false
     end

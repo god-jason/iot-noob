@@ -16,8 +16,9 @@ local tag = "Agent"
 -- @param timeout integer 超时 ms
 -- @return Agent
 function Agent:new(link, timeout)
-    local agent = setmetatable(link, self) --继承连接
-    agent.timeout = timeout
+    local agent = setmetatable({}, self) --继承连接
+    agent.link = link
+    agent.timeout = timeout or 1000
     agent.asking = false
     return agent
 end
@@ -37,7 +38,7 @@ function Agent:ask(request, len)
 
     -- log.info(tag, "ask", request, len)
     if request ~= nil and #request > 0 then
-        local ret = self:write(request)
+        local ret = self.link:write(request)
         if not ret then
             log.error(tag, "write failed")
             self.asking = false
@@ -50,14 +51,14 @@ function Agent:ask(request, len)
     local buf = ""
     repeat
         -- 应该不是每次都要等待
-        local ret = self:wait(self.timeout)
+        local ret = self.link:wait(self.timeout)
         if not ret then
             log.error(tag, "read timeout")
             self.asking = false
             return false
         end
 
-        local r, d = self:read()
+        local r, d = self.link:read()
         if not r then
             log.error(tag, "read failed")
             self.asking = false

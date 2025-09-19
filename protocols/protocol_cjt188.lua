@@ -321,8 +321,9 @@ gateway.register_protocol("cjt188", Cjt188Master)
 -- @return Cjt188Master
 function Cjt188Master:new(link, opts)
     local master = setmetatable({}, self)
-    master.link = Agent:new(link)
+    master.link = link
     master.timeout = opts.timeout or 1000 -- 1秒钟
+    master.agent = Agent:new(link, master.timeout)
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟
     master.increment = 1
 
@@ -348,7 +349,7 @@ function Cjt188Master:read(addr, type, code, di)
     data = data .. pack.pack("b1", 0x16) -- 结束符
 
     local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
-    local ret, buf = self.link:ask(frame, self.timeout)
+    local ret, buf = self.agent:ask(frame, self.timeout)
     if not ret then
         return false, "no response"
     end
