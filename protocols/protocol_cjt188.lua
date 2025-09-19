@@ -4,142 +4,213 @@
 -- @copyright benyi 2025
 --- CJT188协议实现
 -- @module protocol_cjt188
-local Device = {}
+local Cjt188Device = {}
 
 local tag = "cjt188"
 
-local function encodeHex(str)
-    local ret = ""
-    for i = 1, #str do
-        ret = ret .. string.format("%02X", str:byte(i))
+local Agent = require("agent")
+local Device = require("device")
+
+local database = require("database")
+local gateway = require("gateway")
+local binary = require("binary")
+
+local mapper_cache = {}
+local function load_mapper(product_id)
+    if mapper_cache[product_id] then
+        return mapper_cache[product_id]
     end
-    return ret    
-end
 
-local function decodeHex(str)
-    local ret = ""
-    for i = 1, #str, 2 do
-        local byteStr = str:sub(i, i+1)
-        local byte = tonumber(byteStr, 16)
-        ret = ret .. string.char(byte)
+    local model = database.get("model", product_id)
+    if not model then
+        return nil
     end
-    return ret
-end
 
-local function decodeBCD(len, str)
-    local ret = 0
-    for i = 1, len do
-        local b = str:byte(i)
-        local h = (b >> 4) & 0x0F
-        local l = b & 0x0F
-        ret = ret * 100 + h * 10 + l
+    -- 按数据标识分组
+    -- di->points[]
+    local mapper = {}
+    for _, p in ipairs(model.properties or {}) do
+        for _, pt in ipairs(p.points) do
+            local points = mapper[pt.di]
+            if not points then
+                points = {}
+                mapper[pt.di] = points
+            end
+            table.insert(points, pt)
+        end
     end
-    return ret
 end
 
-local function encodeBCD(num, len)
-    local str = ""
-    for i = len, 1, -1 do
-        local b = num % 100
-        local h = (b // 10) & 0x0F
-        local l = b % 10
-        str = string.char((h << 4) | l) .. str
-        num = num // 100
+-- 单位转换代码
+-- local units = {
+--     [0x01] = "J",
+--     [0x02] = "Wh",
+--     [0x03] = "Whx10",
+--     [0x04] = "Whx100",
+--     [0x05] = "kWh",
+--     [0x06] = "kWhx10",
+--     [0x07] = "kWhx100",
+--     [0x08] = "MWh",
+--     [0x09] = "MWhx10",
+--     [0x0A] = "MWhx100",
+--     [0x0B] = "kJ",
+--     [0x0C] = "kJx10",
+--     [0x0D] = "kJx100",
+--     [0x0E] = "MJ",
+--     [0x0F] = "MJx10",
+--     [0x10] = "MJx100",
+--     [0x11] = "GJ",
+--     [0x12] = "GJx10",
+--     [0x13] = "GJx100",
+--     [0x14] = "W",
+--     [0x15] = "Wx10",
+--     [0x16] = "Wx100",
+--     [0x17] = "kW",
+--     [0x18] = "kWx10",
+--     [0x19] = "kWx100",
+--     [0x1A] = "MW",
+--     [0x1B] = "MWx10",
+--     [0x1C] = "MWx100",    
+--     [0x29] = "L",
+--     [0x2A] = "Lx10",
+--     [0x2B] = "Lx100",
+--     [0x2C] = "m3",
+--     [0x2D] = "m3x10",
+--     [0x2E] = "m3x100",
+--     [0x32] = "L/h",
+--     [0x33] = "L/hx10",
+--     [0x34] = "L/hx100",
+--     [0x35] = "m3/h",
+--     [0x36] = "m3/hx10",
+--     [0x37] = "m3/hx100",
+--     [0x40] = "J/h",
+--     [0x43] = "kj/h",
+--     [0x44] = "kj/hx10",
+--     [0x45] = "kj/hx100",
+--     [0x46] = "MJ/h",
+--     [0x47] = "MJ/hx10",
+--     [0x48] = "MJ/hx100",
+--     [0x49] = "GJ/h",
+--     [0x4A] = "GJ/hx10",
+--     [0x4B] = "GJ/hx100",
+-- }
+
+local function unit_convert(unit, value)
+    if unit == 0x01 then
+        return value * 0.001
     end
-    return str
+    -- 统一为kWh
+    if 0x02 <= unit and unit <= 0x0A then
+        return value * math.pow(10, unit - 5)
+    end
+    -- 统一为kJ
+    if 0x0B <= unit and unit <= 0x13 then
+        return value * math.pow(10, unit - 0xB)
+    end
+    -- 统一为kW
+    if 0x14 <= unit and unit <= 0x1C then
+        return value * math.pow(10, unit - 0x17)
+    end
+    -- 统一为m3
+    if 0x29 <= unit and unit <= 0x2E then
+        return value * math.pow(10, unit - 0x2C)
+    end
+    -- 统一为m3/h
+    if 0x32 <= unit and unit <= 0x37 then
+        return value * math.pow(10, unit - 0x35)
+    end
+    -- 统一为kJ/h
+    if 0x40 <= unit and unit <= 0x4B then
+        return value * math.pow(10, unit - 0x43)
+    end
+    return value
 end
 
-local function decodeDatetime(str)
-    local year = decodeBCD(1, str:sub(1, 1)) * 100 + decodeBCD(1, str:sub(2, 2))
-    local month = decodeBCD(1, str:sub(3, 3))
-    local day = decodeBCD(1, str:sub(4, 4))
-    local hour = decodeBCD(1, str:sub(5, 5))
-    local min = decodeBCD(1, str:sub(6, 6))
-    local sec = decodeBCD(1, str:sub(7, 7))
-    return os.time({
-        year = year,
-        month = month,
-        day = day,
-        hour = hour,
-        min = min,
-        sec = sec
-    })   
-end
-
-local function encodeDatetime(t)
-    local tm = os.date("*t", t)
-    local str = ""
-    str = str .. encodeBCD(tm.year // 100, 1)
-    str = str .. encodeBCD(tm.year % 100, 1)
-    str = str .. encodeBCD(tm.month, 1)
-    str = str .. encodeBCD(tm.day, 1)
-    str = str .. encodeBCD(tm.hour, 1)
-    str = str .. encodeBCD(tm.min, 1)
-    str = str .. encodeBCD(tm.sec, 1)
-    return str
-end
-
-local units = {
-    [1] = "J",
-    [2] = "Wh",
-    [3] = "Whx10",
-    [4] = "Whx100",
-    [5] = "kWh",
-    [6] = "kWhx10",
-    [7] = "kWhx100",
-    [8] = "MWh",
-    [9] = "MWhx10",
-    [0xA] = "MWhx100",
-    [0xB] = "kJ",
-    [0xC] = "kJx10",
-    [0xD] = "kJx100",
-    [0xE] = "MJ",
-    [0xF] = "MJx10",
-    [0x10] = "MJx100",
-    [0x11] = "GJ",
-    [0x12] = "GJx10",
-    [0x13] = "GJx100",
-    [0x29] = "L",
-    [0x2A] = "Lx10",
-    [0x2B] = "Lx100",
-    [0x2C] = "m3",
-    [0x2D] = "m3x10",
-    [0x2E] = "m3x100"
+-- 数据格式
+local types = {
+    ["XXXXXXXX"] = {
+        type = "bcd",
+        size = 4
+    },
+    ["XXXXXX.XX"] = {
+        type = "bcd",
+        size = 4,
+        rate = 0.01
+    },
+    ["XXXX.XXXX"] = {
+        type = "bcd",
+        size = 4,
+        rate = 0.0001
+    },
+    ["XXXXXX"] = {
+        type = "bcd",
+        size = 3
+    },
+    ["XXXX.XX"] = {
+        type = "bcd",
+        size = 3,
+        rate = 0.01
+    },
+    ["XXXX"] = {
+        type = "bcd",
+        size = 2
+    },
+    ["XX"] = {
+        type = "bcd",
+        size = 1
+    },
+    ["HH"] = {
+        type = "hex",
+        size = 1
+    },
+    ["HHHH"] = {
+        type = "hex",
+        size = 2
+    },
+    ["YYYYMMDDhhmmss"] = {
+        type = "datetime",
+        size = 7
+    },
+    ["YYYYMMDD"] = {
+        type = "date",
+        size = 4
+    }
 }
 
-
-
 ---创建设备
--- @param master Master 主站实例
 -- @param dev table 设备参数
--- @return Device 实例
-function Device:new(master, dev)
-    local obj = dev or {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.master = master
-    return obj
+-- @param master Cjt188Master 主站实例
+-- @return Cjt188Device 实例
+function Cjt188Device:new(dev, master)
+    local dev = setmetatable(Device:new(obj), self) -- 继承Device
+    dev.master = master
+    return dev
 end
 
-function Device:open()
-    log.info(tag, "open")
-    self.master.read(0, 0, 0, 0)
+---打开设备
+function Cjt188Device:open()
+    log.info(tag, "device open", self.id, self.product_id)
+    self.mapper = load_mapper(self.product_id)
 end
 
 ---读取数据
 -- @param key string 点位
 -- @return boolean 成功与否
 -- @return any
-function Device:get(key)
+function Cjt188Device:get(key)
     log.info(tag, "get", key)
-    self.master.read(0, 0, 0, 0)
+    -- 读一遍
+    self:poll()
+    if self.values[key] then
+        return true, self.values[key].value
+    end
 end
 
 ---写入数据
 -- @param key string 点位
 -- @param value any 值
 -- @return boolean 成功与否
-function Device:set(key, value)
+function Cjt188Device:set(key, value)
     log.info(tag, "set", key, value)
     self.master.read(0, 0, 0, 0)
 end
@@ -147,41 +218,124 @@ end
 ---读取所有数据
 -- @return boolean 成功与否
 -- @return table|nil 值
-function Device:poll()
-    log.info(tag, "poll")
-    self.master.read(0, 0, 0, 0)
+function Cjt188Device:poll()
+    log.info(tag, "poll", self.id)
+    if not self.mapper then
+        log.error(tag, "poll", self.id, "no mapper")
+        return false, "no mapper"
+    end
+
+    for di, points in pairs(self.mapper) do
+        -- 读数据
+        local ret, data = self.master.read(self.address, di)
+        if ret then
+            for _, point in ipairs(points) do
+                local fmt = types[point.type]
+                if fmt then
+                    local value
+                    if fmt.type == "bcd" then
+                        value = binary.decodeBCD(fmt.size, data:sub(point.address + 1, point.address + fmt.size))
+                        if point.unit then
+                            value = unit_convert(point.unit, value)
+                        end
+                        if fmt.rate then
+                            value = value * fmt.rate
+                        end
+                        self:put_value(point.key, value)
+                    elseif fmt.type == "hex" then
+                        value = 0
+                        for i = 1, fmt.size do
+                            value = (value << 8) | data:byte(i)
+                        end
+                        -- 取位，布尔型
+                        if point.bit > 0 then
+                            value = (value >> (point.bit - 1)) & 0x01
+                        end
+                        self:put_value(point.key, value)
+                    elseif fmt.type == "datetime" then
+                        value = binary.encodeHex(data:sub(1, fmt.size)) -- 字符串 YYYYMMDDhhmmss
+                        self:put_value(point.key, value)
+                    elseif fmt.type == "date" then
+                        value = binary.encodeHex(data:sub(1, fmt.size)) -- 字符串 YYYYMMDD
+                        self:put_value(point.key, value)
+                    else
+                        log.error(tag, "poll", self.id, "unknown format type", fmt.type)
+                    end
+
+                else
+                    log.error(tag, "poll", self.id, "unknown format", point.type)
+                end
+            end
+        end
+    end
+
 end
 
-local Master = {}
+local Cjt188Master = {}
+Cjt188Master.__index = Cjt188Master
 
-require("protocols").register("cjt188", Master)
+require("protocols").register("cjt188", Cjt188Master)
 
 ---创建实例
 -- @param link any 连接实例
 -- @param opts table 协议参数
--- @return Master
-function Master:new(link, opts)
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.link = link
-    obj.timeout = opts.timeout or 1000 -- 1秒钟
-    obj.poller_interval = opts.poller_interval or 5 -- 5秒钟
-    obj.increment = 1
+-- @return Cjt188Master
+function Cjt188Master:new(link, opts)
+    local master = setmetatable({}, self)
+    self.__index = Agent:new(link)
+    master.link = link
+    master.timeout = opts.timeout or 1000 -- 1秒钟
+    master.poller_interval = opts.poller_interval or 5 -- 5秒钟
+    master.increment = 1
 
-    return obj
+    return master
 end
 
--- 读取数据
--- @param slave integer 从站号
--- @param code integer 功能码
--- @param addr integer 地址
--- @param len integer 长度
+--- 读取数据
+-- @param addr string 地址
+-- @param type integer 仪表类型
+-- @param di string 数据标识
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Master:read(slave, code, addr, len)
-    log.info(tag, "read", slave, code, addr, len)
+function Cjt188Master:read(addr, type, di)
+    log.info(tag, "read", addr, di)
     self.link.ask("abc", 7)
+
+    local data = pack.pack("b2", 0x68, type) -- 起始符，仪表类型
+    data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
+    data = data .. pack.pack("b2", 0x01, 3) -- 控制符，长度
+    data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
+    data = data .. pack.pack("b1", self.increment) -- 序号
+    self.increment = (self.increment + 1) % 256
+    data = data .. crypto.checksum(data, 1) -- 和校验
+    data = data .. pack.pack("b1", 0x16) -- 结束符
+
+    local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
+    local ret, buf = self.link:ask(frame, self.timeout)
+    if not ret then
+        return false, "no response"
+    end
+
+    -- 解析返回
+    -- 去掉前导码
+    while #buf > 0 and string.byte(buf, 1) == 0xFE do
+        buf = buf:sub(2)
+    end
+
+    if #buf < 12 then
+        local ret2, buf2 = self.link:read() -- 继续读
+        if ret2 then
+            buf = buf .. buf2
+        else
+            return false, "invalid response"
+        end
+    end
+
+    if string.byte(buf, 1) ~= 0x68 then
+        return false, "invalid start"
+    end
+
+    return true, buf.sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
 end
 
 -- 写入数据
@@ -190,28 +344,28 @@ end
 -- @param addr integer 地址
 -- @param data string 数据
 -- @return boolean 成功与否
-function Master:write(slave, code, addr, data)
+function Cjt188Master:write(slave, code, addr, data)
     log.info(tag, "write", slave, code, addr, data)
     self.link.ask("abc", 7)
 end
 
 ---打开主站
-function Master:open()
+function Cjt188Master:open()
     log.info(tag, "open")
-    local dev = Device:new()
+    local dev = Cjt188Device:new()
     log.info(tag, dev)
     table.insert(self.devices, dev) -- 先随便写，不测试
 
 end
 
 --- 关闭
-function Master:close()
+function Cjt188Master:close()
     self.opened = false
     self.devices = {}
 end
 
 --- 轮询
-function Master:_polling()
+function Cjt188Master:_polling()
     -- 轮询间隔
     local interval = self.poller_interval or 60
     interval = interval * 1000 -- 毫秒
