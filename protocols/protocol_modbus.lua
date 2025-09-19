@@ -2,7 +2,6 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- Modbus 协议实现
 -- @module modbus_device
 local ModbusDevice = {}
@@ -43,17 +42,15 @@ local function load_mapper(product_id)
     }
 
     -- 分类
-    for _, p in ipairs(model.properties or {}) do
-        for _, pt in ipairs(p.points) do
-            if pt.register == 1 then
-                table.insert(mapper.coils, pt)
-            elseif pt.register == 2 then
-                table.insert(mapper.discrete_inputs, pt)
-            elseif pt.register == 3 then
-                table.insert(mapper.holding_registers, pt)
-            elseif pt.register == 4 then
-                table.insert(mapper.input_registers, pt)
-            end
+    for _, pt in ipairs(model.properties or {}) do
+        if pt.register == 1 then
+            table.insert(mapper.coils, pt)
+        elseif pt.register == 2 then
+            table.insert(mapper.discrete_inputs, pt)
+        elseif pt.register == 3 then
+            table.insert(mapper.holding_registers, pt)
+        elseif pt.register == 4 then
+            table.insert(mapper.input_registers, pt)
         end
     end
 

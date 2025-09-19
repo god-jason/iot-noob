@@ -29,15 +29,13 @@ local function load_mapper(product_id)
     -- 按数据标识分组
     -- di->points[]
     local mapper = {}
-    for _, p in ipairs(model.properties or {}) do
-        for _, pt in ipairs(p.points) do
-            local points = mapper[pt.di]
-            if not points then
-                points = {}
-                mapper[pt.di] = points
-            end
-            table.insert(points, pt)
+    for _, pt in ipairs(model.properties or {}) do
+        local points = mapper[pt.di]
+        if not points then
+            points = {}
+            mapper[pt.di] = points
         end
+        table.insert(points, pt)
     end
 end
 

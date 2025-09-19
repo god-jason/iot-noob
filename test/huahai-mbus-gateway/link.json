@@ -1,0 +1,12 @@
+{
+    "serial-1": {
+        "id": "serial-1",
+        "name": "串口1",
+        "protocol": "cjt188",
+        "port": 1,
+        "baud_rate": 2400,
+        "data_bits": 8,
+        "stop_bits": 1,
+        "parity": "N"
+    }
+}

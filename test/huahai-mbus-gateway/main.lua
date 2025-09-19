@@ -28,10 +28,7 @@ sys.taskInit(function()
     require("autoload")
 
     -- 加载设备
-    require("devices").load()
-
-    -- 打开连接
-    require("links").load()
+    require("gateway").load_links()
 
 
     log.info(tag, "main task exit")
