@@ -128,13 +128,14 @@ function database.find(col, ...)
     local results = {}
 
     local args = {...}
+    log.info(tag, "find", col, unpack(args))
 
     -- 复制所有数据出来
     if #args == 0 then
         for _, v in pairs(tab) do
             table.insert(results, v)
         end
-        return {}
+        return results
     end
 
     -- 生成过滤条件

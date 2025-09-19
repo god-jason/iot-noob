@@ -85,15 +85,16 @@ function gateway.register_protocol(name, class)
 end
 
 --- 创建连接
--- @param name string 连接类型
+-- @param type string 连接类型
 -- @param opts table 参数
 -- @return boolean 成功与否
 -- @return Link|error 实例
-function gateway.create_link(name, opts)
-    local link = links[name]
+function gateway.create_link(type, opts)
+    local link = links[type]
     if not link then
         return false, "找不到连接类"
     end
+
     -- return true, link:new(opts)
     local lnk = link:new(opts or {})
     local ret, err = lnk:open()
@@ -102,19 +103,19 @@ function gateway.create_link(name, opts)
         return false, err
     end
 
-    _links[link.id] = lnk -- 注册实例
+    _links[lnk.id] = lnk -- 注册实例
 
     -- 没有协议，直接返回，可能是透传
-    if not link.protocol then
+    if not lnk.protocol then
         return true, lnk
     end
 
-    local protocol = protocols[link.protocol]
+    local protocol = protocols[lnk.protocol]
     if not protocol then
         return true, lnk
     end
 
-    local instanse = protocol:new(lnk, link.protocol_options or {})
+    local instanse = protocol:new(lnk, lnk.protocol_options or {})
     ret, err = instanse:open()
     log.info(tag, "open protocol", ret, err)
 
@@ -138,12 +139,15 @@ end
 
 --- 加载所有连接
 function gateway.load_links()
+    log.info(tag, "load links")
+
     local lns = database.find("link")
     if #lns == 0 then
         return
     end
 
     for _, link in ipairs(lns) do
+        log.info(tag, "load link", link.id, link.type)
         local ret, lnk = gateway.create_link(link.type, link)
         log.info(tag, "create link", link.id, link.type, ret, lnk)
     end

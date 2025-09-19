@@ -1,6 +1,7 @@
 {
     "serial-1": {
         "id": "serial-1",
+        "type": "serial",
         "name": "串口1",
         "protocol": "cjt188",
         "port": 1,

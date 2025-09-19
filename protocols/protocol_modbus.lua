@@ -28,6 +28,8 @@ local function load_mapper(product_id)
         return mapper_cache[product_id]
     end
 
+    log.info(tag, "load mapper", product_id)
+
     local model = database.get("model", product_id)
     if not model then
         return nil
@@ -572,7 +574,7 @@ function ModbusMaster:open()
     end
 
     -- 开启轮询
-    local this = ModbusMaster
+    local this = self
     self.task = sys.taskInit(function()
         -- 这个写法。。。
         this:_polling()

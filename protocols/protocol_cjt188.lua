@@ -5,6 +5,7 @@
 --- CJT188协议实现
 -- @module protocol_cjt188
 local Cjt188Device = {}
+Cjt188Device.__index = Cjt188Device
 
 local tag = "cjt188"
 
@@ -21,6 +22,8 @@ local function load_mapper(product_id)
         return mapper_cache[product_id]
     end
 
+    log.info(tag, "load mapper", product_id)
+
     local model = database.get("model", product_id)
     if not model then
         return nil
@@ -30,13 +33,18 @@ local function load_mapper(product_id)
     -- di->points[]
     local mapper = {}
     for _, pt in ipairs(model.properties or {}) do
-        local points = mapper[pt.di]
-        if not points then
-            points = {}
-            mapper[pt.di] = points
+        if pt.di ~= nil then
+            local points = mapper[pt.di]
+            if not points then
+                points = {}
+                mapper[pt.di] = points
+            end
+            table.insert(points, pt)
         end
-        table.insert(points, pt)
     end
+
+    mapper_cache[product_id] = mapper
+    return mapper
 end
 
 -- 单位转换代码
@@ -189,10 +197,10 @@ local types = {
 }
 
 ---创建设备
--- @param dev table 设备参数
+-- @param obj table 设备参数
 -- @param master Cjt188Master 主站实例
 -- @return Cjt188Device 实例
-function Cjt188Device:new(dev, master)
+function Cjt188Device:new(obj, master)
     local dev = setmetatable(Device:new(obj), self) -- 继承Device
     dev.master = master
     return dev
@@ -237,8 +245,10 @@ function Cjt188Device:poll()
     end
 
     for di, points in pairs(self.mapper) do
+        local pt = points[1]
+
         -- 读数据
-        local ret, data = self.master.read(self.address, di)
+        local ret, data = self.master:read(self.address, "20", pt.code, di) -- TODO 仪表类型 功能码 写入
         if ret then
             for _, point in ipairs(points) do
                 local fmt = types[point.type]
@@ -311,8 +321,7 @@ gateway.register_protocol("cjt188", Cjt188Master)
 -- @return Cjt188Master
 function Cjt188Master:new(link, opts)
     local master = setmetatable({}, self)
-    self.__index = Agent:new(link)
-    master.link = link
+    master.link = Agent:new(link)
     master.timeout = opts.timeout or 1000 -- 1秒钟
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟
     master.increment = 1
@@ -327,12 +336,11 @@ end
 -- @return boolean 成功与否
 -- @return string 只有数据
 function Cjt188Master:read(addr, type, code, di)
-    log.info(tag, "read", addr, di)
-    self.link.ask("abc", 7)
+    log.info(tag, "read", addr, type, code, di)
 
-    local data = pack.pack("b2", 0x68, binary.decodeHex(type or "20")) -- 起始符，仪表类型
+    local data = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
     data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
-    data = data .. pack.pack("b2", binary.decodeHex(code or "01"), 3) -- 控制符，长度
+    data = data .. binary.decodeHex(code or "01") .. string.char(3) -- 控制符，长度
     data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     data = data .. pack.pack("b1", self.increment) -- 序号
     self.increment = (self.increment + 1) % 256
@@ -403,7 +411,7 @@ function Cjt188Master:open()
     end
 
     -- 开启轮询
-    local this = ModbusMaster
+    local this = self
     self.task = sys.taskInit(function()
         -- 这个写法。。。
         this:_polling()
