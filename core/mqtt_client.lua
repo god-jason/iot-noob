@@ -2,7 +2,6 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- 连接相关
 -- @module mqtt_client
 local MqttClient = {}
@@ -118,15 +117,18 @@ function MqttClient:open()
         return false
     end
 
-    sys.waitUtil("MQTT_CONNECT_" .. self.id)
+    sys.waitUntil("MQTT_CONNECT_" .. self.id)
 
     return true
 end
 
 --- 关闭平台（不太需要）
 function MqttClient:close()
-    self.client:close()
-    self.client = nil
+    if self.client then
+        self.client:close()
+        self.client = nil
+    end
+
 end
 
 --- 发布消息
@@ -135,6 +137,9 @@ end
 -- @param qos integer|nil 质量
 -- @return integer 消息id
 function MqttClient:publish(topic, payload, qos)
+    if self.client == nil then
+        return false, "publish failed, client is nil"
+    end
     -- 转为json格式
     if type(payload) ~= "string" then
         local err
@@ -143,7 +148,7 @@ function MqttClient:publish(topic, payload, qos)
             payload = "payload json encode error:" .. err
         end
     end
-    return self.client:publish(topic, payload, qos)
+    return true, self.client:publish(topic, payload, qos)
 end
 
 --- 订阅（检查重复订阅，只添加回调）
@@ -154,7 +159,9 @@ function MqttClient:subscribe(filter, cb)
 
     -- 计数，避免重复订阅
     if not self.subs[filter] or self.subs[filter] <= 0 then
-        self.client:subscribe(filter)
+        if self.client then
+            self.client:subscribe(filter)
+        end
         self.subs[filter] = 1
     else
         self.subs[filter] = self.subs[filter] + 1
@@ -225,7 +232,10 @@ end
 --- 云服务器连接状态
 -- @return boolean 状态
 function MqttClient:ready()
-    return self.client:ready()
+    if self.client then
+        return self.client:ready()
+    end
+    return false
 end
 
 return MqttClient

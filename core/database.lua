@@ -134,7 +134,7 @@ function database.find(col, ...)
         for _, v in pairs(tab) do
             table.insert(results, v)
         end
-        return
+        return {}
     end
 
     -- 生成过滤条件

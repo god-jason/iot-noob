@@ -20,16 +20,24 @@ log.setLevel(2)
 
 -- 主进程
 sys.taskInit(function()
+
+    -- 等待USB日志稳定
+    sys.wait(500)
+
     log.info(tag, "main task")
 
     fskv.init() -- KV 数据库
 
     -- 加载所有程序文件
-    require("autoload")
+    require("autoload").walk("/luadb/")
 
     -- 加载设备
     require("gateway").load_links()
 
+    while true do
+        sys.wait(1000)
+        collectgarbage()
+    end
 
     log.info(tag, "main task exit")
 end)

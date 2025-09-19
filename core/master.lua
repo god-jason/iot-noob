@@ -237,7 +237,7 @@ function master.open()
     sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
-    sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
+    --sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
@@ -252,7 +252,9 @@ function master.open()
 end
 
 function master.task()
-    sys.wait("IP_READY")
+
+    -- 等待网络就绪
+    sys.waitUntil("IP_READY")
 
     master.open();
 

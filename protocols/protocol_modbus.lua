@@ -357,7 +357,7 @@ end
 local ModbusMaster = {}
 ModbusMaster.__index = ModbusMaster
 
-gateway.register("modbus", ModbusMaster)
+gateway.register_protocol("modbus", ModbusMaster)
 
 ---创建实例
 -- @param link any 连接实例

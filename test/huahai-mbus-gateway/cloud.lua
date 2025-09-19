@@ -249,6 +249,8 @@ function cloud.open()
     log.info(tag, "auth result", clientid, username, password)
 
     client = MqttClient:new({
+        host = config.broker,
+        port = config.port,
         clientid = clientid,
         username = username,
         password = password

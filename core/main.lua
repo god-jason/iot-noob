@@ -30,7 +30,7 @@ sys.taskInit(function()
     fskv.init() -- KV 数据库
 
     -- 加载所有程序文件
-    require("autoload")
+    require("autoload").walk("/luadb/")
 
     -- 加载设备
     require("gateway").load_links()

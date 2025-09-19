@@ -303,7 +303,7 @@ end
 local Cjt188Master = {}
 Cjt188Master.__index = Cjt188Master
 
-require("protocols").register("cjt188", Cjt188Master)
+gateway.register_protocol("cjt188", Cjt188Master)
 
 ---创建实例
 -- @param link any 连接实例
