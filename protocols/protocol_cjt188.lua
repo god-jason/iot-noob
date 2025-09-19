@@ -8,6 +8,24 @@ local Device = {}
 
 local tag = "cjt188"
 
+local function encodeHex(str)
+    local ret = ""
+    for i = 1, #str do
+        ret = ret .. string.format("%02X", str:byte(i))
+    end
+    return ret    
+end
+
+local function decodeHex(str)
+    local ret = ""
+    for i = 1, #str, 2 do
+        local byteStr = str:sub(i, i+1)
+        local byte = tonumber(byteStr, 16)
+        ret = ret .. string.char(byte)
+    end
+    return ret
+end
+
 local function decodeBCD(len, str)
     local ret = 0
     for i = 1, len do
@@ -28,6 +46,36 @@ local function encodeBCD(num, len)
         str = string.char((h << 4) | l) .. str
         num = num // 100
     end
+    return str
+end
+
+local function decodeDatetime(str)
+    local year = decodeBCD(1, str:sub(1, 1)) * 100 + decodeBCD(1, str:sub(2, 2))
+    local month = decodeBCD(1, str:sub(3, 3))
+    local day = decodeBCD(1, str:sub(4, 4))
+    local hour = decodeBCD(1, str:sub(5, 5))
+    local min = decodeBCD(1, str:sub(6, 6))
+    local sec = decodeBCD(1, str:sub(7, 7))
+    return os.time({
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+        min = min,
+        sec = sec
+    })   
+end
+
+local function encodeDatetime(t)
+    local tm = os.date("*t", t)
+    local str = ""
+    str = str .. encodeBCD(tm.year // 100, 1)
+    str = str .. encodeBCD(tm.year % 100, 1)
+    str = str .. encodeBCD(tm.month, 1)
+    str = str .. encodeBCD(tm.day, 1)
+    str = str .. encodeBCD(tm.hour, 1)
+    str = str .. encodeBCD(tm.min, 1)
+    str = str .. encodeBCD(tm.sec, 1)
     return str
 end
 
@@ -58,6 +106,8 @@ local units = {
     [0x2D] = "m3x10",
     [0x2E] = "m3x100"
 }
+
+
 
 ---创建设备
 -- @param master Master 主站实例
