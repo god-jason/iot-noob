@@ -148,6 +148,7 @@ function MqttClient:publish(topic, payload, qos)
             payload = "payload json encode error:" .. err
         end
     end
+    log.info(tag, "publish", topic, payload, qos)
     return true, self.client:publish(topic, payload, qos)
 end
 

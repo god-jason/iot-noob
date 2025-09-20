@@ -285,8 +285,12 @@ function Cjt188Device:poll()
                                 value = (value << 8) | str:byte(1)
                             end
                             -- 取位，布尔型
-                            if point.bit > 0 then
-                                value = (value >> (point.bit - 1)) & 0x01
+                            if point.bit > 0 then                                
+                                if (value >> (point.bit - 1)) & 0x01 > 0 then
+                                    value = true
+                                else
+                                    value = false
+                                end
                             end
                             self:put_value(point.name, value)
                         elseif fmt.type == "datetime" then

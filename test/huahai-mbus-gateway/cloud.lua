@@ -90,7 +90,7 @@ end
 local function pack_post(id, product_id, values)
 
     local data = create_package({{
-        identify = {
+        identity = {
             productID = product_id,
             deviceName = id
         },
@@ -308,11 +308,11 @@ function cloud.open()
     -- 订阅全部主题
     client:subscribe(topics.property_get, on_property_get)
     client:subscribe(topics.property_set, on_property_set)
-    --client:subscribe(topics.service_invoke, on_service_invoke)
+    -- client:subscribe(topics.service_invoke, on_service_invoke)
     client:subscribe(topics.sub_property_get, on_sub_property_get)
     client:subscribe(topics.sub_property_set, on_sub_property_set)
-    --client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
-    --client:subscribe(topics.sub_topo_change, on_sub_topo_change)
+    -- client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
+    -- client:subscribe(topics.sub_topo_change, on_sub_topo_change)
 
     -- 订阅回复
     client:subscribe(topics.pack_post_reply, function(_, payload)
@@ -355,20 +355,28 @@ function cloud.task()
             end
 
             -- 2 定时上传
-            --local values = dev:modified_values()
-            local values = dev:values()
-            log.info(tag, "cloud report", id, json.encode(values))
+            -- local values = dev:modified_values()
+            -- log.info(tag, "cloud report", id, json.encode(values))
 
-            local has = false
-            for _, _ in pairs(values) do
-                has = true
+            -- local has = false
+            -- for _, _ in pairs(values) do
+            --     has = true
+            -- end
+            -- if has then
+            --     pack_post(id, dev.product_id, values)
+            -- end
+
+            local obj = {}
+            local values = dev:values()
+            for k, v in pairs(values) do
+                obj[k] = {
+                    value = v.value,
+                }
             end
-            if has then
-                pack_post(id, dev.product_id, values)
-            end
+            pack_post(id, dev.product_id, obj)
         end
 
-        sys.wait(5000)
+        sys.wait(60 * 1000)
     end
 
 end

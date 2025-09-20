@@ -261,7 +261,7 @@ function master.task()
     log.info(tag, "master broker connected start")
 
     register()
-    sys.timerLoopStart(report_status, 1000 * 60 * 10) -- 10分钟上传一次状态
+    sys.timerLoopStart(report_status, 1000 * 60) -- 10分钟上传一次状态
 
     while true do
         -- 上报数据？
