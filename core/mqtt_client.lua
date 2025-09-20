@@ -72,9 +72,9 @@ function MqttClient:open()
         return false
     end
 
-    self.client:auth(self.options.clienid, self.options.username, self.options.password) -- 鉴权
+    self.client:auth(self.options.clientid, self.options.username, self.options.password) -- 鉴权
     -- client:keepalive(240) -- 默认值240s
-    self.client:autoreconn(true, 3000) -- 自动重连机制
+    self.client:autoreconn(true, 5000) -- 自动重连机制
 
     if self.options.will ~= nil then
         self.client:will(self.options.will.topic, self.options.will.payload)

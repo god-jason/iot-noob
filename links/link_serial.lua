@@ -2,7 +2,6 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- 串口类相关
 -- @module link_serial
 local Serial = {}
@@ -32,6 +31,8 @@ end
 --- 打开
 -- @return boolean 成功与否
 function Serial:open()
+    log.info(tag, "open", self.id, self.port, self.baud_rate, self.data_bits, self.stop_bits, self.parity,
+        self.rs485_gpio)
 
     -- 校验表示
     local p = uart.None
@@ -46,8 +47,11 @@ function Serial:open()
     local ret =
         uart.setup(self.port, self.baud_rate, self.data_bits, self.stop_bits, p, uart.LSB, 1024, self.rs485_gpio)
 
+    -- local ret = uart.setup(self.port, self.baud_rate, self.data_bits, self.stop_bits, p, uart.LSB, 1024,
+    --     self.rs485_gpio, 1, 20000)
+
     uart.on(self.port, 'receive', function(id, len)
-        sys.publish("SERIAL_DATA_" .. id, len)
+        sys.publish("SERIAL_DATA_" .. self.port, len)
     end)
 
     return ret
@@ -79,7 +83,7 @@ function Serial:read()
         log.info(tag, "read", self.port, #data)
 
         if self.watcher then
-            self.watcher(data) --转发到监听器
+            self.watcher(data) -- 转发到监听器
         end
         return true, data
     end

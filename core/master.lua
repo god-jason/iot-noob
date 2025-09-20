@@ -258,6 +258,8 @@ function master.task()
 
     master.open();
 
+    log.info(tag, "master broker connected start")
+
     register()
     sys.timerLoopStart(report_status, 1000 * 60 * 10) -- 10分钟上传一次状态
 

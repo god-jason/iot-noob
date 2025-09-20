@@ -245,7 +245,8 @@ function cloud.open()
     config = data
 
     -- oneNet鉴权
-    local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key)
+    local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key, nil,
+        nil, nil, "products/" .. config.product_id .. "/devices/" .. config.device_name)
     log.info(tag, "auth result", clientid, username, password)
 
     client = MqttClient:new({
@@ -327,7 +328,12 @@ end
 
 function cloud.task()
 
+    -- 等待网络就绪
+    sys.waitUntil("IP_READY")
+
     cloud.open()
+
+    log.info(tag, "cloud broker connected")
 
     sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
@@ -343,7 +349,7 @@ function cloud.task()
             end
 
             -- 2 定时上传
-            local values = dev.modified_values()
+            local values = dev:modified_values()
 
             local has = false
             for _, _ in pairs(values) do

@@ -5,9 +5,10 @@
         "name": "串口1",
         "protocol": "cjt188",
         "port": 1,
+        "rs485_gpio": 17,
         "baud_rate": 2400,
         "data_bits": 8,
         "stop_bits": 1,
-        "parity": "N"
+        "parity": "E"
     }
 }

@@ -81,6 +81,8 @@ end
 -- @param key string
 -- @param value any
 function Device:put_value(key, value)
+    log.info("Device", "put_value", self.id, key, value)
+    
     local val = {
         value = value,
         time = os.time()

@@ -11,6 +11,7 @@ local tag = "modbus"
 
 local Agent = require("agent")
 local Device = require("device")
+setmetatable(ModbusDevice, Device) -- 继承Device
 
 local database = require("database")
 local gateway = require("gateway")

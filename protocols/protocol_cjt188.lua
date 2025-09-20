@@ -11,6 +11,8 @@ local tag = "cjt188"
 
 local Agent = require("agent")
 local Device = require("device")
+-- setmetatable(Cjt188Device, {__index = Device}) -- 继承Device
+setmetatable(Cjt188Device, Device) -- 继承Device
 
 local database = require("database")
 local gateway = require("gateway")
@@ -177,13 +179,28 @@ local types = {
         type = "datetime",
         size = 7
     },
+    ["ssmmhhDDMMYYYY"] = {
+        type = "datetime",
+        size = 7,
+        reverse = true
+    },
     ["YYMMDDhhmmss"] = {
         type = "datetime6",
-        size = 7
+        size = 6
+    },
+    ["ssmmhhDDMMYY"] = {
+        type = "datetime",
+        size = 6,
+        reverse = true
     },
     ["YYYYMMDD"] = {
         type = "date",
         size = 4
+    },
+    ["DDMMYYYY"] = {
+        type = "date",
+        size = 4,
+        reverse = true
     },
     ["uint8"] = {
         type = "uint8",
@@ -249,56 +266,70 @@ function Cjt188Device:poll()
 
         -- 读数据
         local ret, data = self.master:read(self.address, "20", pt.code, di) -- TODO 仪表类型 功能码 写入
+        log.info(tag, "poll read", binary.encodeHex(data))
+
         if ret then
             for _, point in ipairs(points) do
                 local fmt = types[point.type]
-                if fmt and #data > point.address then
-                    local str = data:sub(point.address + 1, point.address + fmt.size)
+                if fmt then
+                    if #data > point.address then
+                        local size = fmt.size
+                        if point.hasUnit then
+                            size = size + 1
+                        end
+                        local str = data:sub(point.address + 1, point.address + size)
+                        if fmt.reverse then
+                            str = binary.reverse(str)
+                        end
+                        log.info(tag, "poll decode", point.name, point.address, binary.encodeHex(str))
 
-                    local value
-                    if fmt.type == "bcd" then
-                        value = binary.decodeBCD(fmt.size, str)
-                        if point.unit then
-                            value = unit_convert(point.unit, value)
+                        local value
+                        if fmt.type == "bcd" then
+                            value = binary.decodeBCD(fmt.size, str)
+                            if point.hasUnit then
+                                local unit = str:byte(fmt.size + 1)
+                                value = unit_convert(unit, value)
+                            end
+                            if fmt.rate then
+                                value = value * fmt.rate
+                            end
+                            self:put_value(point.name, value)
+                        elseif fmt.type == "hex" then
+                            value = 0
+                            for i = 1, fmt.size do
+                                value = (value << 8) | str:byte(1)
+                            end
+                            -- 取位，布尔型
+                            if point.bit > 0 then
+                                value = (value >> (point.bit - 1)) & 0x01
+                            end
+                            self:put_value(point.name, value)
+                        elseif fmt.type == "datetime" then
+                            value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
+                            self:put_value(point.name, value)
+                        elseif fmt.type == "date" then
+                            value = binary.encodeHex(str) -- 字符串 YYYYMMDD
+                            self:put_value(point.name, value)
+                        elseif fmt.type == "datetime6" then
+                            value = "20" .. binary.encodeHex(str) -- 字符串
+                        elseif fmt.type == "u8" then
+                            _, value = pack.unpack("b", str)
+                            if fmt.rate then
+                                value = value * fmt.rate
+                            end
+                            self:put_value(point.name, value)
+                        elseif fmt.type == "u16" then
+                            _, value = pack.unpack(">H", str)
+                            if fmt.rate then
+                                value = value * fmt.rate
+                            end
+                            self:put_value(point.name, value)
+                        else
+                            log.error(tag, "poll", self.id, "unknown format type", fmt.type)
                         end
-                        if fmt.rate then
-                            value = value * fmt.rate
-                        end
-                        self:put_value(point.key, value)
-                    elseif fmt.type == "hex" then
-                        value = 0
-                        for i = 1, fmt.size do
-                            value = (value << 8) | str:byte(1)
-                        end
-                        -- 取位，布尔型
-                        if point.bit > 0 then
-                            value = (value >> (point.bit - 1)) & 0x01
-                        end
-                        self:put_value(point.key, value)
-                    elseif fmt.type == "datetime" then
-                        value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
-                        self:put_value(point.key, value)
-                    elseif fmt.type == "date" then
-                        value = binary.encodeHex(str) -- 字符串 YYYYMMDD
-                        self:put_value(point.key, value)
-                    elseif fmt.type == "datetime6" then
-                        value = "20" .. binary.encodeHex(str) -- 字符串
-                    elseif fmt.type == "u8" then
-                        _, value = pack.unpack("b", str)
-                        if fmt.rate then
-                            value = value * fmt.rate
-                        end
-                        self:put_value(point.key, value)
-                    elseif fmt.type == "u16" then
-                        _, value = pack.unpack(">H", str)
-                        if fmt.rate then
-                            value = value * fmt.rate
-                        end
-                        self:put_value(point.key, value)
                     else
-                        log.error(tag, "poll", self.id, "unknown format type", fmt.type)
+                        log.error(tag, "poll", self.id, "data too short", #data, point.address)
                     end
-
                 else
                     log.error(tag, "poll", self.id, "unknown format", point.type)
                 end
@@ -306,6 +337,7 @@ function Cjt188Device:poll()
         end
     end
 
+    return true
 end
 
 ---Cjt188主站
@@ -322,9 +354,9 @@ gateway.register_protocol("cjt188", Cjt188Master)
 function Cjt188Master:new(link, opts)
     local master = setmetatable({}, self)
     master.link = link
-    master.timeout = opts.timeout or 1000 -- 1秒钟
+    master.timeout = opts.timeout or 2000
     master.agent = Agent:new(link, master.timeout)
-    master.poller_interval = opts.poller_interval or 5 -- 5秒钟
+    master.poller_interval = opts.poller_interval or 10
     master.increment = 1
 
     return master
@@ -345,20 +377,26 @@ function Cjt188Master:read(addr, type, code, di)
     data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     data = data .. pack.pack("b1", self.increment) -- 序号
     self.increment = (self.increment + 1) % 256
-    data = data .. crypto.checksum(data, 1) -- 和校验
+    data = data .. pack.pack("b1", crypto.checksum(data, 1)) -- 和校验
     data = data .. pack.pack("b1", 0x16) -- 结束符
 
+    log.info(tag, "read frame", binary.encodeHex(data))
+
     local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
-    local ret, buf = self.agent:ask(frame, self.timeout)
+    local ret, buf = self.agent:ask(frame, 12) -- 先读12字节
     if not ret then
         return false, "no response"
     end
+
+    log.info(tag, "read response", binary.encodeHex(buf))
 
     -- 解析返回
     -- 去掉前导码
     while #buf > 0 and string.byte(buf, 1) == 0xFE do
         buf = buf:sub(2)
     end
+
+    log.info(tag, "read response trim", binary.encodeHex(buf))
 
     if #buf < 12 then
         local ret2, buf2 = self.link:read() -- 继续读
@@ -373,7 +411,18 @@ function Cjt188Master:read(addr, type, code, di)
         return false, "invalid start"
     end
 
-    return true, buf.sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
+    -- 数据长度不足，则继续读
+    local len = string.byte(buf, 11) -- 数据段长度
+    if #buf < len + 12 then
+        local ret2, buf2 = self.agent:ask(nil, len + 12 - #buf) -- 继续读
+        if ret2 then
+            buf = buf .. buf2
+        else
+            return false, "timeout"
+        end
+    end
+
+    return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
 end
 
 -- 写入数据
@@ -440,14 +489,10 @@ function Cjt188Master:_polling()
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
             local ret, info = pcall(function()
-
-                local ret, values = dev:poll()
-                if ret then
-                    log.info(tag, "polling", dev.id, "succeed")
-                else
-                    log.error(tag, "polling", dev.id, "failed")
+                local ret, info = dev:poll()
+                if not ret then
+                    log.error(tag, "polling", dev.id, info)
                 end
-
             end)
             if not ret then
                 log.error(tag, "polling", dev.id, "error", info)

@@ -55,7 +55,7 @@
                 "type": "XXXX.XX",
                 "unit": "℃",
                 "di": "901F",
-                "address": 30
+                "address": 28
             },
             {
                 "name": "totalRunTime",
@@ -63,14 +63,14 @@
                 "type": "XXXXXX",
                 "unit": "h",
                 "di": "901F",
-                "address": 33
+                "address": 31
             },
             {
                 "name": "currentTime",
                 "label": "仪表时钟当前时间",
-                "type": "datetime",
+                "type": "ssmmhhDDMMYYYY",
                 "di": "901F",
-                "address": 37
+                "address": 34
             },
             {
                 "name": "lowVoltageAlarm",
@@ -78,7 +78,7 @@
                 "type": "HHHH",
                 "bit": 3,
                 "di": "901F",
-                "address": 77
+                "address": 37
             },
             {
                 "name": "timeAcqu",
@@ -109,7 +109,7 @@
             {
                 "name": "valveTime",
                 "label": "阀门当前时钟",
-                "type": "datetime6",
+                "type": "YYMMDDhhmmss",
                 "di": "901F",
                 "address": 25
             },
