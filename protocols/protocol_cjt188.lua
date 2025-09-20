@@ -179,28 +179,13 @@ local types = {
         type = "datetime",
         size = 7
     },
-    ["ssmmhhDDMMYYYY"] = {
-        type = "datetime",
-        size = 7,
-        reverse = true
-    },
     ["YYMMDDhhmmss"] = {
         type = "datetime6",
         size = 6
     },
-    ["ssmmhhDDMMYY"] = {
-        type = "datetime",
-        size = 6,
-        reverse = true
-    },
     ["YYYYMMDD"] = {
         type = "date",
         size = 4
-    },
-    ["DDMMYYYY"] = {
-        type = "date",
-        size = 4,
-        reverse = true
     },
     ["uint8"] = {
         type = "uint8",
@@ -278,7 +263,7 @@ function Cjt188Device:poll()
                             size = size + 1
                         end
                         local str = data:sub(point.address + 1, point.address + size)
-                        if fmt.reverse then
+                        if point.reverse then
                             str = binary.reverse(str)
                         end
                         log.info(tag, "poll decode", point.name, point.address, binary.encodeHex(str))

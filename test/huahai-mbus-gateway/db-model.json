@@ -47,7 +47,8 @@
                 "type": "XXXX.XX",
                 "unit": "℃",
                 "di": "901F",
-                "address": 25
+                "address": 25,
+                "reverse": true
             },
             {
                 "name": "returnTemp",
@@ -55,7 +56,8 @@
                 "type": "XXXX.XX",
                 "unit": "℃",
                 "di": "901F",
-                "address": 28
+                "address": 28,
+                "reverse": true
             },
             {
                 "name": "totalRunTime",
@@ -68,9 +70,10 @@
             {
                 "name": "currentTime",
                 "label": "仪表时钟当前时间",
-                "type": "ssmmhhDDMMYYYY",
+                "type": "YYYYMMDDhhmmss",
                 "di": "901F",
-                "address": 34
+                "address": 34,
+                "reverse": true
             },
             {
                 "name": "lowVoltageAlarm",

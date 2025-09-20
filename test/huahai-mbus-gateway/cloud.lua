@@ -269,7 +269,7 @@ function cloud.open()
         property_get_reply = topic_prefix .. "property/get_reply",
         property_set = topic_prefix .. "property/set", -- 订阅 设置属性
         property_set_reply = topic_prefix .. "property/set_reply",
-        service_invoke = topic_prefix .. "service/{id}/invoke", -- 订阅 执行服务
+        service_invoke = topic_prefix .. "service/+/invoke", -- 订阅 执行服务
         service_invoke_reply = topic_prefix .. "service/{id}/invoke_reply",
 
         -- 期望值
@@ -308,11 +308,16 @@ function cloud.open()
     -- 订阅全部主题
     client:subscribe(topics.property_get, on_property_get)
     client:subscribe(topics.property_set, on_property_set)
-    client:subscribe(topics.service_invoke, on_service_invoke)
+    --client:subscribe(topics.service_invoke, on_service_invoke)
     client:subscribe(topics.sub_property_get, on_sub_property_get)
     client:subscribe(topics.sub_property_set, on_sub_property_set)
-    client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
-    client:subscribe(topics.sub_topo_change, on_sub_topo_change)
+    --client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
+    --client:subscribe(topics.sub_topo_change, on_sub_topo_change)
+
+    -- 订阅回复
+    client:subscribe(topics.pack_post_reply, function(_, payload)
+        log.info(tag, "pack_post_reply", payload)
+    end)
 
     return client:open()
 end
@@ -342,6 +347,7 @@ function cloud.task()
         local devices = gateway.get_all_device_instanse();
 
         for id, dev in pairs(devices) do
+
             -- 1 设备上线
             if not dev._registered then
                 sub_login(id, dev.product_id)
@@ -349,7 +355,9 @@ function cloud.task()
             end
 
             -- 2 定时上传
-            local values = dev:modified_values()
+            --local values = dev:modified_values()
+            local values = dev:values()
+            log.info(tag, "cloud report", id, json.encode(values))
 
             local has = false
             for _, _ in pairs(values) do
