@@ -364,6 +364,7 @@ end
 --- 读取数据
 -- @param addr string 地址
 -- @param type integer 仪表类型
+-- @param code string 指令码
 -- @param di string 数据标识
 -- @return boolean 成功与否
 -- @return string 只有数据
@@ -427,6 +428,7 @@ end
 -- 写入数据
 -- @param addr string 地址
 -- @param type integer 仪表类型
+-- @param code string 指令码
 -- @param di string 数据标识
 -- @param dat string 数据
 -- @return boolean 成功与否

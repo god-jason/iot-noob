@@ -45,15 +45,17 @@ local function load_mapper(product_id)
     }
 
     -- 分类
-    for _, pt in ipairs(model.properties or {}) do
-        if pt.register == 1 then
-            table.insert(mapper.coils, pt)
-        elseif pt.register == 2 then
-            table.insert(mapper.discrete_inputs, pt)
-        elseif pt.register == 3 then
-            table.insert(mapper.holding_registers, pt)
-        elseif pt.register == 4 then
-            table.insert(mapper.input_registers, pt)
+    for _, prop in ipairs(model.properties or {}) do
+        for _, pt in ipairs(prop.points) do
+            if pt.register == 1 then
+                table.insert(mapper.coils, pt)
+            elseif pt.register == 2 then
+                table.insert(mapper.discrete_inputs, pt)
+            elseif pt.register == 3 then
+                table.insert(mapper.holding_registers, pt)
+            elseif pt.register == 4 then
+                table.insert(mapper.input_registers, pt)
+            end
         end
     end
 
