@@ -1,7 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
 --- 文件数据库
 -- @module database
 local database = {}

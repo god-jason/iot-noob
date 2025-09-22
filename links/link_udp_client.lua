@@ -1,8 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
 --- UDP客户端，类定义
 -- @module link_udp_client
 local Client = {}

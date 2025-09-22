@@ -1,9 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
-
 --- 连接类定义
 -- 所有连接必须继承Link，并实现标准接口
 -- @module link

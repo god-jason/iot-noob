@@ -1,8 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
 --- 程序加载器，只需要在main.lua中引入，即可将/luadb/之下的所有代码加载。在luatools工具中，需要勾选“忽略脚本依赖性”，否则只下载main gateway.lua等几个文件，导致启动失败
 -- @module autoload
 local autoload = {}

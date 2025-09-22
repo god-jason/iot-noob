@@ -7,7 +7,6 @@ file = {"core","links","protocols","drivers","clouds"}
 dir = "doc"
 readme = "README.md"
 style = "!new"
-boilerplate = true
 multimodule = true
 kind_names = {
 }

@@ -1,8 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
 --- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
 -- @module agent
 local Agent = {}

@@ -1,9 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
-
 --- IO输出相关
 -- @module driver_output
 local output = {}

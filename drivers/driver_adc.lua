@@ -1,9 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
-
 --- 外部adc芯片接口
 -- @module driver_adc_ext
 local adc_ext = {}

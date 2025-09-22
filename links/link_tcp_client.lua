@@ -1,9 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
-
 --- TCP客户端，类定义
 -- @module link_tcp_client
 local Client = {}
