@@ -10,12 +10,8 @@ style = "!new"
 boilerplate = true
 multimodule = true
 kind_names = {
-   topic = "主题",
-   script = "示例",
-   module = "模块",
-   classmod = "类",
-   example = "示例",
-   file = "源文件"
 }
 examples  =  {
+   "core/main.lua",
+   "test/huahai-mbus-gateway/main.lua"
 }
