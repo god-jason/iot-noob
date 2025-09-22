@@ -381,7 +381,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     self.increment = (self.increment + 1) % 256
     frame = frame .. pack.pack("b1", self.increment) -- 序号
     if data and #data > 0 then
-        frame = frame .. data 
+        frame = frame .. data
     end
     frame = frame .. pack.pack("b1", crypto.checksum(frame, 1)) -- 和校验
     frame = frame .. pack.pack("b1", 0x16) -- 结束符

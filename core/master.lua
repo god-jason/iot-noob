@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- 小白主程序
 -- @module master
 local master = {}
