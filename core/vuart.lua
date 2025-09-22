@@ -15,16 +15,31 @@ local function on_data(id, len)
     local data = uart.read(id, len)
     log.info(tag, "receive", len, data)
 
-    if data:startsWith("\r\n") then
-        cache = data
-    elseif #cache > 0 then
+    if #cache > 0 then
         cache = cache .. data
+    else
+        cache = data
     end
 
-    local response
+    -- 防止命令过长
+    if #cache > 4096 then
+        cache = ""
+        local response = commands.error("command too long")
+        local data2 = json.encode(response)
+        uart.write(uart.VUART_0, data2 .. "\r\n")
+    end
 
     if data:endsWith("\r\n") then
-        local pkt, ret, err = json.decode(cache:sub(3, -3))
+        if #cache == 2 then
+            cache = ""
+            return
+        end
+
+        local response
+
+        local pkt, ret, err = json.decode(cache:sub(1, -3))
+        cache = ""
+
         if ret == 1 then
             local handler = commands[pkt.cmd]
             if handler then
@@ -40,7 +55,6 @@ local function on_data(id, len)
         else
             response = commands.error(err)
         end
-        cache = ""
 
         if response ~= nil then
             local data2, err2 = json.encode(response)
@@ -48,7 +62,7 @@ local function on_data(id, len)
                 response = commands.error("json encode failed" .. err2)
                 data2 = json.encode(response)
             end
-            uart.write(uart.VUART_0, "\r\n" .. data2 .. "\r\n")
+            uart.write(uart.VUART_0, data2 .. "\r\n")
         end
     end
 end

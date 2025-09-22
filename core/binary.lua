@@ -2,12 +2,9 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
-
 --- 二进制处理库
 -- @module binary
 local binary = {}
-
 
 function binary.encodeHex(str)
     if not str or #str == 0 then
@@ -17,7 +14,7 @@ function binary.encodeHex(str)
     for i = 1, #str do
         ret = ret .. string.format("%02X", str:byte(i))
     end
-    return ret    
+    return ret
 end
 
 function binary.decodeHex(str)
@@ -26,7 +23,7 @@ function binary.decodeHex(str)
     end
     local ret = ""
     for i = 1, #str, 2 do
-        local byteStr = str:sub(i, i+1)
+        local byteStr = str:sub(i, i + 1)
         local byte = tonumber(byteStr, 16)
         ret = ret .. string.char(byte)
     end
@@ -35,7 +32,7 @@ end
 
 function binary.decodeBCD(len, str)
     if not str or #str == 0 then
-        return ""
+        return 0
     end
     local ret = 0
     for i = 1, len do
@@ -63,12 +60,13 @@ function binary.decodeDatetimeBCD(str)
     if not str or #str == 0 then
         return 0
     end
-    local year = binary.decodeBCD(1, str:sub(1, 1)) * 100 + binary.decodeBCD(1, str:sub(2, 2))
+    local year = binary.decodeBCD(2, str:sub(1, 2))
     local month = binary.decodeBCD(1, str:sub(3, 3))
     local day = binary.decodeBCD(1, str:sub(4, 4))
     local hour = binary.decodeBCD(1, str:sub(5, 5))
     local min = binary.decodeBCD(1, str:sub(6, 6))
     local sec = binary.decodeBCD(1, str:sub(7, 7))
+    log.info("binary", "decodeDatetimeBCD", year, month, day, hour, min, sec)
     return os.time({
         year = year,
         month = month,
@@ -76,14 +74,13 @@ function binary.decodeDatetimeBCD(str)
         hour = hour,
         min = min,
         sec = sec
-    })   
+    })
 end
 
 function binary.encodeDatetimeBCD(t)
     local tm = os.date("*t", t)
     local str = ""
-    str = str .. binary.encodeBCD(tm.year // 100, 1)
-    str = str .. binary.encodeBCD(tm.year % 100, 1)
+    str = str .. binary.encodeBCD(tm.year, 2)
     str = str .. binary.encodeBCD(tm.month, 1)
     str = str .. binary.encodeBCD(tm.day, 1)
     str = str .. binary.encodeBCD(tm.hour, 1)
@@ -109,7 +106,7 @@ function binary.decodeShortDatetimeBCD(str)
         hour = hour,
         min = min,
         sec = sec
-    })    
+    })
 end
 
 function binary.encodeShortDatetimeBCD(t)
@@ -133,7 +130,7 @@ function binary.reverse(str)
         ret = ret .. str:sub(i, i)
     end
     return ret
-    
+
 end
 
 return binary

@@ -4,6 +4,7 @@ local tag = "cloud"
 local configs = require("configs")
 local MqttClient = require("mqtt_client")
 local gateway = require("gateway")
+local binary = require("binary")
 
 local increment = 0
 
@@ -31,25 +32,59 @@ local config = {
     port = 1883,
     product_id = "",
     device_name = "",
-    device_key = ""
+    device_key = "",
+    cycle_upload = 10 -- 默认10分钟
 }
 
 local topics = {}
 
--- local function property_post(values)
---     local payload = create_package(values)
---     client:publish(topics.pack_post, payload)
--- end
+local info = {
+    hwVersion = {
+        value = "1.0.0"
+    },
+    swVersion = {
+        value = _G.VERSION
+    },
+    network = {
+        value = 0
+    }, -- 默认移动
+    radio = {
+        value = mobile.csq()
+    },
+    cycleUpload = {
+        value = config.cycle_upload
+    }, 
+    timeCalibration = {
+        value = os.date("%Y%m%d%H%M%S", os.time())
+    },
+    timeAcqu = {
+        value = os.date("%Y%m%d%H%M%S", os.time())
+    },
+    IMEI = {
+        value = mobile.imei()
+    },
+    IMSI = {
+        value = mobile.imsi()
+    },
+    ICCID = {
+        value = mobile.iccid()
+    }
+}
 
--- local function event_post(name, args)
---     local data = create_package({
---         [name] = {
---             value = args,
---             time = os.time()
---         }
---     })
---     client:publish(topics.event_post, data)
--- end
+local function property_post(values)
+    local payload = create_package(values)
+    client:publish(topics.property_post, payload)
+end
+
+local function event_post(name, args)
+    local data = create_package({
+        [name] = {
+            value = args,
+            time = os.time()
+        }
+    })
+    client:publish(topics.event_post, data)
+end
 
 local function on_service_invoke(_, payload)
     log.info(tag, "on_service_invoke", payload)
@@ -82,8 +117,35 @@ local function on_property_set(_, payload)
         return
     end
 
-    data.success = false
-    data.msg = "不支持"
+
+    for key, value in pairs(data.params) do
+        log.info(tag, "set property", key, value)
+
+
+        -- 时间校准
+        if key == "timeCalibration" then
+            local dt = binary.decodeHex(value)
+            local tm = binary.decodeDatetimeBCD(dt)
+            rtc.set(tm)
+            -- TODO 数据更新到所有子设备中
+        end
+        -- 修改上传周期
+        if key == "cycleUpload" then
+            info.cycleUpload.value = value
+            config.cycle_upload = value
+            configs.save("cloud", config) -- 保存配置
+        end
+        -- 采集并上传
+        if key == "report" and value == true then
+            -- 上报网关信息
+            info.radio.value = mobile.csq()
+            info.timeCalibration.value = os.date("%Y%m%d%H%M%S", os.time())
+            info.timeAcqu.value = os.date("%Y%m%d%H%M%S", os.time())
+            property_post(info)
+        end
+    end
+    data.code = 200
+    data.success = true
     client:publish(topics.property_set_reply, data)
 end
 
@@ -177,7 +239,7 @@ local function on_sub_property_set(_, payload)
         client:publish(topics.sub_property_set_reply, data)
         return
     end
-  
+
     for key, value in pairs(data.params.params) do
         dev:set(key, value)
         -- 开阀门 特例处理
@@ -258,6 +320,7 @@ function cloud.open()
         return false
     end
     config = data
+    log.info(tag, "cloud config", json.encode(config))
 
     -- oneNet鉴权
     local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key, nil,
@@ -330,40 +393,15 @@ function cloud.open()
     -- client:subscribe(topics.sub_topo_change, on_sub_topo_change)
 
     -- 订阅回复
+    client:subscribe(topics.property_post_reply, function(_, payload)
+        log.info(tag, "property_post_reply", payload)
+    end)
     client:subscribe(topics.pack_post_reply, function(_, payload)
         log.info(tag, "pack_post_reply", payload)
     end)
 
     return client:open()
 end
-
-local function report_all()
-    local devices = gateway.get_all_device_instanse();
-
-    for id, dev in pairs(devices) do
-        local values = dev:values()
-        pack_post(id, dev.product_id, values)
-    end
-end
-
--- local function valve_test()
-
---     sys.waitUntil("IP_READY")
-
---     local valve = 0
---     while true do
---         valve = (valve + 10) % 100
---         local devices = gateway.get_all_device_instanse();
---         for id, dev in pairs(devices) do
---             dev:valve(valve)
---         end
---         sys.wait(2000)
---     end
-
--- end
-
--- sys.taskInit(valve_test)
-
 
 function cloud.task()
 
@@ -378,6 +416,12 @@ function cloud.task()
 
     while true do
 
+        -- 上报网关信息
+        info.radio.value = mobile.csq()
+        info.timeCalibration.value = os.date("%Y%m%d%H%M%S", os.time())
+        info.timeAcqu.value = os.date("%Y%m%d%H%M%S", os.time())
+        property_post(info)
+        
         local devices = gateway.get_all_device_instanse();
 
         for id, dev in pairs(devices) do
@@ -407,10 +451,14 @@ function cloud.task()
                     value = v.value
                 }
             end
+            -- 数据更新时间
+            obj.timeAcqu = {
+                value = os.date("%Y%m%d%H%M%S", os.time())
+            }
             pack_post(id, dev.product_id, obj)
         end
 
-        sys.wait(60 * 1000)
+        sys.wait(60 * 1000 * (config.cycle_upload or 1)) -- 上传周期
     end
 
 end

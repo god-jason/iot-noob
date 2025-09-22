@@ -330,6 +330,9 @@ function Cjt188Device:poll()
                 end
             end
         end
+
+        -- 数据更新时间
+        self._updated = os.time()
     end
 
     return true
