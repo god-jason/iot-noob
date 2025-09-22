@@ -1,8 +1,8 @@
 {
-    "hot-meter-1":{
-        "id": "hot-meter-1",
-        "name": "热量表",
-        "product_id": "wKMUGRBKVL",
+    "valve-1":{
+        "id": "valve-1",
+        "name": "阀门",
+        "product_id": "aAHGgGOpNy",
         "link_id": "serial-1",
         "address": "AAAAAAAAAAAAAA"
     }

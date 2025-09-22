@@ -31,7 +31,7 @@ end
 -- @return boolean 成功与否
 -- @return string 返回数据
 function Agent:ask(request, len)
-    log.info(tag, "ask", binary.encodeHex(request), len)
+    --log.info(tag, "ask", binary.encodeHex(request), len)
 
     -- 重入锁，等待其他操作完成
     while self.asking do
@@ -70,7 +70,7 @@ function Agent:ask(request, len)
         buf = buf .. d
     until #buf >= len
 
-    log.info(tag, "ask got", #buf, binary.encodeHex(buf))
+    --log.info(tag, "ask got", #buf, binary.encodeHex(buf))
 
     self.asking = false
     return true, buf

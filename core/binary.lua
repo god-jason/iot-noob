@@ -10,6 +10,9 @@ local binary = {}
 
 
 function binary.encodeHex(str)
+    if not str or #str == 0 then
+        return ""
+    end
     local ret = ""
     for i = 1, #str do
         ret = ret .. string.format("%02X", str:byte(i))
@@ -18,6 +21,9 @@ function binary.encodeHex(str)
 end
 
 function binary.decodeHex(str)
+    if not str or #str == 0 then
+        return ""
+    end
     local ret = ""
     for i = 1, #str, 2 do
         local byteStr = str:sub(i, i+1)
@@ -28,6 +34,9 @@ function binary.decodeHex(str)
 end
 
 function binary.decodeBCD(len, str)
+    if not str or #str == 0 then
+        return ""
+    end
     local ret = 0
     for i = 1, len do
         local b = str:byte(i)
@@ -51,6 +60,9 @@ function binary.encodeBCD(num, len)
 end
 
 function binary.decodeDatetimeBCD(str)
+    if not str or #str == 0 then
+        return 0
+    end
     local year = binary.decodeBCD(1, str:sub(1, 1)) * 100 + binary.decodeBCD(1, str:sub(2, 2))
     local month = binary.decodeBCD(1, str:sub(3, 3))
     local day = binary.decodeBCD(1, str:sub(4, 4))
@@ -80,7 +92,10 @@ function binary.encodeDatetimeBCD(t)
     return str
 end
 
-function binary.decodeShortDatetimeBCD()
+function binary.decodeShortDatetimeBCD(str)
+    if not str or #str == 0 then
+        return 0
+    end
     local year = binary.decodeBCD(1, str:sub(1, 1)) + 2000
     local month = binary.decodeBCD(1, str:sub(2, 2))
     local day = binary.decodeBCD(1, str:sub(3, 3))
@@ -110,6 +125,9 @@ function binary.encodeShortDatetimeBCD(t)
 end
 
 function binary.reverse(str)
+    if not str or #str == 0 then
+        return ""
+    end
     local ret = ""
     for i = #str, 1, -1 do
         ret = ret .. str:sub(i, i)

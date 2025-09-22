@@ -31,77 +31,63 @@ local function load_mapper(product_id)
         return nil
     end
 
-    -- 按数据标识分组
-    -- di->points[]
-    local mapper = {}
-    for _, pt in ipairs(model.properties or {}) do
-        if pt.di ~= nil then
-            local points = mapper[pt.di]
-            if not points then
-                points = {}
-                mapper[pt.di] = points
-            end
-            table.insert(points, pt)
-        end
-    end
-
-    mapper_cache[product_id] = mapper
-    return mapper
+    mapper_cache[product_id] = model
+    return model
 end
 
 -- 单位转换代码
--- local units = {
---     [0x01] = "J",
---     [0x02] = "Wh",
---     [0x03] = "Whx10",
---     [0x04] = "Whx100",
---     [0x05] = "kWh",
---     [0x06] = "kWhx10",
---     [0x07] = "kWhx100",
---     [0x08] = "MWh",
---     [0x09] = "MWhx10",
---     [0x0A] = "MWhx100",
---     [0x0B] = "kJ",
---     [0x0C] = "kJx10",
---     [0x0D] = "kJx100",
---     [0x0E] = "MJ",
---     [0x0F] = "MJx10",
---     [0x10] = "MJx100",
---     [0x11] = "GJ",
---     [0x12] = "GJx10",
---     [0x13] = "GJx100",
---     [0x14] = "W",
---     [0x15] = "Wx10",
---     [0x16] = "Wx100",
---     [0x17] = "kW",
---     [0x18] = "kWx10",
---     [0x19] = "kWx100",
---     [0x1A] = "MW",
---     [0x1B] = "MWx10",
---     [0x1C] = "MWx100",    
---     [0x29] = "L",
---     [0x2A] = "Lx10",
---     [0x2B] = "Lx100",
---     [0x2C] = "m3",
---     [0x2D] = "m3x10",
---     [0x2E] = "m3x100",
---     [0x32] = "L/h",
---     [0x33] = "L/hx10",
---     [0x34] = "L/hx100",
---     [0x35] = "m3/h",
---     [0x36] = "m3/hx10",
---     [0x37] = "m3/hx100",
---     [0x40] = "J/h",
---     [0x43] = "kj/h",
---     [0x44] = "kj/hx10",
---     [0x45] = "kj/hx100",
---     [0x46] = "MJ/h",
---     [0x47] = "MJ/hx10",
---     [0x48] = "MJ/hx100",
---     [0x49] = "GJ/h",
---     [0x4A] = "GJ/hx10",
---     [0x4B] = "GJ/hx100",
--- }
+local units = {
+    [0x01] = "J",
+    [0x02] = "Wh",
+    [0x03] = "Whx10",
+    [0x04] = "Whx100",
+    [0x05] = "kWh",
+    [0x06] = "kWhx10",
+    [0x07] = "kWhx100",
+    [0x08] = "MWh",
+    [0x09] = "MWhx10",
+    [0x0A] = "MWhx100",
+    [0x0B] = "kJ",
+    [0x0C] = "kJx10",
+    [0x0D] = "kJx100",
+    [0x0E] = "MJ",
+    [0x0F] = "MJx10",
+    [0x10] = "MJx100",
+    [0x11] = "GJ",
+    [0x12] = "GJx10",
+    [0x13] = "GJx100",
+    [0x14] = "W",
+    [0x15] = "Wx10",
+    [0x16] = "Wx100",
+    [0x17] = "kW",
+    [0x18] = "kWx10",
+    [0x19] = "kWx100",
+    [0x1A] = "MW",
+    [0x1B] = "MWx10",
+    [0x1C] = "MWx100",
+    [0x29] = "L",
+    [0x2A] = "Lx10",
+    [0x2B] = "Lx100",
+    [0x2C] = "m3",
+    [0x2D] = "m3x10",
+    [0x2E] = "m3x100",
+    [0x32] = "L/h",
+    [0x33] = "L/hx10",
+    [0x34] = "L/hx100",
+    [0x35] = "m3/h",
+    [0x36] = "m3/hx10",
+    [0x37] = "m3/hx100",
+    [0x40] = "J/h",
+    [0x43] = "kj/h",
+    [0x44] = "kj/hx10",
+    [0x45] = "kj/hx100",
+    [0x46] = "MJ/h",
+    [0x47] = "MJ/hx10",
+    [0x48] = "MJ/hx100",
+    [0x49] = "GJ/h",
+    [0x4A] = "GJ/hx10",
+    [0x4B] = "GJ/hx100"
+}
 
 local function unit_convert(unit, value)
     if unit == 0x01 then
@@ -188,11 +174,11 @@ local types = {
         size = 4
     },
     ["uint8"] = {
-        type = "uint8",
+        type = "u8",
         size = 1
     },
     ["uint16"] = {
-        type = "uint16",
+        type = "u16",
         size = 2
     }
 
@@ -222,8 +208,8 @@ function Cjt188Device:get(key)
     log.info(tag, "get", key)
     -- 读一遍
     self:poll()
-    if self.values[key] then
-        return true, self.values[key].value
+    if self._values[key] then
+        return true, self._values[key].value
     end
 end
 
@@ -233,8 +219,19 @@ end
 -- @return boolean 成功与否
 function Cjt188Device:set(key, value)
     log.info(tag, "set", key, value)
-    self.master.read(0, 0, 0, 0)
+    --self.master.read(0, 0, 0, 0)
+    self._values[key] = {
+        value = value,
+        timestamp = os.time()
+    }
 end
+
+---控制阀门
+function Cjt188Device:write(type, code, di, dat)
+    --self.master:write(self.address, "50", "16", "A017", string.char(oper))
+    self.master:write(self.address, type, code, di, dat)
+end
+
 
 ---读取所有数据
 -- @return boolean 成功与否
@@ -245,34 +242,34 @@ function Cjt188Device:poll()
         log.error(tag, "poll", self.id, "no mapper")
         return false, "no mapper"
     end
+    if not self.mapper.properties then
+        log.error(tag, "poll", self.id, "no properties")
+        return false, "no properties"
+    end
 
-    for di, points in pairs(self.mapper) do
-        local pt = points[1]
+    for _, pt in pairs(self.mapper.properties) do
+        log.info(tag, "poll", pt.name, pt.type, pt.code, pt.di)
 
         -- 读数据
-        local ret, data = self.master:read(self.address, "20", pt.code, di) -- TODO 仪表类型 功能码 写入
-        log.info(tag, "poll read", binary.encodeHex(data))
-
+        local ret, data = self.master:read(self.address, pt.type or "20", pt.code or "01", pt.di)
+        log.info(tag, "poll read", ret)
         if ret then
-            for _, point in ipairs(points) do
+            log.info(tag, "poll parse", binary.encodeHex(data))
+
+            for _, point in ipairs(pt.points) do
                 local fmt = types[point.type]
                 if fmt then
                     if #data > point.address then
-                        local size = fmt.size
-                        if point.hasUnit then
-                            size = size + 1
-                        end
-                        local str = data:sub(point.address + 1, point.address + size)
-                        if point.reverse then
-                            str = binary.reverse(str)
-                        end
-                        log.info(tag, "poll decode", point.name, point.address, binary.encodeHex(str))
+                        local str = data:sub(point.address + 1, point.address + fmt.size)
+                        log.info(tag, "poll decode", point.name, point.label, fmt.type, binary.encodeHex(str), str)
 
                         local value
                         if fmt.type == "bcd" then
+                            str = binary.reverse(str)
                             value = binary.decodeBCD(fmt.size, str)
                             if point.hasUnit then
-                                local unit = str:byte(fmt.size + 1)
+                                local unit = data:byte(point.address + fmt.size + 1)
+                                log.info(tag, "data unit", point.name, value, units[unit])
                                 value = unit_convert(unit, value)
                             end
                             if fmt.rate then
@@ -285,7 +282,7 @@ function Cjt188Device:poll()
                                 value = (value << 8) | str:byte(1)
                             end
                             -- 取位，布尔型
-                            if point.bit > 0 then                                
+                            if point.bit > 0 then
                                 if (value >> (point.bit - 1)) & 0x01 > 0 then
                                     value = true
                                 else
@@ -294,23 +291,32 @@ function Cjt188Device:poll()
                             end
                             self:put_value(point.name, value)
                         elseif fmt.type == "datetime" then
+                            str = binary.reverse(str)
                             value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
                             self:put_value(point.name, value)
                         elseif fmt.type == "date" then
+                            str = binary.reverse(str)
                             value = binary.encodeHex(str) -- 字符串 YYYYMMDD
                             self:put_value(point.name, value)
                         elseif fmt.type == "datetime6" then
+                            str = binary.reverse(str)
                             value = "20" .. binary.encodeHex(str) -- 字符串
                         elseif fmt.type == "u8" then
-                            _, value = pack.unpack("b", str)
+                            value = str:byte(1)
                             if fmt.rate then
                                 value = value * fmt.rate
                             end
+                            if point.rate then
+                                value = value * point.rate
+                            end
                             self:put_value(point.name, value)
                         elseif fmt.type == "u16" then
-                            _, value = pack.unpack(">H", str)
+                            _, value = pack.unpack(str, "<H")
                             if fmt.rate then
                                 value = value * fmt.rate
+                            end
+                            if point.rate then
+                                value = value * point.rate
                             end
                             self:put_value(point.name, value)
                         else
@@ -385,7 +391,7 @@ function Cjt188Master:read(addr, type, code, di)
         buf = buf:sub(2)
     end
 
-    log.info(tag, "read response trim", binary.encodeHex(buf))
+    --log.info(tag, "read response trim", binary.encodeHex(buf))
 
     if #buf < 12 then
         local ret2, buf2 = self.link:read() -- 继续读
@@ -415,14 +421,66 @@ function Cjt188Master:read(addr, type, code, di)
 end
 
 -- 写入数据
--- @param slave integer 从站号
--- @param code integer 功能码
--- @param addr integer 地址
--- @param data string 数据
+-- @param addr string 地址
+-- @param type integer 仪表类型
+-- @param di string 数据标识
+-- @param dat string 数据
 -- @return boolean 成功与否
-function Cjt188Master:write(slave, code, addr, data)
-    log.info(tag, "write", slave, code, addr, data)
-    self.link.ask("abc", 7)
+-- @return string 只有数据
+function Cjt188Master:write(addr, type, code, di, dat)
+    log.info(tag, "write", addr, type, code, di, dat)
+    
+    local data = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
+    data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
+    data = data .. binary.decodeHex(code or "01") .. string.char(3 + #dat) -- 控制符，长度
+    data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节    
+    data = data .. pack.pack("b1", self.increment) -- 序号    
+    self.increment = (self.increment + 1) % 256
+    data = data .. dat -- 数据
+    data = data .. pack.pack("b1", crypto.checksum(data, 1)) -- 和校验
+    data = data .. pack.pack("b1", 0x16) -- 结束符
+
+    log.info(tag, "write frame", binary.encodeHex(data))
+
+    local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
+    local ret, buf = self.agent:ask(frame, 12) -- 先读12字节
+    if not ret then
+        return false, "no response"
+    end
+
+    log.info(tag, "read response", binary.encodeHex(buf))
+
+    -- 解析返回
+    -- 去掉前导码
+    while #buf > 0 and string.byte(buf, 1) == 0xFE do
+        buf = buf:sub(2)
+    end
+
+    if #buf < 12 then
+        local ret2, buf2 = self.link:read() -- 继续读
+        if ret2 then
+            buf = buf .. buf2
+        else
+            return false, "invalid response"
+        end
+    end
+
+    if string.byte(buf, 1) ~= 0x68 then
+        return false, "invalid start"
+    end
+
+    -- 数据长度不足，则继续读
+    local len = string.byte(buf, 11) -- 数据段长度
+    if #buf < len + 12 then
+        local ret2, buf2 = self.agent:ask(nil, len + 12 - #buf) -- 继续读
+        if ret2 then
+            buf = buf .. buf2
+        else
+            return false, "timeout"
+        end
+    end
+
+    return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
 end
 
 ---打开主站

@@ -2,157 +2,162 @@
     "wKMUGRBKVL": {
         "id": "wKMUGRBKVL",
         "name": "热量表",
-        "type": "20",
         "properties": [
             {
-                "name": "totalHeat",
-                "label": "当前实时累计热量",
-                "type": "XXXXXX.XX",
-                "hasUnit": true,
-                "unit": "MWh",
+                "name": "基础数据",
                 "di": "901F",
-                "address": 5,
-                "code": "01"
-            },
-            {
-                "name": "heatPower",
-                "label": "当前热功率",
-                "type": "XXXXXX.XX",
-                "hasUnit": true,
-                "unit": "kW",
-                "di": "901F",
-                "address": 10
-            },
-            {
-                "name": "flowRate",
-                "label": "当前瞬时流量",
-                "type": "XXXXXX.XX",
-                "hasUnit": true,
-                "unit": "m3/h",
-                "di": "901F",
-                "address": 15
-            },
-            {
-                "name": "totalFlow",
-                "label": "当前实时累计流量",
-                "type": "XXXXXX.XX",
-                "hasUnit": true,
-                "unit": "m3",
-                "di": "901F",
-                "address": 20
-            },
-            {
-                "name": "supplyTemp",
-                "label": "当前供水温度",
-                "type": "XXXX.XX",
-                "unit": "℃",
-                "di": "901F",
-                "address": 25,
-                "reverse": true
-            },
-            {
-                "name": "returnTemp",
-                "label": "当前回水温度",
-                "type": "XXXX.XX",
-                "unit": "℃",
-                "di": "901F",
-                "address": 28,
-                "reverse": true
-            },
-            {
-                "name": "totalRunTime",
-                "label": "当前累积运行时间",
-                "type": "XXXXXX",
-                "unit": "h",
-                "di": "901F",
-                "address": 31
-            },
-            {
-                "name": "currentTime",
-                "label": "仪表时钟当前时间",
-                "type": "YYYYMMDDhhmmss",
-                "di": "901F",
-                "address": 34,
-                "reverse": true
-            },
-            {
-                "name": "lowVoltageAlarm",
-                "label": "电池电压低报警",
-                "type": "HHHH",
-                "bit": 3,
-                "di": "901F",
-                "address": 37
-            },
-            {
-                "name": "timeAcqu",
-                "label": "采集时间，最后采集时间"
+                "code": "01",
+                "type": "50",
+                "points": [
+                    {
+                        "name": "totalHeat",
+                        "label": "当前实时累计热量",
+                        "type": "XXXXXX.XX",
+                        "hasUnit": true,
+                        "unit": "MWh",
+                        "address": 5
+                    },
+                    {
+                        "name": "heatPower",
+                        "label": "当前热功率",
+                        "type": "XXXXXX.XX",
+                        "hasUnit": true,
+                        "unit": "kW",
+                        "address": 10
+                    },
+                    {
+                        "name": "flowRate",
+                        "label": "当前瞬时流量",
+                        "type": "XXXXXX.XX",
+                        "hasUnit": true,
+                        "unit": "m3/h",
+                        "address": 15
+                    },
+                    {
+                        "name": "totalFlow",
+                        "label": "当前实时累计流量",
+                        "type": "XXXXXX.XX",
+                        "hasUnit": true,
+                        "unit": "m3",
+                        "address": 20
+                    },
+                    {
+                        "name": "supplyTemp",
+                        "label": "当前供水温度",
+                        "type": "XXXX.XX",
+                        "unit": "℃",
+                        "address": 25
+                    },
+                    {
+                        "name": "returnTemp",
+                        "label": "当前回水温度",
+                        "type": "XXXX.XX",
+                        "unit": "℃",
+                        "address": 28
+                    },
+                    {
+                        "name": "totalRunTime",
+                        "label": "当前累积运行时间",
+                        "type": "XXXXXX",
+                        "unit": "h",
+                        "address": 31
+                    },
+                    {
+                        "name": "currentTime",
+                        "label": "仪表时钟当前时间",
+                        "type": "YYYYMMDDhhmmss",
+                        "address": 34
+                    },
+                    {
+                        "name": "lowVoltageAlarm",
+                        "label": "电池电压低报警",
+                        "type": "HHHH",
+                        "bit": 3,
+                        "address": 37
+                    },
+                    {
+                        "name": "timeAcqu",
+                        "label": "采集时间，最后采集时间"
+                    }
+                ]
             }
         ]
     },
     "aAHGgGOpNy": {
         "id": "aAHGgGOpNy",
         "name": "智能阀门",
-        "type": "50",
         "properties": [
             {
-                "name": "temValue",
-                "label": "室内温度",
-                "type": "HHHH",
-                "rate": 0.01,
+                "name": "基础数据",
                 "di": "901F",
-                "address": 5
+                "code": "01",
+                "type": "50",
+                "points": [
+                    {
+                        "name": "controlMode",
+                        "label": "控制模式"
+                    },
+                    {
+                        "name": "temValue",
+                        "label": "室内温度",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 5
+                    },
+                    {
+                        "name": "openValue",
+                        "label": "当前开度",
+                        "type": "uint8",
+                        "address": 23
+                    },
+                    {
+                        "name": "valveTime",
+                        "label": "阀门当前时钟",
+                        "type": "YYMMDDhhmmss",
+                        "address": 25
+                    }
+                ]
             },
             {
-                "name": "openValue",
-                "label": "当前开度",
-                "type": "HH",
+                "name": "配置数据",
                 "di": "901F",
-                "address": 23
-            },
-            {
-                "name": "valveTime",
-                "label": "阀门当前时钟",
-                "type": "YYMMDDhhmmss",
-                "di": "901F",
-                "address": 25
-            },
-            {
-                "name": "minOpenControl",
-                "label": "最小开度",
-                "type": "HH",
-                "di": "901F",
-                "address": 2
-            },
-            {
-                "name": "maxOpenControl",
-                "label": "最大开度",
-                "type": "HH",
-                "di": "901F",
-                "address": 3
-            },
-            {
-                "name": "tempLower",
-                "label": "设定温度下限",
-                "type": "HHHH",
-                "rate": 0.01,
-                "di": "901F",
-                "address": 7
-            },
-            {
-                "name": "tempUpper",
-                "label": "设定温度上限",
-                "type": "HHHH",
-                "rate": 0.01,
-                "di": "901F",
-                "address": 9
-            },
-            {
-                "name": "targetTem",
-                "label": "设定温度",
-                "type": "HHHH",
-                "rate": 0.01,
-                "di": "901F",
-                "address": 11
+                "code": "17",
+                "type": "50",
+                "points": [
+                    {
+                        "name": "minOpenControl",
+                        "label": "最小开度",
+                        "type": "uint8",
+                        "address": 2
+                    },
+                    {
+                        "name": "maxOpenControl",
+                        "label": "最大开度",
+                        "type": "uint8",
+                        "address": 3
+                    },
+                    {
+                        "name": "tempLower",
+                        "label": "设定温度下限",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 7
+                    },
+                    {
+                        "name": "tempUpper",
+                        "label": "设定温度上限",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 9
+                    },
+                    {
+                        "name": "targetTem",
+                        "label": "设定温度",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 11
+                    }
+                ]
             }
         ]
     }

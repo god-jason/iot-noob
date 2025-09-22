@@ -147,7 +147,9 @@ local function on_sub_property_get(_, payload)
     if not dev then
         data.success = false
         data.msg = "找不到设备"
+        data.code = 201
         client:publish(topics.sub_property_get_reply, data)
+        return
     end
 
     data.code = 200
@@ -169,16 +171,29 @@ local function on_sub_property_set(_, payload)
     local id = data.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
+        data.success = false
         data.msg = "找不到设备"
+        data.code = 201
         client:publish(topics.sub_property_set_reply, data)
+        return
     end
-
+  
     for key, value in pairs(data.params.params) do
-        dev.set(key, value)
+        dev:set(key, value)
+        -- 开阀门 特例处理
+        if key == "openControl" and dev.product_id == "aAHGgGOpNy" then
+            dev:write("50", "16", "A017", string.char(value))
+        end
+        -- 采集并上传
+        if key == "report" and value == true then
+            dev:poll()
+            local values = dev:values()
+            pack_post(id, dev.product_id, values)
+        end
     end
 
     data.code = 200
-    client:publish(topics.sub_property_set_reply, payload)
+    client:publish(topics.sub_property_set_reply, data)
 end
 
 local function on_sub_service_invoke(_, payload)
@@ -190,7 +205,7 @@ local function on_sub_service_invoke(_, payload)
 
     data.success = false
     data.msg = "不支持"
-    client:publish(topics.sub_service_invoke_reply, payload)
+    client:publish(topics.sub_service_invoke_reply, data)
 end
 
 -- local function sub_topo_add(id, product_id)
@@ -326,10 +341,29 @@ local function report_all()
     local devices = gateway.get_all_device_instanse();
 
     for id, dev in pairs(devices) do
-        local values = dev.values()
+        local values = dev:values()
         pack_post(id, dev.product_id, values)
     end
 end
+
+-- local function valve_test()
+
+--     sys.waitUntil("IP_READY")
+
+--     local valve = 0
+--     while true do
+--         valve = (valve + 10) % 100
+--         local devices = gateway.get_all_device_instanse();
+--         for id, dev in pairs(devices) do
+--             dev:valve(valve)
+--         end
+--         sys.wait(2000)
+--     end
+
+-- end
+
+-- sys.taskInit(valve_test)
+
 
 function cloud.task()
 
@@ -340,7 +374,7 @@ function cloud.task()
 
     log.info(tag, "cloud broker connected")
 
-    sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
+    -- sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
     while true do
 
@@ -370,7 +404,7 @@ function cloud.task()
             local values = dev:values()
             for k, v in pairs(values) do
                 obj[k] = {
-                    value = v.value,
+                    value = v.value
                 }
             end
             pack_post(id, dev.product_id, obj)
