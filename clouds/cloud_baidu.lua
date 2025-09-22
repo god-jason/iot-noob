@@ -1,8 +1,3 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
 --- 百度云平台 源码参考： https://docs.openluat.com/air780epm/luatos/app/iotcloud/baiduiot/
 -- @module cloud_baidu
 local baidu = {}
