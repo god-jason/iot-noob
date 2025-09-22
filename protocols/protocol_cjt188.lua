@@ -2,6 +2,8 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
+
 --- CJT188协议实现
 -- @module protocol_cjt188
 local Cjt188Device = {}
@@ -219,7 +221,7 @@ end
 -- @return boolean 成功与否
 function Cjt188Device:set(key, value)
     log.info(tag, "set", key, value)
-    --self.master.read(0, 0, 0, 0)
+    -- self.master.read(0, 0, 0, 0)
     self._values[key] = {
         value = value,
         timestamp = os.time()
@@ -228,10 +230,9 @@ end
 
 ---控制阀门
 function Cjt188Device:write(type, code, di, dat)
-    --self.master:write(self.address, "50", "16", "A017", string.char(oper))
+    -- self.master:write(self.address, "50", "16", "A017", string.char(oper))
     self.master:write(self.address, type, code, di, dat)
 end
-
 
 ---读取所有数据
 -- @return boolean 成功与否
@@ -394,7 +395,7 @@ function Cjt188Master:read(addr, type, code, di)
         buf = buf:sub(2)
     end
 
-    --log.info(tag, "read response trim", binary.encodeHex(buf))
+    -- log.info(tag, "read response trim", binary.encodeHex(buf))
 
     if #buf < 12 then
         local ret2, buf2 = self.link:read() -- 继续读
