@@ -13,6 +13,7 @@ local binary = require("binary")
 local tag = "Agent"
 
 --- 创建询问器
+-- abc
 -- @param link Link 连接实例
 -- @param timeout integer 超时 ms
 -- @return Agent
