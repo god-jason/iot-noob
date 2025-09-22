@@ -1,9 +1,9 @@
+--- 物联小白标准库
+-- @author 杰神
+-- @license GPLv3
+-- @copyright benyi 2025
+
 --- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
--- 物联小白标准库，非授权禁止商业使用
--- Author 杰神
--- License GPLv3
--- Copyright 南京本易物联网有限公司@2025
---
 -- @module agent
 local Agent = {}
 Agent.__index = Agent

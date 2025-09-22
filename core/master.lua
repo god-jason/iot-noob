@@ -2,8 +2,6 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
-
 --- 小白主程序
 -- @module master
 local master = {}
@@ -15,6 +13,7 @@ local configs = require("configs")
 local gateway = require("gateway")
 local MqttClient = require("mqtt_client")
 local database = require("database")
+local cpu = require("cpu")
 
 --- @type MqttClient
 local cloud = nil -- MqttClient:new()
@@ -135,7 +134,7 @@ local function on_devices(_, payload)
         return
     end
 
-    database.insertMany("device",  data)
+    database.insertMany("device", data)
 end
 
 local function on_model(_, payload)
@@ -167,8 +166,22 @@ local function report_status()
     log.info(tag, "report_status")
 
     local status = {
-        net = mobile.scell(),
         date = os.date("%Y-%m-%d %H:%M:%S") -- 系统时间
+    }
+
+    -- 4G信息
+    local scell = mobile.scell()
+    status.net = {
+        mcc = scell.mcc,
+        mnc = scell.mnc,
+        rssi = scell.rssi,
+        csq = mobile.csq()
+    }
+
+    -- CPU使用信息
+    status.cpu = {
+        mhz = mcu.getClk(),
+        usage = cpu.usage
     }
 
     -- 内存使用信息
@@ -237,7 +250,7 @@ function master.open()
     sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
-    --sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
+    -- sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)

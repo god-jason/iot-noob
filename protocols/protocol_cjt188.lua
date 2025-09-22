@@ -2,7 +2,6 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
-
 --- CJT188协议实现
 -- @module cjt188_device
 local Cjt188Device = {}
@@ -360,42 +359,48 @@ function Cjt188Master:new(link, opts)
     return master
 end
 
---- 读取数据
+-- 写入数据
 -- @param addr string 地址
 -- @param type integer 仪表类型
 -- @param code string 指令码
 -- @param di string 数据标识
+-- @param data string|nil 数据
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Cjt188Master:read(addr, type, code, di)
-    log.info(tag, "read", addr, type, code, di)
+function Cjt188Master:ask(addr, type, code, di, data)
 
-    local data = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
-    data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
-    data = data .. binary.decodeHex(code or "01") .. string.char(3) -- 控制符，长度
-    data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
-    data = data .. pack.pack("b1", self.increment) -- 序号
+    local dl = 3
+    if data and #data > 0 then
+        dl = dl + #data
+    end
+
+    local frame = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
+    frame = frame .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
+    frame = frame .. binary.decodeHex(code or "01") .. string.char(dl) -- 控制符，长度
+    frame = frame .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     self.increment = (self.increment + 1) % 256
-    data = data .. pack.pack("b1", crypto.checksum(data, 1)) -- 和校验
-    data = data .. pack.pack("b1", 0x16) -- 结束符
+    frame = frame .. pack.pack("b1", self.increment) -- 序号
+    if data and #data > 0 then
+        frame = frame .. data 
+    end
+    frame = frame .. pack.pack("b1", crypto.checksum(frame, 1)) -- 和校验
+    frame = frame .. pack.pack("b1", 0x16) -- 结束符
 
-    log.info(tag, "read frame", binary.encodeHex(data))
+    log.info(tag, "frame", binary.encodeHex(frame))
 
-    local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
+    frame = binary.decodeHex("FEFEFEFE") .. frame -- 前导码
     local ret, buf = self.agent:ask(frame, 12) -- 先读12字节
     if not ret then
         return false, "no response"
     end
 
-    log.info(tag, "read response", binary.encodeHex(buf))
+    log.info(tag, "response", binary.encodeHex(buf))
 
     -- 解析返回
     -- 去掉前导码
     while #buf > 0 and string.byte(buf, 1) == 0xFE do
         buf = buf:sub(2)
     end
-
-    -- log.info(tag, "read response trim", binary.encodeHex(buf))
 
     if #buf < 12 then
         local ret2, buf2 = self.link:read() -- 继续读
@@ -424,68 +429,29 @@ function Cjt188Master:read(addr, type, code, di)
     return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
 end
 
+--- 读取数据
+-- @param addr string 地址
+-- @param type integer 仪表类型
+-- @param code string 指令码
+-- @param di string 数据标识
+-- @return boolean 成功与否
+-- @return string 只有数据
+function Cjt188Master:read(addr, type, code, di)
+    log.info(tag, "read", addr, type, code, di)
+    return self:ask(addr, type, code, di, nil)
+end
+
 -- 写入数据
 -- @param addr string 地址
 -- @param type integer 仪表类型
 -- @param code string 指令码
 -- @param di string 数据标识
--- @param dat string 数据
+-- @param data string 数据
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Cjt188Master:write(addr, type, code, di, dat)
-    log.info(tag, "write", addr, type, code, di, dat)
-
-    local data = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
-    data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
-    data = data .. binary.decodeHex(code or "01") .. string.char(3 + #dat) -- 控制符，长度
-    data = data .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
-    data = data .. pack.pack("b1", self.increment) -- 序号
-    self.increment = (self.increment + 1) % 256
-    data = data .. dat -- 数据
-    data = data .. pack.pack("b1", crypto.checksum(data, 1)) -- 和校验
-    data = data .. pack.pack("b1", 0x16) -- 结束符
-
-    log.info(tag, "write frame", binary.encodeHex(data))
-
-    local frame = binary.decodeHex("FEFEFEFE") .. data -- 前导码
-    local ret, buf = self.agent:ask(frame, 12) -- 先读12字节
-    if not ret then
-        return false, "no response"
-    end
-
-    log.info(tag, "read response", binary.encodeHex(buf))
-
-    -- 解析返回
-    -- 去掉前导码
-    while #buf > 0 and string.byte(buf, 1) == 0xFE do
-        buf = buf:sub(2)
-    end
-
-    if #buf < 12 then
-        local ret2, buf2 = self.link:read() -- 继续读
-        if ret2 then
-            buf = buf .. buf2
-        else
-            return false, "invalid response"
-        end
-    end
-
-    if string.byte(buf, 1) ~= 0x68 then
-        return false, "invalid start"
-    end
-
-    -- 数据长度不足，则继续读
-    local len = string.byte(buf, 11) -- 数据段长度
-    if #buf < len + 12 then
-        local ret2, buf2 = self.agent:ask(nil, len + 12 - #buf) -- 继续读
-        if ret2 then
-            buf = buf .. buf2
-        else
-            return false, "timeout"
-        end
-    end
-
-    return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符
+function Cjt188Master:write(addr, type, code, di, data)
+    log.info(tag, "write", addr, type, code, di, data)
+    return self:ask(addr, type, code, di, data)
 end
 
 ---打开主站
