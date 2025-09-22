@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- Modbus 协议实现
 -- @module modbus_device
 local ModbusDevice = {}
