@@ -4,7 +4,7 @@
 -- @copyright benyi 2025
 
 --- CJT188协议实现
--- @module protocol_cjt188
+-- @module cjt188_device
 local Cjt188Device = {}
 Cjt188Device.__index = Cjt188Device
 

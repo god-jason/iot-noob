@@ -20,21 +20,18 @@ end
 ---  打开
 -- @return boolean, error
 function Link:open()
-    self.__index = self -- 避免self未使用错误提醒
     return false, "Link open() must be implemented!"
 end
 
 ---  关闭
 -- @return boolean, error
 function Link:close()
-    self.__index = self -- 避免self未使用错误提醒
     return false, "Link close() must be implemented!"
 end
 
 ---  读取数据
 -- @return boolean, string|error
 function Link:read()
-    self.__index = self -- 避免self未使用错误提醒
     return false, "Link read() must be implemented!"
 end
 
@@ -42,7 +39,6 @@ end
 -- @param data string
 -- @return boolean, any|error
 function Link:write(data)
-    self.__index = data -- 避免self未使用错误提醒
     return false, "Link write(data) must be implemented!"
 end
 
@@ -50,7 +46,6 @@ end
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
 function Link:wait(timeout)
-    self.__index = timeout -- 避免self未使用错误提醒
     return false, "Link wait(timeout) must be implemented!"
 end
 
