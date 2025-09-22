@@ -1,10 +1,9 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
-
-
 --- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
+-- 物联小白标准库，非授权禁止商业使用
+-- Author 杰神
+-- License GPLv3
+-- Copyright 南京本易物联网有限公司@2025
+--
 -- @module agent
 local Agent = {}
 Agent.__index = Agent
@@ -18,7 +17,7 @@ local tag = "Agent"
 -- @param timeout integer 超时 ms
 -- @return Agent
 function Agent:new(link, timeout)
-    local agent = setmetatable({}, self) --继承连接
+    local agent = setmetatable({}, self) -- 继承连接
     agent.link = link
     agent.timeout = timeout or 1000
     agent.asking = false
@@ -31,7 +30,7 @@ end
 -- @return boolean 成功与否
 -- @return string 返回数据
 function Agent:ask(request, len)
-    --log.info(tag, "ask", binary.encodeHex(request), len)
+    -- log.info(tag, "ask", binary.encodeHex(request), len)
 
     -- 重入锁，等待其他操作完成
     while self.asking do
@@ -70,11 +69,10 @@ function Agent:ask(request, len)
         buf = buf .. d
     until #buf >= len
 
-    --log.info(tag, "ask got", #buf, binary.encodeHex(buf))
+    -- log.info(tag, "ask got", #buf, binary.encodeHex(buf))
 
     self.asking = false
     return true, buf
 end
-
 
 return Agent
