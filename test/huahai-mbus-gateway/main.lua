@@ -39,7 +39,7 @@ sys.taskInit(function()
         collectgarbage()
     end
 
-    log.info(tag, "main task exit")
+    --log.info(tag, "main task exit")
 end)
 
 

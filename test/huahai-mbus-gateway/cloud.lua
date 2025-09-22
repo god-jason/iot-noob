@@ -53,7 +53,7 @@ local info = {
     },
     cycleUpload = {
         value = config.cycle_upload
-    }, 
+    },
     timeCalibration = {
         value = os.date("%Y%m%d%H%M%S", os.time())
     },
@@ -421,7 +421,7 @@ function cloud.task()
         info.timeCalibration.value = os.date("%Y%m%d%H%M%S", os.time())
         info.timeAcqu.value = os.date("%Y%m%d%H%M%S", os.time())
         property_post(info)
-        
+
         local devices = gateway.get_all_device_instanse();
 
         for id, dev in pairs(devices) do

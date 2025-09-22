@@ -432,7 +432,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:write(addr, type, code, di, dat)
     log.info(tag, "write", addr, type, code, di, dat)
-    
+
     local data = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
     data = data .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
     data = data .. binary.decodeHex(code or "01") .. string.char(3 + #dat) -- 控制符，长度

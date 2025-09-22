@@ -2,6 +2,7 @@
 -- @author 杰神
 -- @license GPLv3
 -- @copyright benyi 2025
+
 --- 设备类定义
 -- 所有协议实现的子设备必须继承Device，并实现标准接口
 -- @module device
@@ -77,7 +78,7 @@ end
 -- @param value any
 function Device:put_value(key, value)
     log.info("Device", "put_value", self.id, key, value)
-    
+
     local val = {
         value = value,
         time = os.time()

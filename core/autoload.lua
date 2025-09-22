@@ -3,7 +3,6 @@
 -- @license GPLv3
 -- @copyright benyi 2025
 
-
 --- 程序加载器，只需要在main.lua中引入，即可将/luadb/之下的所有代码加载。在luatools工具中，需要勾选“忽略脚本依赖性”，否则只下载main gateway.lua等几个文件，导致启动失败
 -- @module autoload
 local autoload = {}
@@ -14,14 +13,14 @@ local tag = "autoload"
 -- @param name string  模块名
 function autoload.load(name)
     log.info(tag, "load", name)
-    
+
     -- 使用pcall 避免异常退出
     local ret, info = pcall(require, name)
     if not ret then
         log.error(tag, name, info)
     end
 
-    --sys.wait(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
+    -- sys.wait(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end
 
 --- 遍历目录
@@ -37,11 +36,11 @@ function autoload.walk(path, base, offset)
     if not ret then
         return
     end
-    --log.info(tag, "walk read", json.encode(data))
+    -- log.info(tag, "walk read", json.encode(data))
 
     for _, e in ipairs(data) do
         local fn = path .. e.name
-        --log.info(tag, "walk entry", fn, e.type, e.size)
+        -- log.info(tag, "walk entry", fn, e.type, e.size)
 
         if e.type == 1 then
             -- 文件夹
@@ -68,7 +67,7 @@ function autoload.walk(path, base, offset)
     end
 end
 
---遍历所有编译的工程文件，然后require，实现自动加载
---autoload.walk("/luadb/")
+-- 遍历所有编译的工程文件，然后require，实现自动加载
+-- autoload.walk("/luadb/")
 
 return autoload
