@@ -277,11 +277,15 @@ function Cjt188Device:poll()
                                 value = (value << 8) | str:byte(1)
                             end
                             -- 取位，布尔型
-                            if point.bit > 0 then
+                            if point.bit and point.bit > 0 then
                                 if (value >> (point.bit - 1)) & 0x01 > 0 then
                                     value = true
                                 else
                                     value = false
+                                end
+                                --取反
+                                if point["not"] then
+                                    value = not value
                                 end
                             end
                             self:put_value(point.name, value)

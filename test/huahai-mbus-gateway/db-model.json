@@ -76,6 +76,20 @@
                         "address": 41
                     },
                     {
+                        "name": "tempError",
+                        "label": "温度错误",
+                        "type": "HH",
+                        "bit": 7,
+                        "address": 41
+                    },
+                    {
+                        "name": "tempErrorType",
+                        "label": "温度错误",
+                        "type": "HH",
+                        "bit": 5,
+                        "address": 41
+                    },
+                    {
                         "name": "timeAcqu",
                         "label": "采集时间，最后采集时间"
                     }
@@ -95,7 +109,9 @@
                 "points": [
                     {
                         "name": "controlMode",
-                        "label": "控制模式"
+                        "label": "控制模式",
+                        "type": "HH",
+                        "address": 0
                     },
                     {
                         "name": "temValue",
@@ -109,7 +125,7 @@
                         "label": "设定温度",
                         "type": "uint16",
                         "rate": 0.01,
-                        "address": 15
+                        "address": 13
                     },
                     {
                         "name": "openValue",
@@ -118,24 +134,25 @@
                         "address": 23
                     },
                     {
-                        "name":"comState",
-                        "label":"温控器通信状态",
-                        "type":"HH",
-                        "bit":2,
+                        "name": "comState",
+                        "label": "温控器通信状态",
+                        "type": "HH",
+                        "bit": 2,
+                        "not": true,
                         "address": 24
                     },
                     {
-                        "name":"faultStateValve",
-                        "label":"阀门设备故障",
-                        "type":"HH",
-                        "bit":5,
+                        "name": "faultStateValve",
+                        "label": "阀门设备故障",
+                        "type": "HH",
+                        "bit": 5,
                         "address": 24
                     },
                     {
-                        "name":"alarmSeparation",
-                        "label":"阀体分离报警",
-                        "type":"HH",
-                        "bit":6,
+                        "name": "alarmSeparation",
+                        "label": "阀体分离报警",
+                        "type": "HH",
+                        "bit": 6,
                         "address": 24
                     },
                     {
@@ -194,7 +211,9 @@
                 "points": [
                     {
                         "name": "controlMode",
-                        "label": "控制模式"
+                        "label": "控制模式",
+                        "type": "HH",
+                        "address": 0
                     },
                     {
                         "name": "temValue",
@@ -210,17 +229,17 @@
                         "address": 23
                     },
                     {
-                        "name":"faultStateValve",
-                        "label":"阀门设备故障",
-                        "type":"HH",
-                        "bit":5,
+                        "name": "faultStateValve",
+                        "label": "阀门设备故障",
+                        "type": "HH",
+                        "bit": 5,
                         "address": 24
                     },
                     {
-                        "name":"alarmSeparation",
-                        "label":"阀体分离报警",
-                        "type":"HH",
-                        "bit":6,
+                        "name": "alarmSeparation",
+                        "label": "阀体分离报警",
+                        "type": "HH",
+                        "bit": 6,
                         "address": 24
                     },
                     {

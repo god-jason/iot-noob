@@ -71,7 +71,6 @@ local info = {
     }
 }
 
-
 local function property_post(values)
     local payload = create_package(values)
     client:publish(topics.property_post, payload)
@@ -118,10 +117,8 @@ local function on_property_set(_, payload)
         return
     end
 
-
     for key, value in pairs(data.params) do
         log.info(tag, "set property", key, value)
-
 
         -- 时间校准
         if key == "timeCalibration" then
@@ -190,19 +187,66 @@ local function sub_login(id, product_id)
     client:publish(topics.sub_login, data)
 end
 
-
 local function report_device(dev)
     local obj = {}
     local values = dev:values()
+    local len = 0
     for k, v in pairs(values) do
-        obj[k] = {
-            value = v.value
-        }
+        if k ~= "tempError" and k ~= "tempErrorType" then            
+            obj[k] = {
+                value = v.value
+            }
+            len = len + 1
+        end
     end
-    -- 数据更新时间
+
+    -- 在线状态
+    if dev.product_id == "wKMUGRBKVL" then
+        obj.hmDeviceNum = {
+            value = dev.address
+        }
+        obj.hmProductId = {
+            value = dev.product_id
+        }
+        obj.hmStatus = {
+            value = (len == 0)
+        }
+        if values.tempError and values.tempError.value then
+            if values.tempErrorType.value == 0 then
+                obj.supplyTempAlarm = {value=true}
+                obj.returnTempAlarm = {value=false}
+            else
+                obj.supplyTempAlarm = {value=false}
+                obj.returnTempAlarm = {value=true}
+            end
+        else
+            obj.supplyTempAlarm = {value=false}
+            obj.returnTempAlarm = {value=false}
+        end
+    end
+    if dev.product_id == "aAHGgGOpNy" or dev.product_id == "Sw2UyvE700" then
+        obj.valveDeviceNum = {
+            value = dev.address
+        }
+        obj.valveProductId = {
+            value = dev.product_id
+        }
+        obj.valveStatus = {
+            value = (len == 0)
+        }
+        -- 控制模式
+        if obj.controlMode then
+            obj.controlMode = {
+                value = obj.controlMode.value == 1
+            }
+        end
+    end
+
+    -- 数据更新时间 TODO 应该在dev._updated
     obj.timeAcqu = {
         value = os.date("%Y%m%d%H%M%S", os.time())
     }
+
     pack_post(dev.id, dev.product_id, obj)
 end
 
