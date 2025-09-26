@@ -71,6 +71,7 @@ local info = {
     }
 }
 
+
 local function property_post(values)
     local payload = create_package(values)
     client:publish(topics.property_post, payload)
@@ -189,6 +190,22 @@ local function sub_login(id, product_id)
     client:publish(topics.sub_login, data)
 end
 
+
+local function report_device(dev)
+    local obj = {}
+    local values = dev:values()
+    for k, v in pairs(values) do
+        obj[k] = {
+            value = v.value
+        }
+    end
+    -- 数据更新时间
+    obj.timeAcqu = {
+        value = os.date("%Y%m%d%H%M%S", os.time())
+    }
+    pack_post(dev.id, dev.product_id, obj)
+end
+
 -- local function sub_logout(id, product_id)
 --     local data = create_package({
 --         productID = product_id,
@@ -246,11 +263,13 @@ local function on_sub_property_set(_, payload)
         if key == "openControl" and dev.product_id == "aAHGgGOpNy" then
             dev:write("50", "16", "A017", string.char(value))
         end
+        if key == "openControl" and dev.product_id == "Sw2UyvE700" then
+            dev:write("55", "16", "A017", string.char(value))
+        end
         -- 采集并上传
         if key == "report" and value == true then
             dev:poll()
-            local values = dev:values()
-            pack_post(id, dev.product_id, values)
+            report_device(dev)
         end
     end
 
@@ -444,18 +463,7 @@ function cloud.task()
             --     pack_post(id, dev.product_id, values)
             -- end
 
-            local obj = {}
-            local values = dev:values()
-            for k, v in pairs(values) do
-                obj[k] = {
-                    value = v.value
-                }
-            end
-            -- 数据更新时间
-            obj.timeAcqu = {
-                value = os.date("%Y%m%d%H%M%S", os.time())
-            }
-            pack_post(id, dev.product_id, obj)
+            report_device(dev)
         end
 
         sys.wait(60 * 1000 * (config.cycle_upload or 1)) -- 上传周期
