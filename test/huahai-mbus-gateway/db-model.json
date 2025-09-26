@@ -71,9 +71,9 @@
                     {
                         "name": "lowVoltageAlarm",
                         "label": "电池电压低报警",
-                        "type": "HHHH",
+                        "type": "HH",
                         "bit": 3,
-                        "address": 37
+                        "address": 41
                     },
                     {
                         "name": "timeAcqu",
@@ -85,7 +85,7 @@
     },
     "aAHGgGOpNy": {
         "id": "aAHGgGOpNy",
-        "name": "智能阀门",
+        "name": "智能阀",
         "properties": [
             {
                 "name": "基础数据",
@@ -105,10 +105,38 @@
                         "address": 5
                     },
                     {
+                        "name": "targetTem",
+                        "label": "设定温度",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 15
+                    },
+                    {
                         "name": "openValue",
                         "label": "当前开度",
                         "type": "uint8",
                         "address": 23
+                    },
+                    {
+                        "name":"comState",
+                        "label":"温控器通信状态",
+                        "type":"HH",
+                        "bit":2,
+                        "address": 24
+                    },
+                    {
+                        "name":"faultStateValve",
+                        "label":"阀门设备故障",
+                        "type":"HH",
+                        "bit":5,
+                        "address": 24
+                    },
+                    {
+                        "name":"alarmSeparation",
+                        "label":"阀体分离报警",
+                        "type":"HH",
+                        "bit":6,
+                        "address": 24
                     },
                     {
                         "name": "valveTime",
@@ -123,6 +151,91 @@
                 "di": "901F",
                 "code": "17",
                 "type": "50",
+                "points": [
+                    {
+                        "name": "minOpenControl",
+                        "label": "最小开度",
+                        "type": "uint8",
+                        "address": 2
+                    },
+                    {
+                        "name": "maxOpenControl",
+                        "label": "最大开度",
+                        "type": "uint8",
+                        "address": 3
+                    },
+                    {
+                        "name": "tempLower",
+                        "label": "设定温度下限",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 7
+                    },
+                    {
+                        "name": "tempUpper",
+                        "label": "设定温度上限",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 9
+                    }
+                ]
+            }
+        ]
+    },
+    "Sw2UyvE700": {
+        "id": "Sw2UyvE700",
+        "name": "智能阀 单元",
+        "properties": [
+            {
+                "name": "基础数据",
+                "di": "901F",
+                "code": "01",
+                "type": "55",
+                "points": [
+                    {
+                        "name": "controlMode",
+                        "label": "控制模式"
+                    },
+                    {
+                        "name": "temValue",
+                        "label": "室内温度",
+                        "type": "uint16",
+                        "rate": 0.01,
+                        "address": 5
+                    },
+                    {
+                        "name": "openValue",
+                        "label": "当前开度",
+                        "type": "uint8",
+                        "address": 23
+                    },
+                    {
+                        "name":"faultStateValve",
+                        "label":"阀门设备故障",
+                        "type":"HH",
+                        "bit":5,
+                        "address": 24
+                    },
+                    {
+                        "name":"alarmSeparation",
+                        "label":"阀体分离报警",
+                        "type":"HH",
+                        "bit":6,
+                        "address": 24
+                    },
+                    {
+                        "name": "valveTime",
+                        "label": "阀门当前时钟",
+                        "type": "YYMMDDhhmmss",
+                        "address": 25
+                    }
+                ]
+            },
+            {
+                "name": "配置数据",
+                "di": "901F",
+                "code": "17",
+                "type": "55",
                 "points": [
                     {
                         "name": "minOpenControl",
