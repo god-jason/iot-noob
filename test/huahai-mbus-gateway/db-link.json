@@ -9,6 +9,7 @@
         "baud_rate": 2400,
         "data_bits": 8,
         "stop_bits": 1,
-        "parity": "E"
+        "parity": "E",
+        "timeout": 1000
     }
 }

@@ -7,7 +7,7 @@
                 "name": "基础数据",
                 "di": "901F",
                 "code": "01",
-                "type": "50",
+                "type": "20",
                 "points": [
                     {
                         "name": "totalHeat",

@@ -47,6 +47,7 @@ function Serial:open()
     --     self.rs485_gpio, 1, 20000)
 
     uart.on(self.port, 'receive', function(id, len)
+        --log.info(tag, "receive", id, len)
         sys.publish("SERIAL_DATA_" .. self.port, len)
     end)
 
@@ -66,24 +67,24 @@ end
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
 function Serial:wait(timeout)
+    log.info(tag, "wait", self.port, timeout)
     return sys.waitUntil("SERIAL_DATA_" .. self.port, timeout)
 end
 
 --- 读数据
+-- @param len integer 期待长度
 -- @return boolean 成功与否
 -- @return string|nil 数据
-function Serial:read()
-    local len = uart.rxSize(self.port)
-    if len > 0 then
-        local data = uart.read(self.port, len)
-        log.info(tag, "read", self.port, #data)
-
+function Serial:read(len)
+    local data = uart.read(self.port, len)
+    if #data > 0 then        
+        --log.info(tag, "read", self.port, #data, data:toHex())
         if self.watcher then
             self.watcher(data) -- 转发到监听器
         end
         return true, data
     end
-    return false
+    return false, "no data"
 end
 
 --- 关闭串口

@@ -247,7 +247,7 @@ function Cjt188Device:poll()
 
         -- 读数据
         local ret, data = self.master:read(self.address, pt.type or "20", pt.code or "01", pt.di)
-        log.info(tag, "poll read", ret)
+        log.info(tag, "poll read", ret, data)
         if ret then
             log.info(tag, "poll parse", binary.encodeHex(data))
 
@@ -385,7 +385,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     log.info(tag, "frame", binary.encodeHex(frame))
 
     frame = binary.decodeHex("FEFEFEFE") .. frame -- 前导码
-    local ret, buf = self.agent:ask(frame, 12) -- 先读12字节
+    local ret, buf = self.agent:ask(frame, 14) -- 先读12字节
     if not ret then
         return false, "no response"
     end
@@ -398,17 +398,18 @@ function Cjt188Master:ask(addr, type, code, di, data)
         buf = buf:sub(2)
     end
 
+    if string.byte(buf, 1) ~= 0x68 then
+        return false, "invalid start"
+    end
+
+    -- 指令长度不够，要拿到长度
     if #buf < 12 then
-        local ret2, buf2 = self.link:read() -- 继续读
+        local ret2, buf2 = self.agent:ask(nil, 12 - #buf) -- 继续读
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "invalid response"
+            return false, "read more fail " .. buf2
         end
-    end
-
-    if string.byte(buf, 1) ~= 0x68 then
-        return false, "invalid start"
     end
 
     -- 数据长度不足，则继续读
@@ -418,7 +419,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "timeout"
+            return false, "read all data fail " .. buf2
         end
     end
 
@@ -434,6 +435,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:read(addr, type, code, di)
     log.info(tag, "read", addr, type, code, di)
+    self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, nil)
 end
 
@@ -447,6 +449,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:write(addr, type, code, di, data)
     log.info(tag, "write", addr, type, code, di, data)
+    self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, data)
 end
 
@@ -511,6 +514,9 @@ function Cjt188Master:_polling()
             if not ret then
                 log.error(tag, "polling", dev.id, "error", info)
             end
+
+            -- 等待数据完成
+            sys.wait(500)
 
         end
 

@@ -30,7 +30,8 @@ function Agent:ask(request, len)
 
     -- 重入锁，等待其他操作完成
     while self.asking do
-        sys.wait(100)
+        log.info(tag, "waiting for unlock")
+        sys.wait(200)
     end
     self.asking = true
 
@@ -40,7 +41,7 @@ function Agent:ask(request, len)
         if not ret then
             log.error(tag, "write failed")
             self.asking = false
-            return false
+            return false, "write failed"
         end
     end
 
@@ -51,16 +52,14 @@ function Agent:ask(request, len)
         -- 应该不是每次都要等待
         local ret = self.link:wait(self.timeout)
         if not ret then
-            log.error(tag, "read timeout")
             self.asking = false
-            return false
+            return false, "wait timeout"
         end
 
         local r, d = self.link:read()
         if not r then
-            log.error(tag, "read failed")
             self.asking = false
-            return false
+            return false, d
         end
         buf = buf .. d
     until #buf >= len
