@@ -192,7 +192,7 @@ local function report_device(dev)
     local values = dev:values()
     local len = 0
     for k, v in pairs(values) do
-        if k ~= "tempError" and k ~= "tempErrorType" then            
+        if k ~= "tempError" and k ~= "tempErrorType" then
             obj[k] = {
                 value = v.value
             }
@@ -205,6 +205,9 @@ local function report_device(dev)
         obj.hmDeviceNum = {
             value = dev.address
         }
+        obj.hmDeviceName = {
+            value = dev.id
+        }
         obj.hmProductId = {
             value = dev.product_id
         }
@@ -213,20 +216,35 @@ local function report_device(dev)
         }
         if values.tempError and values.tempError.value then
             if values.tempErrorType.value == 0 then
-                obj.supplyTempAlarm = {value=true}
-                obj.returnTempAlarm = {value=false}
+                obj.supplyTempAlarm = {
+                    value = true
+                }
+                obj.returnTempAlarm = {
+                    value = false
+                }
             else
-                obj.supplyTempAlarm = {value=false}
-                obj.returnTempAlarm = {value=true}
+                obj.supplyTempAlarm = {
+                    value = false
+                }
+                obj.returnTempAlarm = {
+                    value = true
+                }
             end
         else
-            obj.supplyTempAlarm = {value=false}
-            obj.returnTempAlarm = {value=false}
+            obj.supplyTempAlarm = {
+                value = false
+            }
+            obj.returnTempAlarm = {
+                value = false
+            }
         end
     end
     if dev.product_id == "aAHGgGOpNy" or dev.product_id == "Sw2UyvE700" then
         obj.valveDeviceNum = {
             value = dev.address
+        }
+        obj.valveDeviceName = {
+            value = dev.id
         }
         obj.valveProductId = {
             value = dev.product_id
