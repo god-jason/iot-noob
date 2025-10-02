@@ -396,6 +396,7 @@ end
 
 --- 创建GPIO对象
 -- @param opts table 参数 {pull, callback, debounce}
+-- @return boolean 成功与否
 -- @return GPIO
 function iot.gpio(id, opts)
     opts = opts or {}
@@ -452,6 +453,7 @@ end
 --- 创建UART对象
 -- @param id integer
 -- @param opts table 参数 {band_rate, data_bits, stop_bits, parity, rs485_gpio, rs485_level, rs485_delay}
+-- @return boolean 成功与否
 -- @return UART
 function iot.uart(id, opts)
     opts = opts or {}
@@ -536,6 +538,7 @@ end
 --- 创建I2C对象
 -- @param id integer
 -- @param opts table 参数 {slow=false}
+-- @return boolean 成功与否
 -- @return I2C
 function iot.i2c(id, opts)
     opts = opts or {}
@@ -585,6 +588,7 @@ end
 --- 创建SPI对象
 -- @param id integer
 -- @param opts table 参数 {cs, CPHA, CPOL, band_rate, data_bits, master, mode}
+-- @return boolean 成功与否
 -- @return SPI
 function iot.spi(id, opts)
     opts = opts or {}
@@ -624,6 +628,7 @@ end
 --- 创建ADC对象
 -- @param id integer
 -- @param opts table 参数 {}
+-- @return boolean 成功与否
 -- @return ADC
 function iot.adc(id, opts)
     opts = opts or {}

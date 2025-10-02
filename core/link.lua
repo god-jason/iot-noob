@@ -6,32 +6,33 @@ Link.__index = Link
 
 ---  创建实例，子类定义可参考
 -- @param obj table 连接对象
--- @return boolean, error
+-- @return Link 对象
 function Link:new(obj)
     return setmetatable(obj or {}, self)
 end
 
 ---  打开
--- @return boolean, error
+-- @return boolean
+-- @return string error
 function Link:open()
     return false, "Link open() must be implemented!"
 end
 
 ---  关闭
--- @return boolean, error
 function Link:close()
-    return false, "Link close() must be implemented!"
 end
 
 ---  读取数据
--- @return boolean, string|error
+-- @return boolean 成功与否
+-- @return string|error
 function Link:read()
     return false, "Link read() must be implemented!"
 end
 
 ---  写入数据
 -- @param data string
--- @return boolean, any|error
+-- @return boolean
+-- @return error
 function Link:write(data)
     return false, "Link write(data) must be implemented!"
 end
@@ -39,6 +40,7 @@ end
 --- 等待数据
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
+-- @return intger 长度
 function Link:wait(timeout)
     return false, "Link wait(timeout) must be implemented!"
 end
