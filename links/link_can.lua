@@ -40,7 +40,7 @@ function Can:open()
     can.on(self.port, function(id, type, param)
         if type == can.CB_MSG then
             -- 收到消息
-            sys.publish("CAN_DATA_" .. id)
+            iot.emit("CAN_DATA_" .. id)
         elseif type == can.CB_TX then
             -- 发送成功
             log.info(tag, self.port, "sent", param)
@@ -89,7 +89,7 @@ end
 -- @param timeout integer 超时 ms
 -- @return boolean 成功与否
 function Can:wait(timeout)
-    return sys.waitUntil("CAN_DATA_" .. self.port, timeout)
+    return iot.wait("CAN_DATA_" .. self.port, timeout)
 end
 
 --- 读数据

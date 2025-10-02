@@ -35,7 +35,7 @@ function input.init()
     -- 初始化
     for i, p in ipairs(options.pins) do
         gpio.setup(p.pin, function(val)
-            sys.publish("INPUT", i, val, p.pin)
+            iot.emit("INPUT", i, val, p.pin)
             log.info(tag, "input", i, val, p.pin)
         end)
     end

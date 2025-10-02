@@ -52,11 +52,11 @@ end
 -- 启动
 led.init()
 
-sys.subscribe("IP_READY", function()
+iot.on("IP_READY", function()
     led.on("net")
 end)
 
-sys.subscribe("IP_LOSE", function()
+iot.on("IP_LOSE", function()
     led.off("net")
 end)
 

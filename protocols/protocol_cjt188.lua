@@ -472,7 +472,7 @@ function Cjt188Master:open()
     -- 启动设备
     self.devices = {}
     for _, d in ipairs(ds) do
-        log.info(tag, "open device", json.encode(d))
+        log.info(tag, "open device", iot.json_encode(d))
         local dev = Cjt188Device:new(d, self)
         dev:open()
 
@@ -483,7 +483,7 @@ function Cjt188Master:open()
 
     -- 开启轮询
     local this = self
-    self.task = sys.taskInit(function()
+    self.task = iot.start(function()
         -- 这个写法。。。
         this:_polling()
     end)

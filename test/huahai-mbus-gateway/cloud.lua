@@ -2,7 +2,6 @@ local cloud = {}
 local tag = "cloud"
 
 local configs = require("configs")
-local MqttClient = require("mqtt_client")
 local gateway = require("gateway")
 local binary = require("binary")
 
@@ -88,7 +87,7 @@ end
 
 local function on_service_invoke(_, payload)
     log.info(tag, "on_service_invoke", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -100,7 +99,7 @@ end
 
 local function on_property_get(_, payload)
     log.info(tag, "on_property_get", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -112,7 +111,7 @@ end
 
 local function on_property_set(_, payload)
     log.info(tag, "on_property_set", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -278,7 +277,7 @@ end
 
 local function on_sub_property_get(_, payload)
     log.info(tag, "on_sub_property_get", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -304,7 +303,7 @@ end
 
 local function on_sub_property_set(_, payload)
     log.info(tag, "on_sub_property_set", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -341,7 +340,7 @@ end
 
 local function on_sub_service_invoke(_, payload)
     log.info(tag, "on_sub_service_invoke", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -376,7 +375,7 @@ end
 
 -- local function on_sub_topo_get_reply(_, payload)
 --     log.info(tag, "on_sub_topo_get_reply", payload)
---     local data, ret = json.decode(payload)
+--     local data, ret = iot.json_decode(payload)
 --     if ret == 0 then
 --         return
 --     end
@@ -386,7 +385,7 @@ end
 
 local function on_sub_topo_change(_, payload)
     log.info(tag, "on_sub_topo_change", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -401,14 +400,14 @@ function cloud.open()
         return false
     end
     config = data
-    log.info(tag, "cloud config", json.encode(config))
+    log.info(tag, "cloud config", iot.json_encode(config))
 
     -- oneNet鉴权
     local clientid, username, password = iotauth.onenet(config.product_id, config.device_name, config.device_key, nil,
         nil, nil, "products/" .. config.product_id .. "/devices/" .. config.device_name)
     log.info(tag, "auth result", clientid, username, password)
 
-    client = MqttClient:new({
+    client = iot.mqtt({
         host = config.broker,
         port = config.port,
         clientid = clientid,
@@ -487,7 +486,7 @@ end
 function cloud.task()
 
     -- 等待网络就绪
-    sys.waitUntil("IP_READY")
+    iot.wait("IP_READY")
 
     cloud.open()
 
@@ -515,7 +514,7 @@ function cloud.task()
 
             -- 2 定时上传
             -- local values = dev:modified_values()
-            -- log.info(tag, "cloud report", id, json.encode(values))
+            -- log.info(tag, "cloud report", id, iot.json_encode(values))
 
             -- local has = false
             -- for _, _ in pairs(values) do
@@ -533,6 +532,6 @@ function cloud.task()
 
 end
 
-sys.taskInit(cloud.task)
+iot.start(cloud.task)
 
 return cloud

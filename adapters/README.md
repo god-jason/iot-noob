@@ -33,7 +33,7 @@
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开文件| iot.open(filename, mode) | 文件名，模式 | 成功与否，文件对象 | 同LUA标准库，io.open |
+|打开文件| iot.open(filename, mode) | 文件名，参数 | 成功与否，文件对象 | 同LUA标准库，io.open |
 |文件是否存在| iot.exists(filename) | 文件名 | 成功与否 ||
 |读取文件内容| iot.readFile(filename) | 文件名 | 成功与否，文件内容 ||
 |写入文件内容| iot.writeFile(filename, data) | 数据 | 成功与否 ||
@@ -69,6 +69,44 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 ## 网络接口
 
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|连接Socket服务器| iot.socket(options) | 参数 | 成功与否，对象 | options={host,port,is_udp,is_tls,...} |
+|打开| socket:open() | 无 | 成功与否，错误信息 |  |
+|关闭| socket:close() | 无 | 无 |  |
+|读取| socket:read() | 无 | 成功与否，数据 |  |
+|写入| socket:write(data) | 数据 | 成功与否，写入长度 |  |
+|等待| socket:wait(timeout) | 超时 | 成功与否，缓存长度 |  |
+|有效| socket:ready() | 无 | 是否有效 |  |
+
+### HTTP协议
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|HTTP请求| iot.request(url, options) | URL，参数 | code,status,body | options={method, headers, body} |
+|HTTP下载| iot.download(url, dst, options) | URL，目标路径，参数 | code,status,body | options={method, headers, body} |
+
+### MQTT协议
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|连接MQTT服务器| iot.mqtt(options) | 参数 | 成功与否，对象 | options={host,port,clientid,username,password,ssl,...} |
+|打开| mqtt:open() | 无 | 成功与否，错误信息 |  |
+|关闭| mqtt:close() | 无 | 无 |  |
+|发布消息| mqtt:publish(topic,payload,qos) | 主题，荷载，QOS | 成功与否，消息ID |  |
+|订阅| mqtt:subscribe(filter, func) | 过滤器，回调 | 无 | 重复订阅不会互相影响 |
+|取消订阅| mqtt:unsubscribe(filter, func) | 过滤器，回调 | 无 |  |
+|有效| mqtt:ready() | 无 | 是否有效 |  |
+
+ssl为true，表示简单的MQTTS
+
+ssl为 {
+    server_cert="服务器证书",
+    client_cert="客户端证书",
+    client_key="客户端秘钥",
+    client_password="秘钥密码",
+}
+
 ## 蜂窝网络
 
 ## 设备驱动
@@ -77,7 +115,7 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开GPIO| iot.gpio(id, options) | ID，模式 | 成功与否，对象 | options={direct, pull，debounce, callback} |
+|打开GPIO| iot.gpio(id, options) | ID，参数 | 成功与否，对象 | options={direct, pull，debounce, callback} |
 |关闭GPIO| gpio:close() | 无 | 无 |  |
 |设置GPIO| gpio:set(level) | 电平 | 无 |  |
 |获取GPIO| gpio:get() | 无 | 电平 |  |
@@ -86,39 +124,38 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开串口| iot.uart(id, options) | ID，模式 | 成功与否，流对象 | options={baud_rate, data_bits_bits, parity, bit_order, buffer_size, rs485_gpio, rs485_level, rs485_delay} |
-|关闭串口| uart:close() | 无 | 无 |  |
-|读取串口| uart:read() | 无 | 成功与否，数据 |  |
-|写入串口| uart:write(data) | 数据 | 成功与否，写入长度 |  |
-|等待串口| uart:wait(timeout) | 超时 | 成功与否，缓存长度 |  |
+|打开串口| iot.uart(id, options) | ID，参数 | 成功与否，流对象 | options={baud_rate, data_bits_bits, parity, bit_order, buffer_size, rs485_gpio, rs485_level, rs485_delay} |
+|关闭| uart:close() | 无 | 无 |  |
+|读取| uart:read() | 无 | 成功与否，数据 |  |
+|写入| uart:write(data) | 数据 | 成功与否，写入长度 |  |
+|等待| uart:wait(timeout) | 超时 | 成功与否，缓存长度 |  |
 
 ### I2C
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开i2c| iot.i2c(id, options) | ID，模式 | 成功与否，对象 | options={slow} |
-|关闭i2c| i2c:close() | 无 | 无 |  |
-|读取i2c| i2c:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
-|写入i2c| i2c:write(addr, data) | 地址，数据 | 成功与否 |  |
-|等待i2c| i2c:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
-|等待i2c| i2c:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
+|打开i2c| iot.i2c(id, options) | ID，参数 | 成功与否，对象 | options={slow} |
+|关闭| i2c:close() | 无 | 无 |  |
+|读取| i2c:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
+|写入| i2c:write(addr, data) | 地址，数据 | 成功与否 |  |
+|读寄存器| i2c:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
+|写寄存器| i2c:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
 
 ### SPI
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开spi| iot.spi(id, options) | ID，模式 | 成功与否，对象 | options={cs, CPHA, CPOL, data_bits, band_rate, bit_order, master, mode} |
-|关闭spi| spi:close() | 无 | 无 |  |
-|读取spi| spi:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
-|写入spi| spi:write(addr, data) | 地址，数据 | 成功与否 |  |
-|等待spi| spi:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
-|等待spi| spi:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
+|打开spi| iot.spi(id, options) | ID，参数 | 成功与否，对象 | options={cs, CPHA, CPOL, data_bits, band_rate, bit_order, master, mode} |
+|关闭| spi:close() | 无 | 无 |  |
+|读取| spi:read(len) | 长度 | 成功与否，数据 |  |
+|写入| spi:write(data) | 数据 | 成功与否 |  |
+|询问| spi:ask(data) | 数据 | 成功与否，数据 |  |
 
 ### ADC
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开adc| iot.adc(id, options) | ID，模式 | 成功与否，对象 | options={} |
+|打开adc| iot.adc(id, options) | ID，参数 | 成功与否，对象 | options={} |
 |关闭adc| adc:close() | 无 | 无 |  |
 |读取adc| adc:get() | 无 | 电压 |  |
 
@@ -132,5 +169,5 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|JSON编码| iot.json_encode(obj) | 对象 | 成功与否，字符串 | |
-|JSON解码| iot.json_decode(str) | 字符串 | 成功与否，对象 |  |
+|JSON编码| iot.json_encode(obj) | 对象 | 字符串，错误 | |
+|JSON解码| iot.json_decode(str) | 字符串 | 对象，错误 |  |

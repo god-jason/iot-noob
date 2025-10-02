@@ -62,14 +62,17 @@ function MqttClient:open()
         return false
     end
 
-    self.client = mqtt.create(nil, self.options.host, self.options.port)
+    self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
     if self.client == nil then
         log.error(tag, "create client failed")
         return false
     end
 
-    self.client:auth(self.options.clientid, self.options.username, self.options.password) -- 鉴权
-    -- client:keepalive(240) -- 默认值240s
+    -- 鉴权
+    self.client:auth(self.options.clientid, self.options.username, self.options.password)
+
+    self.client:keepalive(self.options.keepalive or 240) -- 默认值240s
+
     self.client:autoreconn(true, 5000) -- 自动重连机制
 
     if self.options.will ~= nil then
@@ -80,9 +83,9 @@ function MqttClient:open()
     self.client:on(function(client, event, topic, payload)
         -- log.info(tag, "event", event, client, topic, payload)
         if event == "recv" then
-            sys.publish("MQTT_MESSAGE_" .. self.id, topic, payload)
+            iot.emit("MQTT_MESSAGE_" .. self.id, topic, payload)
         elseif event == "conack" then
-            sys.publish("MQTT_CONNECT_" .. self.id)
+            iot.emit("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
                 if cnt > 0 then
@@ -91,14 +94,14 @@ function MqttClient:open()
                 end
             end
         elseif event == "disconnect" then
-            sys.publish("MQTT_DISCONNECT_" .. self.id)
+            iot.emit("MQTT_DISCONNECT_" .. self.id)
         end
     end)
 
     -- 处理MQTT消息，主要是回调中可能有sys.wait，所以必须用task
-    sys.taskInit(function()
+    iot.start(function()
         while self.client do
-            local ret, topic, payload = sys.waitUntil("MQTT_MESSAGE_" .. self.id, 30000)
+            local ret, topic, payload = iot.wait("MQTT_MESSAGE_" .. self.id, 30000)
             if ret then
                 local ts = string.split(topic, "/")
                 find_callback(self.sub_tree, ts, topic, payload)
@@ -113,7 +116,7 @@ function MqttClient:open()
         return false
     end
 
-    sys.waitUntil("MQTT_CONNECT_" .. self.id)
+    iot.wait("MQTT_CONNECT_" .. self.id)
 
     return true
 end
@@ -121,6 +124,7 @@ end
 --- 关闭平台（不太需要）
 function MqttClient:close()
     if self.client then
+        self.client:disconnect()
         self.client:close()
         self.client = nil
     end
@@ -139,7 +143,7 @@ function MqttClient:publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
         local err
-        payload, err = json.encode(payload, "2f")
+        payload, err = iot.json_encode(payload, "2f")
         if payload == nil then
             payload = "payload json encode error:" .. err
         end
@@ -188,7 +192,7 @@ end
 -- @param filter string 主题
 -- @param cb function|nil 回调
 function MqttClient:unsubscribe(filter, cb)
-    log.info(tag, "subscribe", filter)
+    log.info(tag, "unsubscribe", filter)
 
     -- 取消订阅
     if self.subs[filter] ~= nil then

@@ -9,7 +9,6 @@ local configs = require("configs")
 local gateway = require("gateway")
 local MqttClient = require("mqtt_client")
 local database = require("database")
-local cpu = require("cpu")
 
 --- @type MqttClient
 local cloud = nil -- MqttClient:new()
@@ -25,7 +24,7 @@ local default_options = {
 -- 开始透传
 local function on_pipe_start(_, payload)
     log.info(tag, "on_pipe_start", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -47,7 +46,7 @@ end
 -- 结束透传
 local function on_pipe_stop(_, payload)
     log.info(tag, "on_pipe_stop", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -67,7 +66,7 @@ local function on_command(_, payload)
     -- local cmd = string.sub(topic, #base + 1)
 
     local response
-    local pkt, ret, err = json.decode(payload)
+    local pkt, ret, err = iot.json_decode(payload)
     if ret == 1 then
         local handler = commands[pkt.cmd]
         if handler then
@@ -95,7 +94,7 @@ end
 
 local function on_link(_, payload)
     log.info(tag, "on_link", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -105,7 +104,7 @@ end
 
 local function on_links(_, payload)
     log.info(tag, "on_links", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -115,7 +114,7 @@ end
 
 local function on_device(_, payload)
     log.info(tag, "on_device", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -125,7 +124,7 @@ end
 
 local function on_devices(_, payload)
     log.info(tag, "on_devices", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -135,7 +134,7 @@ end
 
 local function on_model(_, payload)
     log.info(tag, "on_model", payload)
-    local data, ret = json.decode(payload)
+    local data, ret = iot.json_decode(payload)
     if ret == 0 then
         return
     end
@@ -177,7 +176,7 @@ local function report_status()
     -- CPU使用信息
     status.cpu = {
         mhz = mcu.getClk(),
-        usage = cpu.usage
+        usage = 0, --cpu.usage
     }
 
     -- 内存使用信息
@@ -243,7 +242,7 @@ function master.open()
     end
 
     -- 自动注册
-    sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
+    iot.on("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
     -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
@@ -263,7 +262,7 @@ end
 function master.task()
 
     -- 等待网络就绪
-    sys.waitUntil("IP_READY")
+    iot.wait("IP_READY")
 
     master.open();
 
@@ -284,6 +283,6 @@ function master.task()
     end
 end
 
-sys.taskInit(master.task)
+iot.start(master.task)
 
 return master

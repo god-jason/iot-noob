@@ -106,7 +106,7 @@ end
 function aliyun.publish(topic, payload, qos)
     -- 转为json格式
     if type(payload) ~= "string" then
-        payload = json.encode(payload)
+        payload = iot.json_encode(payload)
     end
     return client:publish(topic, payload, qos)
 end
@@ -114,7 +114,7 @@ end
 local increment = 1
 
 -- 上传设备属性
-sys.subscribe("DEVICE_VALUES", function(dev, values)
+iot.on("DEVICE_VALUES", function(dev, values)
     log.info(tag, dev, values)
 
     local topic = "/sys/" .. options.product_id .. "/" .. options.device_name .. "thing/event/property/post"

@@ -35,7 +35,7 @@ mobile.simid(2, true)
 --     lcd.flush()
 -- end
 
-sys.taskInit(function()
+iot.start(function()
     log.info("main")
 
     iot.sleep(1000)

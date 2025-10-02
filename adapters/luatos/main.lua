@@ -8,8 +8,8 @@ PROJECT = "iot-noob"
 VERSION = "1.0.0"
 local tag = "main"
 
--- 引入sys，方便使用
-_G.sys = require("sys")
+-- 引入系统适配层
+require("adapter")
 
 log.info(tag, "last power reson", pm.lastReson())
 

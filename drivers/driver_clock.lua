@@ -77,11 +77,11 @@ function clock.read()
             time.sec = bcd_to_hex(data:byte(i))
         end
     end
-    log.info(tag, "read time", json.encode(time))
+    log.info(tag, "read time", iot.json_encode(time))
 
     -- 设置到系统中
     local r = rtc.set(time)
-    log.info(tag, "set time", r, json.encode(time))
+    log.info(tag, "set time", r, iot.json_encode(time))
 
     return true, time
 end
@@ -117,7 +117,7 @@ function clock.write()
 
     -- 写指令
     local ret = i2c.writeReg(options.i2c, options.addr, options.reg, data)
-    log.info(tag, "write time", ret, json.encode(tm))
+    log.info(tag, "write time", ret, iot.json_encode(tm))
 
     return ret
 end
@@ -127,7 +127,7 @@ clock.init()
 
 local sntp_sync_ok = false
 
-sys.subscribe("IP_READY", function()
+iot.on("IP_READY", function()
     -- 同步时钟（联通卡不会自动同步时钟，所以必须手动调整）
     if not sntp_sync_ok then
         socket.sntp()
@@ -137,7 +137,7 @@ sys.subscribe("IP_READY", function()
     end
 end)
 
-sys.subscribe("NTP_UPDATE", function()
+iot.on("NTP_UPDATE", function()
     sntp_sync_ok = true
     -- 设置到RTC时钟芯片
     clock.write()

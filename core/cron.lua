@@ -71,7 +71,7 @@ local function parse(crontab)
         end
     end
 
-    log.info(tag, "parse()", json.encode(job))
+    log.info(tag, "parse()", iot.json_encode(job))
 
     return true, job
 end
@@ -175,14 +175,14 @@ local function calc_next(job, now)
     while added do
 
         local tm = os.date("!*t", next)
-        -- log.info(tag, "next begin", json.encode(tm))
+        -- log.info(tag, "next begin", iot.json_encode(tm))
 
         -- 先计算星期
         added = calc_wday(tm, job.wday) or calc_field(tm, job.month, "month", "year", 1, 12) or
                     calc_field(tm, job.day, "day", "month", 1, get_month_days(tm)) or
                     calc_field(tm, job.hour, "hour", "day", 0, 23) or calc_field(tm, job.min, "min", "hour", 0, 59) or
                     calc_field(tm, job.sec, "sec", "min", 0, 59)
-        -- log.info(tag, "next end", json.encode(tm))
+        -- log.info(tag, "next end", iot.json_encode(tm))
 
         -- 重新计算时间
         if added then
@@ -210,7 +210,7 @@ local function execute()
         elseif job.next <= now then
             for _, cb in pairs(job.callbacks) do
                 -- 异步执行(不知道有没有数量限制，会不会影响性能)
-                sys.taskInit(cb)
+                iot.start(cb)
             end
             calc_next(job, now)
         end

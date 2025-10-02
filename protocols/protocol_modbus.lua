@@ -286,7 +286,7 @@ end
 ---读取所有数据
 function ModbusDevice:poll()
     log.info(tag, "poll", self.id)
-    -- log.info(tag, "poller", json.encode(self.options.pollers))
+    -- log.info(tag, "poller", iot.json_encode(self.options.pollers))
 
     -- 没有轮询器，直接返回
     if not self.mapper.pollers or #self.mapper.pollers == 0 then
@@ -309,7 +309,7 @@ function ModbusDevice:poll()
                         end
                     end
                 end
-                -- log.info(tag, "parse 1 ", json.encode(values))
+                -- log.info(tag, "parse 1 ", iot.json_encode(values))
             elseif poller.register == 2 then
                 -- log.info(tag, "parse 2 ", #data)
                 for _, point in ipairs(self.options.mapper.discrete_inputs) do
@@ -320,7 +320,7 @@ function ModbusDevice:poll()
                         end
                     end
                 end
-                -- log.info(tag, "parse 2 ", json.encode(values))
+                -- log.info(tag, "parse 2 ", iot.json_encode(values))
             elseif poller.register == 3 then
                 -- log.info(tag, "parse 3 ", #data)
                 for _, point in ipairs(self.options.mapper.holding_registers) do
@@ -331,7 +331,7 @@ function ModbusDevice:poll()
                         end
                     end
                 end
-                -- log.info(tag, "parse 3 ", json.encode(values))
+                -- log.info(tag, "parse 3 ", iot.json_encode(values))
             elseif poller.register == 4 then
                 -- log.info(tag, "parse 4 ", #data)
                 for _, point in ipairs(self.options.mapper.input_registers) do
@@ -342,7 +342,7 @@ function ModbusDevice:poll()
                         end
                     end
                 end
-                -- log.info(tag, "parse 4 ", json.encode(values))
+                -- log.info(tag, "parse 4 ", iot.json_encode(values))
             else
                 log.error(tag, "unkown code ", poller.code)
                 -- 暂不支持其他类型
@@ -564,7 +564,7 @@ function ModbusMaster:open()
     -- 启动设备
     self.devices = {}
     for _, d in ipairs(ds) do
-        log.info(tag, "open device", json.encode(d))
+        log.info(tag, "open device", iot.json_encode(d))
         local dev = ModbusDevice:new(d, self)
         dev:open() -- 设备也要打开
 
@@ -575,7 +575,7 @@ function ModbusMaster:open()
 
     -- 开启轮询
     local this = self
-    self.task = sys.taskInit(function()
+    self.task = iot.start(function()
         -- 这个写法。。。
         this:_polling()
     end)

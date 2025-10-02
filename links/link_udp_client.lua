@@ -37,7 +37,7 @@ function Client:open()
     -- 创建socket
     self.ctrl = socket.create(self.adapter, function(ctrl, event, param)
         if param ~= 0 then
-            -- sys.publish("socket_disconnect")
+            -- iot.emit("socket_disconnect")
             return
         end
 
@@ -47,10 +47,10 @@ function Client:open()
             log.info(tag, "ON_LINE")
             -- 连接成功
             -- self.ready = true
-            sys.publish("UDP_CLIENT_READY_" .. self.index)
+            iot.emit("UDP_CLIENT_READY_" .. self.index)
         elseif event == socket.EVENT then
             log.info(tag, "EVENT")
-            sys.publish("UDP_CLIENT_DATA_" .. self.index)
+            iot.emit("UDP_CLIENT_DATA_" .. self.index)
             -- socket.rx(ctrl, rxbuf)
             -- socket.wait(ctrl)
         elseif event == socket.TX_OK then
@@ -58,7 +58,7 @@ function Client:open()
             socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
             log.info(tag, "CLOSED")
-            sys.publish("UDP_CLIENT_CLOSE_" .. self.index)
+            iot.emit("UDP_CLIENT_CLOSE_" .. self.index)
         end
     end)
 
@@ -76,7 +76,7 @@ function Client:open()
     end -- 连接成功
 
     -- 等待连接成功
-    local res = sys.waitUntil(5000, "UDP_CLIENT_READY_" .. self.index)
+    local res = iot.wait(5000, "UDP_CLIENT_READY_" .. self.index)
     if not res then
         return false
     end
@@ -92,7 +92,7 @@ end
 
 -- 等待数据
 function Client:wait(timeout)
-    return sys.waitUntil("UDP_CLIENT_DATA_" .. self.index, timeout)
+    return iot.wait("UDP_CLIENT_DATA_" .. self.index, timeout)
 end
 
 -- 读数据

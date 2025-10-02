@@ -62,7 +62,7 @@ function configs.load(name)
         data = fastlz.uncompress(data, 32 * 1024) -- 最大32KB
     end
 
-    local obj, ret, err = json.decode(data)
+    local obj, ret, err = iot.json_decode(data)
     if ret == 1 then
         return true, obj, path
     else
@@ -93,7 +93,7 @@ function configs.save(name, data)
     log.info(tag, "save", name, data)
 
     if type(data) ~= "string" then
-        data = json.encode(data)
+        data = iot.json_encode(data)
     end
 
     -- 创建父目录
@@ -158,7 +158,7 @@ end
 function configs.download(name, url)
     log.info(tag, "download", name, url)
 
-    sys.taskInit(function()
+    iot.start(function()
         local code, headers, body = http.request("GET", url).wait()
         log.info(tag, "download result", code, headers, body)
         -- 阻塞执行的

@@ -41,7 +41,7 @@ local function load_product(id)
         end
 
         -- 解析
-        local prod, ret, err = json.decode(data)
+        local prod, ret, err = iot.json_decode(data)
         if not ret then
             log.info("解析产品错误", err)
             return nil
@@ -214,7 +214,7 @@ local function can_cb(id, cb_type, param)
 end
 
 local function upload(all)
-    log.info("upload()", json.encode(devices))
+    log.info("upload()", iot.json_encode(devices))
     for _, device in pairs(devices) do
         if device.sn == nil then
             if device.values.sn1 ~= nil and device.values.sn5 ~= nil then

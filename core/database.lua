@@ -22,7 +22,7 @@ local function load(col)
     if not ret then
         return {}
     end
-    local obj, result, err = json.decode(data)
+    local obj, result, err = iot.json_decode(data)
     if result == 0 then
         log.error(tag, err)
         return {}
@@ -36,7 +36,7 @@ end
 -- @param objs table 数据{k->v}
 local function save(col, objs)
     log.info(tag, "save", col)
-    local data = json.encode(objs)
+    local data = iot.json_encode(objs)
     return iot.writeFile(dbname(col), data)
 end
 

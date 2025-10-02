@@ -1,9 +1,8 @@
 -- 适配合宙的LuatOS
 local iot = {}
 
+_G.sys = require("sys") -- 其实已经内置了
 _G.iot = iot -- 注册到全局
-
-local sys = require("sys") -- 其实已经内置了
 
 -- 定时器
 function iot.setTimeout(func, timeout, ...)
@@ -116,6 +115,37 @@ function iot.crc16(method, data)
 end
 function iot.crc32(data)
     return crypto.crc32(data)
+end
+
+-- SOCKET
+local Socket = require("socket.lua")
+iot.socket = function(opts)
+    return Socket:new(opts)
+end
+
+-- HTTP
+function iot.request(url, opts)
+    opts = opts or {}
+    local method = opts.method or "GET"
+    local headers = opts.headers or {}
+    local body = opts.body
+    return http.request(method, url, headers, body)
+end
+function iot.download(url, dst, opts)
+    opts = opts or {}
+    local method = opts.method or "GET"
+    local headers = opts.headers or {}
+    local body = opts.body
+    local options = {
+        dst = dst -- 下载文件
+    }
+    return http.request(method, url, headers, body)
+end
+
+-- MQTT
+local MqttClient = require("mqtt_client.lua")
+iot.mqtt = function(opts)
+    return MqttClient:new(opts)
 end
 
 -- GPIO接口
@@ -306,19 +336,12 @@ function iot.adc(id, opts)
 end
 
 -- 其他
-function iot.json_encode(obj)
-    local ret, err = json.encode(obj)
-    if ret == nil then
-        return false, err
-    end
-    return true, ret
+function iot.json_encode(obj, ...)
+    return json.encode(obj, ...)
 end
 function iot.json_decode(str)
     local obj, ret, err = json.decode(str)
-    if ret == 1 then
-        return true, obj
-    end
-    return false, err
+    return obj, err
 end
 
 return iot

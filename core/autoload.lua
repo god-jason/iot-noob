@@ -31,7 +31,7 @@ function autoload.walk(path, base, offset)
     if not ret then
         return
     end
-    -- log.info(tag, "walk read", json.encode(data))
+    -- log.info(tag, "walk read", iot.json_encode(data))
 
     for _, e in ipairs(data) do
         local fn = path .. e.name

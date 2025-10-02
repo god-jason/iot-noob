@@ -48,7 +48,7 @@ function Serial:open()
 
     uart.on(self.port, 'receive', function(id, len)
         --log.info(tag, "receive", id, len)
-        sys.publish("SERIAL_DATA_" .. self.port, len)
+        iot.emit("SERIAL_DATA_" .. self.port, len)
     end)
 
     return ret
@@ -68,7 +68,7 @@ end
 -- @return boolean 成功与否
 function Serial:wait(timeout)
     log.info(tag, "wait", self.port, timeout)
-    return sys.waitUntil("SERIAL_DATA_" .. self.port, timeout)
+    return iot.wait("SERIAL_DATA_" .. self.port, timeout)
 end
 
 --- 读数据
