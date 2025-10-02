@@ -75,11 +75,44 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 ### GPIO
 
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|打开GPIO| iot.gpio(id, options) | ID，模式 | 成功与否，对象 | options={direct, pull，debounce, callback} |
+|关闭GPIO| gpio:close() | 无 | 无 |  |
+|设置GPIO| gpio:set(level) | 电平 | 无 |  |
+|获取GPIO| gpio:get() | 无 | 电平 |  |
+
 ### UART
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|打开串口| iot.uart(id, options) | ID，模式 | 成功与否，流对象 | options={baud_rate, data_bits_bits, parity, bit_order, buffer_size, rs485_gpio, rs485_level, rs485_delay} |
+|关闭串口| uart:close() | 无 | 无 |  |
+|读取串口| uart:read() | 无 | 成功与否，数据 |  |
+|写入串口| uart:write(data) | 数据 | 成功与否，写入长度 |  |
+|等待串口| uart:wait(timeout) | 超时 | 成功与否，缓存长度 |  |
 
 ### I2C
 
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|打开i2c| iot.i2c(id, options) | ID，模式 | 成功与否，对象 | options={slow} |
+|关闭i2c| i2c:close() | 无 | 无 |  |
+|读取i2c| i2c:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
+|写入i2c| i2c:write(addr, data) | 地址，数据 | 成功与否 |  |
+|等待i2c| i2c:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
+|等待i2c| i2c:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
+
 ### SPI
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|打开spi| iot.spi(id, options) | ID，模式 | 成功与否，对象 | options={slow} |
+|关闭spi| spi:close() | 无 | 无 |  |
+|读取spi| spi:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
+|写入spi| spi:write(addr, data) | 地址，数据 | 成功与否 |  |
+|等待spi| spi:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
+|等待spi| spi:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
 
 ### WiFi
 
