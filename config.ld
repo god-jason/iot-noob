@@ -5,7 +5,6 @@ format = "discount"
 backtick_references = false
 file = {"adapters/luatos", "core","links","protocols","drivers","clouds"}
 dir = "doc"
-readme = "README.md"
 style = "!new"
 multimodule = true
 kind_names = {
