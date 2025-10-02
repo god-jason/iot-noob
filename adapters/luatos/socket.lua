@@ -1,3 +1,5 @@
+--- 套接字封装
+-- @module socket
 local Socket = {}
 Socket.__index = Socket
 

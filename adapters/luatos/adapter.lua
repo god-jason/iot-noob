@@ -1,4 +1,5 @@
--- 适配合宙的LuatOS
+--- 适配合宙的LuatOS
+-- @module iot
 local iot = {}
 
 _G.sys = require("sys") -- 其实已经内置了

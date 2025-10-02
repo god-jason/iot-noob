@@ -1,4 +1,4 @@
---- 连接相关
+--- MQTT封装
 -- @module mqtt_client
 local MqttClient = {}
 MqttClient.__index = MqttClient
