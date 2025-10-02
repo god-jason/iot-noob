@@ -107,17 +107,30 @@ PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
-|打开spi| iot.spi(id, options) | ID，模式 | 成功与否，对象 | options={slow} |
+|打开spi| iot.spi(id, options) | ID，模式 | 成功与否，对象 | options={cs, CPHA, CPOL, data_bits, band_rate, bit_order, master, mode} |
 |关闭spi| spi:close() | 无 | 无 |  |
 |读取spi| spi:read(addr, len) | 地址，长度 | 成功与否，数据 |  |
 |写入spi| spi:write(addr, data) | 地址，数据 | 成功与否 |  |
 |等待spi| spi:readRegister(addr, reg, len) | 地址，寄存口，长度 | 成功与否，数据|  |
 |等待spi| spi:writeRegister(addr, reg, data) | 地址，寄存口，数据 | 成功与否 |  |
 
-### WiFi
+### ADC
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|打开adc| iot.adc(id, options) | ID，模式 | 成功与否，对象 | options={} |
+|关闭adc| adc:close() | 无 | 无 |  |
+|读取adc| adc:get() | 无 | 电压 |  |
 
 ### BLE
 
 ### NFC
 
 ### CAN
+
+## 其他接口
+
+|功能|接口|参数|返回|说明|
+|----|----|----|----|----|
+|JSON编码| iot.json_encode(obj) | 对象 | 成功与否，字符串 | |
+|JSON解码| iot.json_decode(str) | 字符串 | 成功与否，对象 |  |

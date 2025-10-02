@@ -160,13 +160,13 @@ UART.__index = UART
 function UART:close()
     uart.close(self.id)
 end
-function UART:read()
-    local data = uart.read(self.id)
-    return data ~= nil and #data > 0, data
-end
 function UART:write(data)
     local len = uart.write(self.id, data)
     return len > 0, len
+end
+function UART:read()
+    local data = uart.read(self.id)
+    return data ~= nil and #data > 0, data
 end
 function UART:wait(timeout)
     return sys.waitUntil("uart_receive_" .. self.id)
@@ -208,7 +208,6 @@ function iot.uart(id, opts)
     }, UART)
 end
 
-
 -- I2C
 local I2C = {}
 I2C.__index = I2C
@@ -216,19 +215,19 @@ I2C.__index = I2C
 function I2C:close()
     i2c.close(self.id)
 end
+function I2C:write(addr, data)
+    return i2c.send(self.id, addr, data)
+end
 function I2C:read(addr, len)
     local data = i2c.read(self.id, addr, len)
     return data ~= nil and #data > 0, data
 end
-function I2C:write(addr, data)
-    return i2c.send(self.id, addr, data)
+function I2C:writeRegister(addr, reg, data)
+    return i2c.writeReg(self.id, addr, reg, data)
 end
 function I2C:readRegister(addr, reg, len)
     local data = i2c.readReg(self.id, addr, reg, len)
     return data ~= nil and #data > 0, data
-end
-function I2C:writeRegister(addr, reg, data)
-    return i2c.writeReg(self.id, addr, reg, data)
 end
 
 function iot.i2c(id, opts)
@@ -251,31 +250,31 @@ SPI.__index = SPI
 function SPI:close()
     self.dev:close()
 end
-function SPI:read(len)
-    local data = self.dev:read(len)
-    return data ~= nil and #data > 0, data
-end
 function SPI:write(data)
     local len = self.dev:send(data)
     return len > 0
+end
+function SPI:read(len)
+    local data = self.dev:read(len)
+    return data ~= nil and #data > 0, data
 end
 function SPI:ask(data)
     local data = self.dev:transfer(data)
     return data ~= nil and #data > 0, data
 end
 
-function iot.i2c(id, opts)
+function iot.spi(id, opts)
     opts = opts or {}
     local cs = opts.cs or 0
-    local CPHA = opts.CPHA or 0 
-    local CPOL = opts.CPOL or 0 
-    local dataw = opts.data_bits or 8 
-    local bandrate = opts.band_rate or 20000000 --默认20M 
-    local bitdict = opts.bitdict or spi.MSB --默认大端
-    local ms = opts.cs or 0 
-    local mode = opts.cs or 0
+    local CPHA = opts.CPHA or 0
+    local CPOL = opts.CPOL or 0
+    local dataw = opts.data_bits or 8
+    local bandrate = opts.band_rate or 20000000 -- 默认20M 
+    local bitdict = opts.bit_order or spi.MSB -- 默认大端
+    local ms = opts.master and 1 or 0
+    local mode = opts.mode or 1
 
-    local dev = i2c.deviceSetup(id, cs, CPHA, CPOL, dataw, bandrate, bitdict, ms, mode)
+    local dev = spi.deviceSetup(id, cs, CPHA, CPOL, dataw, bandrate, bitdict, ms, mode)
     if dev == nil then
         return false, "打开失败"
     end
@@ -285,7 +284,41 @@ function iot.i2c(id, opts)
     }, SPI)
 end
 
+-- ADC
+local ADC = {}
+ADC.__index = ADC
 
+function ADC:close()
+    adc.close(self.id)
+end
+function ADC:get()
+    return adc.get(self.id)
+end
+function iot.adc(id, opts)
+    opts = opts or {}
+    local ret = adc.open(id)
+    if not ret then
+        return false, "打开失败"
+    end
+    return true, setmetatable({
+        id = id
+    }, ADC)
+end
 
+-- 其他
+function iot.json_encode(obj)
+    local ret, err = json.encode(obj)
+    if ret == nil then
+        return false, err
+    end
+    return true, ret
+end
+function iot.json_decode(str)
+    local obj, ret, err = json.decode(str)
+    if ret == 1 then
+        return true, obj
+    end
+    return false, err
+end
 
 return iot
