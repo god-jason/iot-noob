@@ -19,7 +19,7 @@ function autoload.load(name)
 end
 
 --- 遍历目录
--- @param path string 
+-- @param path string
 function autoload.walk(path)
     iot.walk(path, function(filename)
         if string.endsWith(filename, ".luac") then
