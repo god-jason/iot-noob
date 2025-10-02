@@ -44,7 +44,7 @@ function kv.clear()
 end
 
 --- 写入值
--- @parm key string
+-- @param key string
 -- @param data any
 function kv.set(key, data)
     check()
@@ -53,7 +53,7 @@ function kv.set(key, data)
 end
 
 --- 读取值
--- @parm key string
+-- @param key string
 -- @return any
 function kv.get(key)
     check()
