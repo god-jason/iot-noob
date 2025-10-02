@@ -236,7 +236,7 @@ end
 -- AES-192-CBC，AES-256-CBC，AES-128-CTR，AES-192-CTR，AES-256-CTR，AES-128-GCM，
 -- AES-192-GCM，AES-256-GCM，AES-128-CCM，AES-192-CCM，AES-256-CCM，DES-ECB，
 -- DES-EDE-ECB，DES-EDE3-ECB，DES-CBC，DES-EDE-CBC，DES-EDE3-CBC
--- @param pading string 对齐 PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
+-- @param padding string 对齐 PKCS7，ZERO，ONE_AND_ZEROS，ZEROS_AND_LEN，NONE
 -- @param str string 明文
 -- @param key string 秘钥
 -- @param iv string IV
@@ -247,7 +247,7 @@ end
 
 --- 解密
 -- @param type string 类型
--- @param pading string 对齐
+-- @param padding string 对齐
 -- @param str string 密文
 -- @param key string 秘钥
 -- @param iv string IV
@@ -395,7 +395,7 @@ function GPIO:get()
 end
 
 --- 创建GPIO对象
--- @return id integer GPIO序号
+-- @param id integer GPIO序号
 -- @param opts table 参数 {pull, callback, debounce}
 -- @return boolean 成功与否
 -- @return GPIO

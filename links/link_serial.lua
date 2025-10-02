@@ -9,7 +9,7 @@ setmetatable(Serial, Link) -- 继承Link
 require("gateway").register_link("serial", Serial)
 
 ---创建串口实例
--- @param obj table
+-- @param opts table
 -- @return table
 function Serial:new(opts)
     local lnk = Link:new()
