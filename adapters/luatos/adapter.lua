@@ -642,4 +642,54 @@ function iot.adc(id, opts)
     }, ADC)
 end
 
+
+
+--- PWM
+-- @module pwm
+local PWM = {}
+PWM.__index = PWM
+--- 启动
+-- @return boolean 成功与否
+function PWM:start()
+    return pwm.start(self.id)
+end
+--- 停止
+-- @return boolean 成功与否
+function PWM:stop()
+    return pwm.stop(self.id)
+end
+--- 设置频率
+-- @param freq integer 频率
+-- @return boolean 成功与否
+function PWM:setFreq(freq)
+    return pwm.setFreq(self.id, freq)
+end
+--- 设置占空比
+-- @param duty integer 占空比 %
+-- @return boolean 成功与否
+function PWM:setDuty(duty)
+    return pwm.setDuty(self.id, duty)
+end
+
+
+--- 创建PWM对象
+-- @param id integer
+-- @param opts table 参数 {}
+-- @return boolean 成功与否
+-- @return PWM
+function iot.pwm(id, opts)
+    opts = opts or {}
+    local ret = pwm.setup(id, opts.freq, opts.duty)
+    if not ret then
+        return false, "打开失败"
+    end
+    return true, setmetatable({
+        id = id
+    }, PWM)
+end
+
+
+
+
+
 return iot
