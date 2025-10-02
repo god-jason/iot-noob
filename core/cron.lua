@@ -225,7 +225,7 @@ local function execute()
         if not next_time or next_time ~= next then
             next_time = next
             log.info(tag, "wait", (next - now))
-            sys.timerStart(execute, (next - now) * 1000)
+            iot.setTimeout(execute, (next - now) * 1000)
         end
     end
 end

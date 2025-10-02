@@ -31,7 +31,7 @@ function Agent:ask(request, len)
     -- 重入锁，等待其他操作完成
     while self.asking do
         log.info(tag, "waiting for unlock")
-        sys.wait(200)
+        iot.sleep(200)
     end
     self.asking = true
 

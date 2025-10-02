@@ -38,7 +38,7 @@ mobile.simid(2, true)
 sys.taskInit(function()
     log.info("main")
 
-    sys.wait(1000)
+    iot.sleep(1000)
 
     -- testLcd()
 

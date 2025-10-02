@@ -11,7 +11,7 @@ log.info(tag, "last power reson", pm.lastReson())
 -- 看门狗守护
 if wdt then
     wdt.init(9000)
-    sys.timerLoopStart(wdt.feed, 3000)
+    iot.setInterval(wdt.feed, 3000)
 end
 
 -- 日志等级改为info
@@ -22,7 +22,7 @@ log.setLevel(2)
 sys.taskInit(function()
 
     -- 等待USB日志稳定
-    sys.wait(500)
+    iot.sleep(500)
 
     log.info(tag, "main task")
 
@@ -35,7 +35,7 @@ sys.taskInit(function()
     require("gateway").load_links()
 
     while true do
-        sys.wait(1000)
+        iot.sleep(1000)
         collectgarbage()
     end
 

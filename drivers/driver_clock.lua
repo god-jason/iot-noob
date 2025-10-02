@@ -41,7 +41,7 @@ function clock.init()
     i2c.setup(options.i2c, i2c.SLOW)
 
     -- 读取config芯片时钟
-    sys.timerStart(clock.read, 500)
+    iot.setTimeout(clock.read, 500)
 end
 
 --- 读取芯片时钟

@@ -264,8 +264,8 @@ function tillan.init()
     log.info("can.mode ret", ret)
 
     -- 定时上传
-    sys.timerLoopStart(upload, 10 * 1000) -- 10秒传一次变化
-    sys.timerLoopStart(upload, 30 * 60 * 1000, true) -- 30分钟传一次全部
+    iot.setInterval(upload, 10 * 1000) -- 10秒传一次变化
+    iot.setInterval(upload, 30 * 60 * 1000, true) -- 30分钟传一次全部
 end
 
 function tillan.send()

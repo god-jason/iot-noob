@@ -493,7 +493,7 @@ function cloud.task()
 
     log.info(tag, "cloud broker connected")
 
-    -- sys.timerLoopStart(report_all, 1000 * 60 * 60) -- 一小时全部传一次
+    -- iot.setInterval(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
     while true do
 
@@ -528,7 +528,7 @@ function cloud.task()
             report_device(dev)
         end
 
-        sys.wait(60 * 1000 * (config.cycle_upload or 1)) -- 上传周期
+        iot.sleep(60 * 1000 * (config.cycle_upload or 1)) -- 上传周期
     end
 
 end

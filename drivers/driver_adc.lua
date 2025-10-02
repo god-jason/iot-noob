@@ -75,7 +75,7 @@ function adc_ext.read()
 
     -- 发送读指令
     spi.send(options.spi, options.read)
-    -- sys.wait(100) --延迟等待
+    -- iot.sleep(100) --延迟等待
 
     local len = 2 * options.channels
     if options.bits > 16 then

@@ -621,7 +621,7 @@ function ModbusMaster:_polling()
         local finish = mcu.ticks()
         local remain = interval - (finish - start)
         if remain > 0 then
-            sys.wait(remain)
+            iot.sleep(remain)
         end
     end
 end

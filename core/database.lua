@@ -15,14 +15,13 @@ end
 local function load(col)
     log.info(tag, "load", col)
     local name = dbname(col)
-    if not io.exists(name) then
+    if not iot.exists(name) then
         name = "/luadb" .. name
-        if not io.exists(name) then
-            return {}
-        end
     end
-
-    local data = io.readFile(name)
+    local ret, data = iot.readFile(name)
+    if not ret then
+        return {}
+    end
     local obj, result, err = json.decode(data)
     if result == 0 then
         log.error(tag, err)
@@ -38,7 +37,7 @@ end
 local function save(col, objs)
     log.info(tag, "save", col)
     local data = json.encode(objs)
-    return io.writeFile(dbname(col), data)
+    return iot.writeFile(dbname(col), data)
 end
 
 --- 清空表

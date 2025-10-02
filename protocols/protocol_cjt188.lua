@@ -520,14 +520,14 @@ function Cjt188Master:_polling()
             end
 
             -- 等待数据完成
-            sys.wait(500)
+            iot.sleep(500)
 
         end
 
         local finish = mcu.ticks()
         local remain = interval - (finish - start)
         if remain > 0 then
-            sys.wait(remain)
+            iot.sleep(remain)
         end
     end
 end

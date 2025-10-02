@@ -246,7 +246,7 @@ function master.open()
     sys.subscribe("MQTT_CONNECT_" .. cloud.id, register)
 
     -- 周期上报状态
-    -- sys.timerLoopStart(report_status, 300000) -- 5分钟 上传一次状态
+    -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
@@ -270,7 +270,7 @@ function master.task()
     log.info(tag, "master broker connected start")
 
     register()
-    sys.timerLoopStart(report_status, 1000 * 60) -- 10分钟上传一次状态
+    iot.setInterval(report_status, 1000 * 60) -- 10分钟上传一次状态
 
     while true do
         -- 上报数据？
@@ -280,7 +280,7 @@ function master.task()
         --     local values = dev.values()
         -- end
 
-        sys.wait(60 * 1000)
+        iot.sleep(60 * 1000)
     end
 end
 

@@ -63,7 +63,7 @@ function commands.version()
 end
 
 function commands.reboot()
-    sys.timerStart(rtos.reboot, 5000)
+    iot.setTimeout(rtos.reboot, 5000)
     return reply_ok("reboot after 5s")
 end
 
@@ -171,7 +171,7 @@ function commands.device_action(msg)
 
     -- 执行一系列动作
     for _, item in ipairs(msg.data) do
-        sys.timerStart(function()
+        iot.setTimeout(function()
             dev.set(item.name, item.value)
         end, item.delay or 0)
     end

@@ -12,4 +12,4 @@ end
 libfota2.request(fota_cb)
 
 -- 定时自动升级, 每隔4小时自动检查一次
-sys.timerLoopStart(libfota2.request, 4 * 3600000, fota_cb)
+iot.setInterval(libfota2.request, 4 * 3600000, fota_cb)

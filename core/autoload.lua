@@ -15,7 +15,7 @@ function autoload.load(name)
         log.error(tag, name, info)
     end
 
-    -- sys.wait(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
+    -- iot.sleep(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end
 
 --- 遍历目录
@@ -51,7 +51,7 @@ function autoload.walk(path, base, offset)
 
             -- 降低启动速度，避免日志输出太快，从而导致丢失
             if log.getLevel() < 2 then
-                sys.wait(100)
+                iot.sleep(100)
             end
         end
     end
