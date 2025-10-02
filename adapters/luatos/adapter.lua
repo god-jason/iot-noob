@@ -54,7 +54,7 @@ function iot.sleep(timeout)
     sys.wait(timeout)
 end
 
---- 协程休眠
+--- 等待消息，协程休眠
 -- @param topic string 消息
 -- @param timeout integer 超时
 -- @return boolean 成功与否（超时false）
@@ -395,6 +395,7 @@ function GPIO:get()
 end
 
 --- 创建GPIO对象
+-- @return id integer GPIO序号
 -- @param opts table 参数 {pull, callback, debounce}
 -- @return boolean 成功与否
 -- @return GPIO
