@@ -112,7 +112,7 @@ local function handle_can(id, data)
         devices[dev_id] = device
     end
 
-    -- local _, seq, ok = pack.unpack(data, "c2")
+    -- local _, seq, ok = iot.unpack(data, "c2")
 
     local product = load_product(product_id)
     if product == nil then
@@ -131,24 +131,24 @@ local function handle_can(id, data)
     local seq, ok, val
 
     if point.type == "s8" then
-        _, seq, ok, _, val = pack.unpack(data, "b2A3c")
+        _, seq, ok, _, val = iot.unpack(data, "b2A3c")
     elseif point.type == "u8" then
-        _, seq, ok, _, val = pack.unpack(data, "b2A3c")
+        _, seq, ok, _, val = iot.unpack(data, "b2A3c")
     elseif point.type == "s16" then
-        _, seq, ok, _, val = pack.unpack(data, "b2A2>h")
+        _, seq, ok, _, val = iot.unpack(data, "b2A2>h")
     elseif point.type == "u16" then
-        _, seq, ok, _, val = pack.unpack(data, "b2A2>H")
+        _, seq, ok, _, val = iot.unpack(data, "b2A2>H")
     elseif point.type == "s32" then
-        _, seq, ok, val = pack.unpack(data, "b2>i")
+        _, seq, ok, val = iot.unpack(data, "b2>i")
     elseif point.type == "u32" then
-        _, seq, ok, val = pack.unpack(data, "b2>I")
+        _, seq, ok, val = iot.unpack(data, "b2>I")
     elseif point.type == "hex" then
         val = string.sub(data, 3)
         val = string.toHex(val)
     elseif point.type == "bits" then
         -- val = string.sub(data, 3)
-        -- _, seq, ok, val = pack.unpack(data, "b2>I")
-        _, _, _, val = pack.unpack(data, "b2>I")
+        -- _, seq, ok, val = iot.unpack(data, "b2>I")
+        _, _, _, val = iot.unpack(data, "b2>I")
 
         for _, p in ipairs(point.bits) do
             local size = p.size or 1
@@ -218,7 +218,7 @@ local function upload(all)
     for _, device in pairs(devices) do
         if device.sn == nil then
             if device.values.sn1 ~= nil and device.values.sn5 ~= nil then
-                device.sn = pack.pack("b8", device.values.sn1.value, device.values.sn2.value, device.values.sn3.value,
+                device.sn = iot.pack("b8", device.values.sn1.value, device.values.sn2.value, device.values.sn3.value,
                     device.values.sn4.value, device.values.sn5.value, device.values.sn6.value, device.values.sn7.value,
                     device.values.sn8.value)
 

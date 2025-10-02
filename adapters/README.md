@@ -38,6 +38,9 @@
 |读取文件内容| iot.readFile(filename) | 文件名 | 成功与否，文件内容 ||
 |写入文件内容| iot.writeFile(filename, data) | 数据 | 成功与否 ||
 |追加文件内容| iot.appendFile(filename, data) | 数据 | 成功与否 ||
+|创建目录| iot.mkdir(path) | 路径 | 成功与否 ||
+|删除目录| iot.rmdir(path) | 路径 | 成功与否 ||
+|遍历目录| iot.walk(path, callback) | 路径，回调 | ||
 
 目录的操作
 
@@ -170,4 +173,27 @@ ssl为 {
 |功能|接口|参数|返回|说明|
 |----|----|----|----|----|
 |JSON编码| iot.json_encode(obj) | 对象 | 字符串，错误 | |
-|JSON解码| iot.json_decode(str) | 字符串 | 对象，错误 |  |
+|JSON解码| iot.json_decode(str) | 字符串 | 对象，错误 | |
+|PACK封包| iot.pack(fmt,...) | 格式，参数123 | 数据 | |
+|PACK解包| iot.unpack(str，fmt, offset) | 字符串，格式，偏移 | 继续位置，解析值123 | |
+
+```
+PACK打包格式
+ '<' 设为小端编码 
+ '>' 设为大端编码 
+ '=' 大小端遵循本地设置 
+ 'z' 空字符串,0字节
+ 'a' size_t字符串,前4字节表达长度,然后接着是N字节的数据
+ 'A' 指定长度字符串, 例如A8, 代表8字节的数据
+ 'f' float, 4字节
+ 'd' double , 8字节
+ 'n' Lua number , 32bit固件4字节, 64bit固件8字节
+ 'c' char , 1字节
+ 'b' byte = unsigned char  , 1字节
+ 'h' short  , 2字节
+ 'H' unsigned short  , 2字节
+ 'i' int  , 4字节
+ 'I' unsigned int , 4字节
+ 'l' long , 8字节, 仅64bit固件能正确获取
+ 'L' unsigned long , 8字节, 仅64bit固件能正确获取
+ ```

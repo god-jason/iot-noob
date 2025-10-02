@@ -310,7 +310,7 @@ function Cjt188Device:poll()
                             end
                             self:put_value(point.name, value)
                         elseif fmt.type == "u16" then
-                            _, value = pack.unpack(str, "<H")
+                            _, value = iot.unpack(str, "<H")
                             if fmt.rate then
                                 value = value * fmt.rate
                             end
@@ -379,12 +379,12 @@ function Cjt188Master:ask(addr, type, code, di, data)
     frame = frame .. binary.decodeHex(code or "01") .. string.char(dl) -- 控制符，长度
     frame = frame .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     self.increment = (self.increment + 1) % 256
-    frame = frame .. pack.pack("b1", self.increment) -- 序号
+    frame = frame .. iot.pack("b1", self.increment) -- 序号
     if data and #data > 0 then
         frame = frame .. data
     end
-    frame = frame .. pack.pack("b1", crypto.checksum(frame, 1)) -- 和校验
-    frame = frame .. pack.pack("b1", 0x16) -- 结束符
+    frame = frame .. iot.pack("b1", crypto.checksum(frame, 1)) -- 和校验
+    frame = frame .. iot.pack("b1", 0x16) -- 结束符
 
     log.info(tag, "frame", binary.encodeHex(frame))
 

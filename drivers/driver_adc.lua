@@ -90,11 +90,11 @@ function adc_ext.read()
 
     -- 解析
     if options.bits > 16 then
-        local values = {pack.unpack(data, ">i" .. options.channels)}
+        local values = {iot.unpack(data, ">i" .. options.channels)}
         table.remove(values, 1)
         return true, values
     else
-        local values = {pack.unpack(data, ">h" .. options.channels)}
+        local values = {iot.unpack(data, ">h" .. options.channels)}
         table.remove(values, 1)
         return true, values
     end

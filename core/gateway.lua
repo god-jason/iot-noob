@@ -147,6 +147,14 @@ function gateway.load_links()
     end
 end
 
+--- 启动网关主程序
+function gateway.boot()
+
+    -- 加载所有连接
+    gateway.load_links()
+
+end
+
 -- 创建设备
 -- @param dev table 设备
 -- @return boolean 成功与否

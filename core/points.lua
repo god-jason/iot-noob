@@ -153,7 +153,7 @@ function points.parseWord(point, data, address)
     local be = point.be and ">" or "<"
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
-    local _, value = pack.unpack(buf, be .. pk)
+    local _, value = iot.unpack(buf, be .. pk)
 
     -- 倍率
     if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
@@ -190,7 +190,7 @@ function points.parse(point, data, address)
     local be = point.be and ">" or "<"
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
-    local _, value = pack.unpack(buf, be .. pk)
+    local _, value = iot.unpack(buf, be .. pk)
 
     -- 倍率
     if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
@@ -228,7 +228,7 @@ function points.encode(point, value)
 
     local be = point.be and ">" or "<"
     local pk = feagure.pack
-    local data = pack.pack(be .. pk, value)
+    local data = iot.pack(be .. pk, value)
     return true, data
 end
 

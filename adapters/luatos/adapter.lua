@@ -69,6 +69,33 @@ end
 function iot.appendFile(filename, data)
     return io.writeFile(filename, data, "ab+")
 end
+function iot.mkdir(path)
+    return io.mkdir(path)
+end
+function iot.rmdir(path)
+    return io.rmdir(path)
+end
+function iot.walk(path, cb, offset)
+    offset = offset or 0
+
+    local ret, data = io.lsdir(path, 50, offset)
+    if not ret then
+        return
+    end
+    for _, e in ipairs(data) do
+        local fn = path .. e.name
+        if e.type == 1 then
+            -- 遍历子目录
+            io.walk(fn .. "/", cb)
+        else
+            cb(fn)
+        end
+    end
+    -- 继续遍历
+    if #data == 50 then
+        io.walk(path, cb, offset + 50)
+    end
+end
 
 ---- 加密模块
 function iot.md5(data)
@@ -342,6 +369,12 @@ end
 function iot.json_decode(str)
     local obj, ret, err = json.decode(str)
     return obj, err
+end
+function iot.unpack(str, fmt, offset)
+    return pack.unpack(str, fmt, offset)
+end
+function iot.pack(fmt, ...)
+    return pack.pack(fmt, ...)
 end
 
 return iot

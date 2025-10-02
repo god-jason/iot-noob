@@ -379,9 +379,9 @@ end
 function ModbusMaster:readTCP(slave, code, addr, len)
     log.info(tag, "readTCP", slave, code, addr, len)
 
-    local data = pack.pack("b2>H2", slave, code, addr, len)
+    local data = iot.pack("b2>H2", slave, code, addr, len)
     -- 事务ID, 0000, 长度
-    local header = pack.pack(">H3", self.increment, 0, #data)
+    local header = iot.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
     local ret, buf = self.agent:ask(header .. data, 12)
@@ -399,7 +399,7 @@ function ModbusMaster:readTCP(slave, code, addr, len)
     end
 
     -- 解析包头
-    local _, _, ln = pack.unpack(buf, ">H3")
+    local _, _, ln = iot.unpack(buf, ">H3")
     len = ln + 6
 
     -- 取剩余数据
@@ -429,8 +429,8 @@ function ModbusMaster:read(slave, code, addr, len)
 
     log.info(tag, "read", slave, code, addr, len)
 
-    local data = pack.pack("b2>H2", slave, code, addr, len)
-    local crc = pack.pack('<H', crypto.crc16_modbus(data))
+    local data = iot.pack("b2>H2", slave, code, addr, len)
+    local crc = iot.pack('<H', crypto.crc16_modbus(data))
 
     local ret, buf = self.agent:ask(data .. crc, 7)
     if not ret then
@@ -464,10 +464,10 @@ end
 function ModbusMaster:writeTCP(slave, code, addr, data)
     log.info(tag, "writeTCP", slave, code, addr, data)
 
-    data = pack.pack("b2>H", slave, code, addr) .. data
+    data = iot.pack("b2>H", slave, code, addr) .. data
 
     -- 事务ID, 0000, 长度
-    local header = pack.pack(">H3", self.increment, 0, #data)
+    local header = iot.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
     local ret, buf = self.agent:ask(header .. data, 12)
@@ -485,7 +485,7 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
     end
 
     -- 解析包头
-    local _, _, ln = pack.unpack(buf, ">H3")
+    local _, _, ln = iot.unpack(buf, ">H3")
     local len = ln + 6
 
     -- 取剩余数据
@@ -516,7 +516,7 @@ function ModbusMaster:write(slave, code, addr, data)
             data = 0x0000
         end
     elseif code == 3 then
-        -- data = pack.pack('>H', data) --大端数据
+        -- data = iot.pack('>H', data) --大端数据
         if #data > 2 then
             code = 16
         else
@@ -529,8 +529,8 @@ function ModbusMaster:write(slave, code, addr, data)
     end
 
     log.info(tag, "write", slave, code, addr, data)
-    data = pack.pack("b2>H", slave, code, addr) .. data
-    local crc = pack.pack('<H', crypto.crc16_modbus(data))
+    data = iot.pack("b2>H", slave, code, addr) .. data
+    local crc = iot.pack('<H', crypto.crc16_modbus(data))
 
     local ret, buf = self.agent:ask(data .. crc, 7)
     if not ret then

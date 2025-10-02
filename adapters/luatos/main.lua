@@ -3,7 +3,6 @@
 -- @license GPLv3
 -- @copyright benyi 2025
 --- 主程序入口
-
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
 local tag = "main"
@@ -26,15 +25,15 @@ log.setLevel(2)
 sys.taskInit(function()
     log.info(tag, "main task")
 
-    fskv.init() -- KV 数据库
+    sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
+
+    --fskv.init() -- KV 数据库
 
     -- 加载所有程序文件
     require("autoload").walk("/luadb/")
 
-    -- 加载设备
-    require("gateway").load_links()
-
-    -- TODO 定时器啥的
+    -- 启动网关
+    require("gateway").boot()
 
     log.info(tag, "main task exit")
 end)

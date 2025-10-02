@@ -18,51 +18,20 @@ function autoload.load(name)
     -- iot.sleep(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end
 
---- 遍历目录
--- @param path string 根目录
--- @param base string 无用
--- @param offset integer 无用
-function autoload.walk(path, base, offset)
-    log.info(tag, "walk", path, base, offset)
-    offset = offset or 0
-    base = base or ""
-
-    local ret, data = io.lsdir(path, 50, offset)
-    if not ret then
-        return
-    end
-    -- log.info(tag, "walk read", iot.json_encode(data))
-
-    for _, e in ipairs(data) do
-        local fn = path .. e.name
-        -- log.info(tag, "walk entry", fn, e.type, e.size)
-
-        if e.type == 1 then
-            -- 文件夹
-            -- log.info(tag, "walk children", fn)
-            autoload.walk(fn .. "/", base .. e.name .. ".")
-        elseif string.endsWith(e.name, ".luac") then
+function autoload.walk(path)
+    iot.walk(path, function(filename)
+        if string.endsWith(filename, ".luac") then
             -- log.info(tag, "walk found", fn, e.size)
-            -- 为入口，重复加载会导致死循环
-            if fn ~= "/luadb/main.luac" and fn ~= "/luadb/autoload.luac" then
+            -- main为入口，重复加载会导致死循环
+            if fn ~= "/luadb/main.luac" then
                 local name = string.sub(e.name, 1, -6)
                 autoload.load(base .. name)
             end
-
-            -- 降低启动速度，避免日志输出太快，从而导致丢失
-            if log.getLevel() < 2 then
-                iot.sleep(100)
-            end
         end
-    end
-
-    -- 继续遍历
-    if #data == 50 then
-        autoload.walk(path, base, offset + 50)
-    end
+    end)    
 end
 
 -- 遍历所有编译的工程文件，然后require，实现自动加载
--- autoload.walk("/luadb/")
+-- autoload.walk("/luadb/") ERROR 此处会导致死循环，耗尽内存
 
 return autoload

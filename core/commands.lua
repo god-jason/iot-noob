@@ -4,7 +4,6 @@ local commands = {}
 
 --local tag = "commands"
 
-local utils = require("utils")
 local configs = require("configs")
 local gateway = require("gateway")
 
@@ -97,12 +96,14 @@ end
 
 function commands.fs_walk(msg)
     local files = {}
-    utils.walk(msg.path or "/", files)
+    iot.walk(msg.path or "/", function(filename)
+        table.insert(files, filename)
+    end)
     return reply_data(files)
 end
 
 function commands.fs_clear()
-    utils.remove_all("/")
+    --utils.remove_all("/")
     -- utils.walk("/")
     return reply_ok("clear_fs finished")
 end
