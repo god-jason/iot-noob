@@ -1,5 +1,3 @@
---- 虚拟串口处理指令
--- @module vuart
 local vuart = {}
 
 local tag = "vuart"

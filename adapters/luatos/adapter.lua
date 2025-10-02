@@ -287,8 +287,6 @@ function iot.crc32(data)
     return crypto.crc32(data)
 end
 
-
-
 --- JSON编码
 -- @param obj table 对象
 -- @return string 文本
@@ -321,6 +319,10 @@ function iot.unpack(str, fmt, offset)
     return pack.unpack(str, fmt, offset)
 end
 
+--- 重启
+function iot.reboot()
+    rtos.reboot()
+end
 
 local Socket = require("socket.lua")
 
@@ -633,6 +635,5 @@ function iot.adc(id, opts)
         id = id
     }, ADC)
 end
-
 
 return iot

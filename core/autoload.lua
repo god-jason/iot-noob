@@ -18,6 +18,8 @@ function autoload.load(name)
     -- iot.sleep(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end
 
+--- 遍历目录
+-- @param path string 
 function autoload.walk(path)
     iot.walk(path, function(filename)
         if string.endsWith(filename, ".luac") then

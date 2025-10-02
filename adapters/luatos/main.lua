@@ -1,8 +1,4 @@
---- 物联小白标准库
--- @author 杰神
--- @license GPLv3
--- @copyright benyi 2025
---- 主程序入口
+-- 主程序入口
 PROJECT = "iot-noob"
 VERSION = "1.0.0"
 local tag = "main"

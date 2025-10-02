@@ -62,7 +62,7 @@ function commands.version()
 end
 
 function commands.reboot()
-    iot.setTimeout(rtos.reboot, 5000)
+    iot.setTimeout(iot.reboot, 5000)
     return reply_ok("reboot after 5s")
 end
 
