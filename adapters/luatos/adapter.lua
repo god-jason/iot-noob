@@ -287,6 +287,41 @@ function iot.crc32(data)
     return crypto.crc32(data)
 end
 
+
+
+--- JSON编码
+-- @param obj table 对象
+-- @return string 文本
+-- @return string error
+function iot.json_encode(obj, ...)
+    return json.encode(obj, ...)
+end
+--- JSON解码
+-- @param str string 文本
+-- @return table 对象
+-- @return string error
+function iot.json_decode(str)
+    local obj, ret, err = json.decode(str)
+    return obj, err
+end
+--- PACK打包
+-- @param fmt string 格式
+-- @param arg1 any 参数
+-- @return string 文本
+function iot.pack(fmt, ...)
+    return pack.pack(fmt, ...)
+end
+--- PACK解包
+-- @param str string 格式
+-- @param fmt string 格式
+-- @param offset integer 偏移
+-- @return integer 下个字符
+-- @return any 值1-n
+function iot.unpack(str, fmt, offset)
+    return pack.unpack(str, fmt, offset)
+end
+
+
 local Socket = require("socket.lua")
 
 --- 创建SOCKET
@@ -338,7 +373,7 @@ function iot.mqtt(opts)
 end
 
 --- GPIO接口
--- @module GPIO
+-- @module gpio
 local GPIO = {}
 GPIO.__index = GPIO
 
@@ -381,8 +416,8 @@ function iot.gpio(id, opts)
     }, GPIO)
 end
 
--- 串口操作
--- @module UART
+--- 串口操作
+-- @module uart
 local UART = {}
 UART.__index = UART
 
@@ -452,28 +487,54 @@ function iot.uart(id, opts)
     }, UART)
 end
 
--- I2C
+--- I2C
+-- @module i2c
 local I2C = {}
 I2C.__index = I2C
 
+--- 关闭
 function I2C:close()
     i2c.close(self.id)
 end
+--- 写入
+-- @param addr integer 从站号
+-- @param data string 数据
+-- @return boolean 成功与否
 function I2C:write(addr, data)
     return i2c.send(self.id, addr, data)
 end
+--- 读取
+-- @param addr integer 从站号
+-- @param len integer 数据长度
+-- @return boolean 成功与否
+-- @return string 数据
 function I2C:read(addr, len)
     local data = i2c.read(self.id, addr, len)
     return data ~= nil and #data > 0, data
 end
+--- 写入寄存器
+-- @param addr integer 从站号
+-- @param reg integer 寄存器
+-- @param data string 数据
+-- @return boolean 成功与否
 function I2C:writeRegister(addr, reg, data)
     return i2c.writeReg(self.id, addr, reg, data)
 end
+--- 读取寄存器
+-- @param addr integer 从站号
+-- @param reg integer 寄存器
+-- @param len integer 长度
+-- @return boolean 成功与否
+-- @return string 数据
 function I2C:readRegister(addr, reg, len)
     local data = i2c.readReg(self.id, addr, reg, len)
     return data ~= nil and #data > 0, data
 end
 
+--- 创建I2C对象
+-- @param id integer
+-- @param opts table 参数 {slow=false}
+-- @return I2C
 function iot.i2c(id, opts)
     opts = opts or {}
 
@@ -487,26 +548,42 @@ function iot.i2c(id, opts)
     }, I2C)
 end
 
--- SPI
+--- SPI
+-- @module spi
 local SPI = {}
 SPI.__index = SPI
-
+--- 关闭
 function SPI:close()
     self.dev:close()
 end
+--- 写入
+-- @param data string 数据
+-- @return boolean 成功与否
 function SPI:write(data)
     local len = self.dev:send(data)
     return len > 0
 end
+--- 读取
+-- @param len integer 长度
+-- @return boolean 成功与否
+-- @return string 数据
 function SPI:read(len)
     local data = self.dev:read(len)
     return data ~= nil and #data > 0, data
 end
+--- 问询
+-- @param data string 数据
+-- @return boolean 成功与否
+-- @return string 数据
 function SPI:ask(data)
     local ret = self.dev:transfer(data)
     return ret ~= nil and #ret > 0, ret
 end
 
+--- 创建SPI对象
+-- @param id integer
+-- @param opts table 参数 {cs, CPHA, CPOL, band_rate, data_bits, master, mode}
+-- @return SPI
 function iot.spi(id, opts)
     opts = opts or {}
     local cs = opts.cs or 0
@@ -528,16 +605,24 @@ function iot.spi(id, opts)
     }, SPI)
 end
 
--- ADC
+--- ADC
+-- @module adc
 local ADC = {}
 ADC.__index = ADC
-
+--- 关闭
 function ADC:close()
     adc.close(self.id)
 end
+--- 获取电压
+-- @return integer 电压
 function ADC:get()
     return adc.get(self.id)
 end
+
+--- 创建ADC对象
+-- @param id integer
+-- @param opts table 参数 {}
+-- @return ADC
 function iot.adc(id, opts)
     opts = opts or {}
     local ret = adc.open(id)
@@ -549,19 +634,5 @@ function iot.adc(id, opts)
     }, ADC)
 end
 
--- 其他
-function iot.json_encode(obj, ...)
-    return json.encode(obj, ...)
-end
-function iot.json_decode(str)
-    local obj, ret, err = json.decode(str)
-    return obj, err
-end
-function iot.unpack(str, fmt, offset)
-    return pack.unpack(str, fmt, offset)
-end
-function iot.pack(fmt, ...)
-    return pack.pack(fmt, ...)
-end
 
 return iot
