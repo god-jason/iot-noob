@@ -77,7 +77,7 @@ end
 -- @return string|nil 数据
 function Serial:read(len)
     local data = uart.read(self.port, len)
-    if #data > 0 then        
+    if #data > 0 then
         --log.info(tag, "read", self.port, #data, data:toHex())
         if self.watcher then
             self.watcher(data) -- 转发到监听器

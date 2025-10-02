@@ -38,7 +38,8 @@ function iot.on(topic, func)
     sys.subscribe(topic, func)
 end
 function iot.once(topic, func)
-    local fn = function()
+    local fn
+    fn = function()
         func()
         sys.unsubscribe(topic, fn)
     end
@@ -237,11 +238,11 @@ function iot.uart(id, opts)
     local stop_bits = opts.stop_bits or 1
     local partiy = uart.None
     if opts.parity == 'N' or opts.parity == 'n' then
-        p = uart.None
+        partiy = uart.None
     elseif opts.parity == 'E' or opts.parity == 'e' then
-        p = uart.Even
+        partiy = uart.Even
     elseif opts.parity == 'O' or opts.parity == 'o' then
-        p = uart.Odd
+        partiy = uart.Odd
     end
     local bit_order = opts.bit_order or uart.LSB -- 默认小端
     local buff_size = opts.buff_size or 1024
@@ -255,8 +256,8 @@ function iot.uart(id, opts)
         return false, "打开失败"
     end
 
-    uart.on(id, "receive", function(id, len)
-        sys.publish("uart_receive_" .. id, len)
+    uart.on(id, "receive", function(id2, len)
+        sys.publish("uart_receive_" .. id2, len)
     end)
 
     -- 返回对象实例

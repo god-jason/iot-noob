@@ -23,12 +23,12 @@ function autoload.walk(path)
         if string.endsWith(filename, ".luac") then
             -- log.info(tag, "walk found", fn, e.size)
             -- main为入口，重复加载会导致死循环
-            if fn ~= "/luadb/main.luac" then
-                local name = string.sub(e.name, 1, -6)
-                autoload.load(base .. name)
+            if filename ~= "/luadb/main.luac" then
+                local name = string.sub(filename, #path + 1, -6)
+                autoload.load(name)
             end
         end
-    end)    
+    end)
 end
 
 -- 遍历所有编译的工程文件，然后require，实现自动加载

@@ -11,6 +11,5 @@ multimodule = true
 kind_names = {
 }
 examples  =  {
-   "core/main.lua",
    "test/huahai-mbus-gateway/main.lua"
 }
