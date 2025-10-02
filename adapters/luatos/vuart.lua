@@ -1,3 +1,5 @@
+--- 虚拟串口调试
+-- @module vuart
 local vuart = {}
 
 local tag = "vuart"
