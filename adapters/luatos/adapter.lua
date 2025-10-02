@@ -317,8 +317,8 @@ function SPI:read(len)
     return data ~= nil and #data > 0, data
 end
 function SPI:ask(data)
-    local data = self.dev:transfer(data)
-    return data ~= nil and #data > 0, data
+    local ret = self.dev:transfer(data)
+    return ret ~= nil and #ret > 0, ret
 end
 
 function iot.spi(id, opts)
@@ -327,7 +327,7 @@ function iot.spi(id, opts)
     local CPHA = opts.CPHA or 0
     local CPOL = opts.CPOL or 0
     local dataw = opts.data_bits or 8
-    local bandrate = opts.band_rate or 20000000 -- 默认20M 
+    local bandrate = opts.band_rate or 20000000 -- 默认20M
     local bitdict = opts.bit_order or spi.MSB -- 默认大端
     local ms = opts.master and 1 or 0
     local mode = opts.mode or 1

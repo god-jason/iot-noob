@@ -25,7 +25,6 @@ function Socket:open()
         self.buff = zbuff.create(2048)
     end
     self.buff:clear()
-    
 
     -- 使用可用网络
     if self.options.adapter == nil then
@@ -121,7 +120,7 @@ end
 --- 关闭
 function Socket:close()
     socket.close(self.ctrl)
-    self.buff:free()    
+    self.buff:free()
     self.buff = nil
 end
 
