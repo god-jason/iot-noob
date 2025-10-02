@@ -674,12 +674,12 @@ end
 
 --- 创建PWM对象
 -- @param id integer
--- @param opts table 参数 {}
+-- @param opts table 参数 {freq, duty}
 -- @return boolean 成功与否
 -- @return PWM
 function iot.pwm(id, opts)
     opts = opts or {}
-    local ret = pwm.setup(id, opts.freq, opts.duty)
+    local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 10)
     if not ret then
         return false, "打开失败"
     end

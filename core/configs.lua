@@ -62,12 +62,12 @@ function configs.load(name)
         data = fastlz.uncompress(data, 32 * 1024) -- 最大32KB
     end
 
-    local obj, ret, err = iot.json_decode(data)
-    if ret == 1 then
-        return true, obj, path
-    else
+    local obj, err = iot.json_decode(data)
+    if err then
         log.error(tag, "decode failed", path, err, data)
         return false, err
+    else
+        return true, obj, path
     end
 end
 

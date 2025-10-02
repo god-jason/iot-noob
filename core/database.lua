@@ -22,8 +22,8 @@ local function load(col)
     if not ret then
         return {}
     end
-    local obj, result, err = iot.json_decode(data)
-    if result == 0 then
+    local obj, err = iot.json_decode(data)
+    if err then
         log.error(tag, err)
         return {}
     else

@@ -70,6 +70,19 @@ local info = {
     }
 }
 
+-- 解析JSON
+local function parse_json(callback)
+    return function(topic, payload)
+        log.info(tag, "topic", topic)
+        local data, err = iot.json_decode(payload)
+        if err then
+            log.info(tag, "decode", payload, err)
+            return
+        end
+        callback(topic, data)
+    end
+end
+
 local function property_post(values)
     local payload = create_package(values)
     client:publish(topics.property_post, payload)
@@ -85,37 +98,17 @@ local function event_post(name, args)
     client:publish(topics.event_post, data)
 end
 
-local function on_service_invoke(_, payload)
-    log.info(tag, "on_service_invoke", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-    data.success = false
-    data.msg = "不支持"
-
-    client:publish(topics.service_invoke_reply, payload)
+local function on_service_invoke(topic, data)
+    client:publish(topics.service_invoke_reply, data)
 end
 
-local function on_property_get(_, payload)
-    log.info(tag, "on_property_get", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_property_get(topic, data)
     data.success = false
     data.msg = "不支持"
     client:publish(topics.property_get_reply, data)
 end
 
-local function on_property_set(_, payload)
-    log.info(tag, "on_property_set", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_property_set(topic, data)
     for key, value in pairs(data.params) do
         log.info(tag, "set property", key, value)
 
@@ -275,13 +268,7 @@ end
 --     client:publish(topics.sub_logout, data)
 -- end
 
-local function on_sub_property_get(_, payload)
-    log.info(tag, "on_sub_property_get", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_sub_property_get(topic, data)
     local id = data.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
@@ -301,13 +288,7 @@ local function on_sub_property_get(_, payload)
     client:publish(topics.sub_property_get_reply, data)
 end
 
-local function on_sub_property_set(_, payload)
-    log.info(tag, "on_sub_property_set", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_sub_property_set(topic, data)
     local id = data.params.deviceName
     local dev = gateway.get_device_instanse(id)
     if not dev then
@@ -338,13 +319,7 @@ local function on_sub_property_set(_, payload)
     client:publish(topics.sub_property_set_reply, data)
 end
 
-local function on_sub_service_invoke(_, payload)
-    log.info(tag, "on_sub_service_invoke", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_sub_service_invoke(topic, data)
     data.success = false
     data.msg = "不支持"
     client:publish(topics.sub_service_invoke_reply, data)
@@ -373,24 +348,14 @@ end
 --     client:publish(topics.sub_topo_get, data)
 -- end
 
--- local function on_sub_topo_get_reply(_, payload)
---     log.info(tag, "on_sub_topo_get_reply", payload)
---     local data, ret = iot.json_decode(payload)
---     if ret == 0 then
---         return
---     end
+-- local function on_sub_topo_get_reply(topic, data)
 --     -- data.data : [{deviceName, productID}]
 --     log.info(tag, data, ret)
 -- end
 
-local function on_sub_topo_change(_, payload)
-    log.info(tag, "on_sub_topo_change", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
+local function on_sub_topo_change(topic, data)
     -- TODO 子设备关系变化
-    log.info(tag, data, ret)
+    log.info(tag, data)
 end
 
 --- 打开平台
@@ -464,19 +429,19 @@ function cloud.open()
         sub_topo_change_reply = topic_prefix .. "sub/topo/change/reply"
     }
     -- 订阅全部主题
-    client:subscribe(topics.property_get, on_property_get)
-    client:subscribe(topics.property_set, on_property_set)
-    -- client:subscribe(topics.service_invoke, on_service_invoke)
-    client:subscribe(topics.sub_property_get, on_sub_property_get)
-    client:subscribe(topics.sub_property_set, on_sub_property_set)
-    -- client:subscribe(topics.sub_service_invoke, on_sub_service_invoke)
-    -- client:subscribe(topics.sub_topo_change, on_sub_topo_change)
+    client:subscribe(topics.property_get, parse_json(on_property_get))
+    client:subscribe(topics.property_set, parse_json(on_property_set))
+    -- client:subscribe(topics.service_invoke, parse_json(on_service_invoke))
+    client:subscribe(topics.sub_property_get, parse_json(on_sub_property_get))
+    client:subscribe(topics.sub_property_set, parse_json(on_sub_property_set))
+    -- client:subscribe(topics.sub_service_invoke, parse_json(on_sub_service_invoke))
+    -- client:subscribe(topics.sub_topo_change, parse_json(on_sub_topo_change))
 
     -- 订阅回复
-    client:subscribe(topics.property_post_reply, function(_, payload)
+    client:subscribe(topics.property_post_reply, function(topic, payload)
         log.info(tag, "property_post_reply", payload)
     end)
-    client:subscribe(topics.pack_post_reply, function(_, payload)
+    client:subscribe(topics.pack_post_reply, function(topic, payload)
         log.info(tag, "pack_post_reply", payload)
     end)
 

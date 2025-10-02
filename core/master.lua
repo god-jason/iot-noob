@@ -21,36 +21,37 @@ local default_options = {
     key = "master"
 }
 
--- 开始透传
-local function on_pipe_start(_, payload)
-    log.info(tag, "on_pipe_start", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
+-- 解析JSON
+local function parse_json(callback)
+    return function(topic, payload)
+        log.info(tag, "topic", topic)
+        local data, err = iot.json_decode(payload)
+        if err then
+            log.info(tag, "decode", payload, err)
+            return
+        end
+        callback(topic, data)
     end
+end
 
+-- 开始透传
+local function on_pipe_start(topic, data)
     local link = gateway.get_link_instanse(data.link)
     if not link then
         return
     end
 
-    cloud:subscribe("noob/" .. options.id .. "/link/" .. data.link .. "/down", function(_, dat)
-        link.write(dat)
+    cloud:subscribe("noob/" .. options.id .. "/link/" .. data.link .. "/down", function(t, d)
+        link.write(d)
     end)
 
-    link:watch(function(dat)
-        cloud:publish("noob/" .. options.id .. "/link/" .. data.link .. "/up", dat)
+    link:watch(function(d)
+        cloud:publish("noob/" .. options.id .. "/link/" .. data.link .. "/up", d)
     end)
 end
 
 -- 结束透传
-local function on_pipe_stop(_, payload)
-    log.info(tag, "on_pipe_stop", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_pipe_stop(topic, data)
     local link = gateway.get_link_instanse(data.link)
     if not link then
         return
@@ -60,26 +61,18 @@ local function on_pipe_stop(_, payload)
     link:watch(nil)
 end
 
-local function on_command(_, payload)
-    log.info(tag, "on_command", payload)
-    -- local base = "noob/" .. options.id .. "/command/"
-    -- local cmd = string.sub(topic, #base + 1)
-
+local function on_command(topic, pkt)
+    local ret
     local response
-    local pkt, ret, err = iot.json_decode(payload)
-    if ret == 1 then
-        local handler = commands[pkt.cmd]
-        if handler then
-            -- 加入异常处理
-            ret, response = pcall(handler, pkt)
-            if not ret then
-                response = commands.error(response)
-            end
-        else
-            response = commands.error("未知命令")
+    local handler = commands[pkt.cmd]
+    if handler then
+        -- 加入异常处理
+        ret, response = pcall(handler, pkt)
+        if not ret then
+            response = commands.error(response)
         end
     else
-        response = commands.error(err)
+        response = commands.error("未知命令")
     end
 
     -- 复制消息ID
@@ -92,53 +85,23 @@ local function on_command(_, payload)
     end
 end
 
-local function on_link(_, payload)
-    log.info(tag, "on_link", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_link(topic, data)
     database.insert("link", data.id, data)
 end
 
-local function on_links(_, payload)
-    log.info(tag, "on_links", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_links(topic, data)
     database.insertMany("link", data)
 end
 
-local function on_device(_, payload)
-    log.info(tag, "on_device", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_device(topic, data)
     database.insert("device", data.id, data)
 end
 
-local function on_devices(_, payload)
-    log.info(tag, "on_devices", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_devices(topic, data)
     database.insertMany("device", data)
 end
 
-local function on_model(_, payload)
-    log.info(tag, "on_model", payload)
-    local data, ret = iot.json_decode(payload)
-    if ret == 0 then
-        return
-    end
-
+local function on_model(topic, data)
     database.insert("model", data.id, data)
 end
 
@@ -248,14 +211,14 @@ function master.open()
     -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
-    cloud:subscribe("noob/" .. options.id .. "/pipe/start", on_pipe_start)
-    cloud:subscribe("noob/" .. options.id .. "/pipe/stop", on_pipe_stop)
-    cloud:subscribe("noob/" .. options.id .. "/command", on_command)
-    cloud:subscribe("noob/" .. options.id .. "/link", on_link)
-    cloud:subscribe("noob/" .. options.id .. "/links", on_links)
-    cloud:subscribe("noob/" .. options.id .. "/device", on_device)
-    cloud:subscribe("noob/" .. options.id .. "/devices", on_devices)
-    cloud:subscribe("noob/" .. options.id .. "/model", on_model)
+    cloud:subscribe("noob/" .. options.id .. "/pipe/start", parse_json(on_pipe_start))
+    cloud:subscribe("noob/" .. options.id .. "/pipe/stop", parse_json(on_pipe_stop))
+    cloud:subscribe("noob/" .. options.id .. "/command", parse_json(on_command))
+    cloud:subscribe("noob/" .. options.id .. "/link", parse_json(on_link))
+    cloud:subscribe("noob/" .. options.id .. "/links", parse_json(on_links))
+    cloud:subscribe("noob/" .. options.id .. "/device", parse_json(on_device))
+    cloud:subscribe("noob/" .. options.id .. "/devices", parse_json(on_devices))
+    cloud:subscribe("noob/" .. options.id .. "/model", parse_json(on_model))
 
 end
 

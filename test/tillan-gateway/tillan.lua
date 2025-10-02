@@ -41,8 +41,8 @@ local function load_product(id)
         end
 
         -- 解析
-        local prod, ret, err = iot.json_decode(data)
-        if not ret then
+        local prod, err = iot.json_decode(data)
+        if err then
             log.info("解析产品错误", err)
             return nil
         end
