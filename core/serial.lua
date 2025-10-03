@@ -1,5 +1,5 @@
 --- 串口连接，继承Link
--- @module link_serial
+-- @module serial
 local Serial = {}
 Serial.__index = Serial
 

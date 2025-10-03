@@ -1,5 +1,5 @@
 --- UDP客户端，继承Link
--- @module link_udp_client
+-- @module udp_client
 local UdpClient = {}
 UdpClient.__index = UdpClient
 

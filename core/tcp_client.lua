@@ -1,5 +1,5 @@
 --- TCP客户端，继承Link
--- @module link_tcp_client
+-- @module tcp_client
 local TcpClient = {}
 TcpClient.__index = TcpClient
 
