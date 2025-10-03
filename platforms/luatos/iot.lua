@@ -746,17 +746,17 @@ function iot.can(id, opts)
         return false, "init failed"
     end
 
-    can.on(id, function(id, tp, param)
+    can.on(id, function(id2, tp, param)
         if tp == can.CB_MSG then
-            iot.emit("can_rx_" .. id, param)
+            iot.emit("can_rx_" .. id2, param)
         elseif tp == can.CB_TX then
             if not param then
-                log.info("CAN 发送失败", id, param)
+                log.info("CAN 发送失败", id2, param)
             end
         elseif tp == can.CB_ERR then
-            log.info("CAN错误码", id, param)
+            log.info("CAN错误码", id2, param)
         elseif tp == can.CB_STATE then
-            log.info("CAN新状态", id, param)
+            log.info("CAN新状态", id2, param)
         end
     end)
 
