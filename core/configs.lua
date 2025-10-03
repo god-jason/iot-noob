@@ -34,13 +34,13 @@ function configs.load(name)
     -- 降低启动速度，避免日志输出太快，从而导致丢失
     -- iot.sleep(100)
 
-    if io.exists(path) then
+    if iot.exists(path) then
         -- do nothing 找到了未压缩的文件
         log.info(tag, "found", path)
-    elseif fastlz and io.exists(path2) then
+    elseif fastlz and iot.exists(path2) then
         compressed = true
         path = path2
-    elseif io.exists(path3) then
+    elseif iot.exists(path3) then
         path = path3
     else
         --log.info(tag, name, "not found")
@@ -54,7 +54,10 @@ function configs.load(name)
     --     return false
     -- end
 
-    local data = io.readFile(path)
+    local ret, data = iot.readFile(path)
+    if not ret then
+        return false, "文件打开失败"
+    end
     --log.info(tag, "from", path, #data)
 
     -- 解压
@@ -102,7 +105,7 @@ function configs.save(name, data)
         local dir = "/"
         for i = 1, #ss - 1, 1 do
             dir = dir .. "/" .. ss[i]
-            io.mkdir(dir)
+            iot.mkdir(dir)
             -- log.info(tag, "mkdir", dir, r, e)
         end
     end
@@ -130,7 +133,7 @@ function configs.save(name, data)
         data = fastlz.compress(data)
     end
 
-    return io.writeFile(path, data), path
+    return iot.writeFile(path, data)
 end
 
 ---删除配置文件
@@ -150,22 +153,6 @@ function configs.delete(name)
 
     -- 删除目录
     -- utils.remove_all(name)
-end
-
----下载配置文件，要求是.json或.json.flz格式
--- @param name string 文件名，不带.json后缀
--- @param url string 从http服务器下载
-function configs.download(name, url)
-    log.info(tag, "download", name, url)
-
-    iot.start(function()
-        local code, headers, body = http.request("GET", url).wait()
-        log.info(tag, "download result", code, headers, body)
-        -- 阻塞执行的
-        if code == 200 then
-            configs.save(name, body)
-        end
-    end)
 end
 
 return configs

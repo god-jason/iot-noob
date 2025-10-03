@@ -102,19 +102,17 @@ function commands.fs_walk(msg)
     return reply_data(files)
 end
 
-function commands.fs_clear()
-    --utils.remove_all("/")
-    -- utils.walk("/")
-    return reply_ok("clear_fs finished")
-end
-
 function commands.fs_read(msg)
-    local dat = io.readFile(msg.path)
-    return reply_data(dat)
+    local ret, data = iot.readFile(msg.path)
+    if ret then
+        return reply_data(data)
+    else
+        return reply_error("read failed")
+    end
 end
 
 function commands.fs_write(msg)
-    local ret = io.writeFile(msg.path, msg.data)
+    local ret = iot.writeFile(msg.path, msg.data)
     if ret then
         return reply_ok()
     else
@@ -127,14 +125,6 @@ function commands.fs_delete(msg)
     return reply_ok()
 end
 
-function commands.fs_ls(msg)
-    local ret, files = io.lsdir(msg.path or "/", msg.offset, msg.length)
-    if ret then
-        return reply_data(files)
-    else
-        return reply_error("lsdir failed")
-    end
-end
 
 function commands.device_read(msg)
     local dev = gateway.get_device_instanse(msg.id)
