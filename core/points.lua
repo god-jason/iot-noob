@@ -81,6 +81,16 @@ local feagures = {
         word = 2,
         pack = "I"
     },
+    int64 = {
+        byte = 4,
+        word = 2,
+        pack = "l"
+    },
+    uint64 = {
+        byte = 4,
+        word = 2,
+        pack = "L"
+    },
     float = {
         byte = 4,
         word = 2,

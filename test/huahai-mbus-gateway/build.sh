@@ -2,8 +2,7 @@
 
 
 tmp="gateway"
-dat=$(date +%Y%m%d-%H%M%S)
-filename="huahai-mbus-gateway-${dat}.tar.gz"
+filename="huahai-mbus-gateway-$(date +%Y%m%d-%H%M%S).tar.gz"
 
 #创建临时目录
 mkdir $tmp
@@ -22,7 +21,7 @@ cp \
 find $tmp -type f -empty -delete
 
 #打包
-tar -czvf $filename $tmp/*
+tar -czvf $filename $tmp
 
 #删除临时目录
 rm $tmp -rf
