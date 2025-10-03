@@ -4,7 +4,7 @@ VERSION = "1.0.0"
 local tag = "main"
 
 -- 引入系统适配层
-require("adapter")
+require("iot")
 
 log.info(tag, "last power reson", pm.lastReson())
 
