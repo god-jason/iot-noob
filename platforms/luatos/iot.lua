@@ -324,7 +324,7 @@ function iot.reboot()
     rtos.reboot()
 end
 
-local Socket = require("socket.lua")
+local Socket = require("socket")
 
 --- 创建SOCKET
 -- @param opts
@@ -365,7 +365,7 @@ function iot.download(url, dst, opts)
 end
 
 -- MQTT
-local MqttClient = require("mqtt_client.lua")
+local MqttClient = require("mqtt_client")
 
 --- 创建MQTT
 -- @param opts table
@@ -642,8 +642,6 @@ function iot.adc(id, opts)
     }, ADC)
 end
 
-
-
 --- PWM
 -- @module pwm
 local PWM = {}
@@ -671,7 +669,6 @@ function PWM:setDuty(duty)
     return pwm.setDuty(self.id, duty)
 end
 
-
 --- 创建PWM对象
 -- @param id integer
 -- @param opts table 参数 {freq, duty}
@@ -688,8 +685,102 @@ function iot.pwm(id, opts)
     }, PWM)
 end
 
+--- CAN
+-- @module can
+local CAN = {}
+CAN.__index = CAN
 
+--- 写入
+-- @param id integer 节点ID
+-- @param data string 数据
+-- @param ext boolean 扩展格式
+-- @param rtr boolean 遥控帧
+-- @param ack boolean 需要ACK
+-- @return boolean 成功与否
+function CAN:write(id, data, ext, rtr, ack)
+    local id_type = ext and CAN.EXT or CAN.STD
+    local need_ack = true
+    if ack ~= nil then
+        need_ack = ack
+    end
+    return can.tx(self.id, id, id_type, rtr, need_ack, data)
+end
 
+--- 读取
+--  返回成功需要再次读取，失败则需要等待
+-- @return boolean 成功与否
+-- @return table {id, data, ext, rtr}
+function CAN:read()
+    local ret, id, id_type, rtr, data = can.rx(self.id)
+    if not ret then
+        return false
+    end
+    -- 返回对象
+    return true, {
+        id = id,
+        data = data,
+        ext = id_type == CAN.EXT,
+        rtr = rtr
+    }
+end
+--- 等待
+-- @param timeout integer 超时
+-- @return boolean 成功与否
+function CAN:wait(timeout)
+    return iot.wait("can_rx_" .. self.id, timeout)
+end
+--- 关闭
+function CAN:close()
+    can.deinit(self.id)
+end
 
+--- 创建CAN对象
+-- @param id integer
+-- @param opts table 参数 {buffer_size， baud_rate}
+-- @return boolean 成功与否
+-- @return CAN
+function iot.can(id, opts)
+    opts = opts or {}
+    local ret = can.init(id, opts.buffer_size or 128)
+    if not ret then
+        return false, "init failed"
+    end
+
+    can.on(id, function(id, tp, param)
+        if tp == can.CB_MSG then
+            iot.emit("can_rx_" .. id, param)
+        elseif tp == can.CB_TX then
+            if not param then
+                log.info("CAN 发送失败", id, param)
+            end
+        elseif tp == can.CB_ERR then
+            log.info("CAN错误码", id, param)
+        elseif tp == can.CB_STATE then
+            log.info("CAN新状态", id, param)
+        end
+    end)
+
+    -- 配置时序
+    ret = can.timing(id, opts.baud_rate or 100000, 6, 6, 3, 2)
+    if not ret then
+        return false, "timing failed"
+    end
+
+    -- 不过滤，全显示
+    ret = can.filter(id, false, 0xffffffff, 0xffffffff)
+    if not ret then
+        return false, "filter failed"
+    end
+
+    -- 默认模式
+    ret = can.mode(id, can.MODE_NORMAL)
+    if not ret then
+        return false, "mode failed"
+    end
+
+    return true, setmetatable({
+        id = id
+    }, CAN)
+end
 
 return iot
