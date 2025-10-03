@@ -1,11 +1,29 @@
 #!/bin/bash
 
-tar -czf huahai-mbus-gateway.tar.gz \
+
+tmp="gateway"
+dat=$(date +%Y%m%d-%H%M%S)
+filename="huahai-mbus-gateway-${dat}.tar.gz"
+
+#创建临时目录
+mkdir $tmp
+
+#复制相关源文件
+cp \
     *.lua \
     *.json \
     ../../core/* \
-    ../../links/link_serial.lua \
-    ../../protocols/protocol_cjt188.lua \
-    ../../protocols/protocol_modbus.lua
+    ../../links/* \
+    ../../protocols/* \
+    ../../platforms/luatos/* \
+    $tmp
 
+#删除空白文件
+find $tmp -type f -empty -delete
+
+#打包
+tar -czvf $filename $tmp/*
+
+#删除临时目录
+rm $tmp -rf
 
