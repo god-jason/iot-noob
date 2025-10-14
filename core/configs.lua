@@ -20,7 +20,7 @@ end
 -- @return table|nil
 -- @return string 最终文件名
 function configs.load(name)
-    --log.info(tag, "load", name)
+    log.info(tag, "load", name)
 
     -- 1、找原始JSON文件hen
     local path = "/" .. name .. ".json"

@@ -6,7 +6,9 @@ Serial.__index = Serial
 local Link = require("link")
 setmetatable(Serial, Link) -- 继承Link
 
-require("gateway").register_link("serial", Serial)
+--require("gateway").register_link("serial", Serial)
+local gateway = require("gateway")
+gateway.register_link("serial", Serial)
 
 ---创建串口实例
 -- @param opts table
@@ -23,11 +25,16 @@ end
 --- 打开
 -- @return boolean 成功与否
 function Serial:open()
-    local ret, obj = iot.uart(self.port, self.options)
-    if ret then
-        self.uart = obj
+    self.uart = gateway.uarts[self.port]
+    if not self.uart then
+        return false, "找不到串口实例"
     end
-    return ret
+    return true
+    -- local ret, obj = iot.uart(self.port, self.options)
+    -- if ret then
+    --     self.uart = obj
+    -- end
+    --return ret
 end
 
 --- 写数据

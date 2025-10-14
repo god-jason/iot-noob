@@ -1,0 +1,33 @@
+{
+    "uart": [
+        {
+            "id": 1,
+            "name": "RS485",
+            "baud_rate": 9600,
+            "data_bits": 8,
+            "parity": "N",
+            "stop_bits": 1,
+            "rs485_gpio": 17
+        },
+        {
+            "id": 2,
+            "name": "MBUS1",
+            "baud_rate": 2400,
+            "data_bits": 8,
+            "parity": "E",
+            "stop_bits": 1,
+            "rs485_gpio": 5,
+            "rs485_level": 0
+        },
+        {
+            "id": 3,
+            "name": "MBUS2",
+            "baud_rate": 2400,
+            "data_bits": 8,
+            "parity": "E",
+            "stop_bits": 1,
+            "rs485_gpio": 7,
+            "rs485_level": 0
+        }
+    ]
+}

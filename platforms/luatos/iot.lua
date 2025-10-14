@@ -448,7 +448,7 @@ end
 -- @return boolean 成功与否
 -- @return interger 数据长度
 function UART:wait(timeout)
-    return sys.waitUntil("uart_receive_" .. self.id)
+    return sys.waitUntil("uart_receive_" .. self.id, timeout)
 end
 
 --- 创建UART对象
@@ -458,6 +458,7 @@ end
 -- @return UART
 function iot.uart(id, opts)
     opts = opts or {}
+    log.info("UART", "setup", id, json.encode(opts))
 
     local baud_rate = opts.baud_rate or 9600
     local data_bits = opts.data_bits or 8

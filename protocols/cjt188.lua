@@ -501,6 +501,8 @@ function Cjt188Master:_polling()
     local interval = self.poller_interval or 60
     interval = interval * 1000 -- 毫秒
 
+    log.info(tag, "polling interval", interval)
+
     while self.opened do
         log.info(tag, "polling start")
         local start = mcu.ticks()
