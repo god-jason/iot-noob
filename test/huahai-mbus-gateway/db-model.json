@@ -100,6 +100,7 @@
     "aAHGgGOpNy": {
         "id": "aAHGgGOpNy",
         "name": "智能阀",
+        "address_reverse": true,
         "properties": [
             {
                 "name": "基础数据",
@@ -202,6 +203,7 @@
     "Sw2UyvE700": {
         "id": "Sw2UyvE700",
         "name": "智能阀 单元",
+        "address_reverse": true,
         "properties": [
             {
                 "name": "基础数据",

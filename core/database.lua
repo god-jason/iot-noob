@@ -86,8 +86,8 @@ end
 -- @param objs table 数据
 function database.insertArray(col, objs)
     local tab = load(col)
-    for obj in ipairs(objs) do
-        local id = objs["id"]
+    for i, obj in ipairs(objs) do
+        local id = obj["id"]
         tab[tostring(id)] = obj
     end
     save(col, tab)

@@ -1,15 +1,15 @@
 {
-    "hot-meter-1":{"id": "hot-meter-1","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025073339"},
-    "hot-meter-2":{"id": "hot-meter-2","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025073155"},
-    "hot-meter-3":{"id": "hot-meter-3","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025092702"},
-    "hot-meter-4":{"id": "hot-meter-4","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025073604"},
-    "valve-1":{"id": "valve-1","name": "阀门","product_id": "aAHGgGOpNy","link_id": "serial-1","address": "11110015003024"},
-    "valve-2":{"id": "valve-2","name": "阀门","product_id": "aAHGgGOpNy","link_id": "serial-1","address": "11110017003024"},
-    "valve-3":{"id": "valve-3","name": "阀门","product_id": "aAHGgGOpNy","link_id": "serial-1","address": "11110048062624"},
-    "valve-big":{"id": "valve-big","name": "阀门","product_id": "Sw2UyvE700","link_id": "serial-1","address": "11110012001625"},
-    "hot-meter-5":{"id": "hot-meter-5","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000023087295"},
-    "hot-meter-6":{"id": "hot-meter-6","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000023111469"},
-    "hot-meter-7":{"id": "hot-meter-7","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025062381"},
-    "hot-meter-8":{"id": "hot-meter-8","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025045826"},
-    "hot-meter-9":{"id": "hot-meter-9","name": "热量表","product_id": "wKMUGRBKVL","link_id": "serial-1","address": "00000025045827"}
+    "hot-meter-1":{"id": "hot-meter-1","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25073339"},
+    "hot-meter-2":{"id": "hot-meter-2","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25073155"},
+    "hot-meter-3":{"id": "hot-meter-3","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25092702"},
+    "hot-meter-4":{"id": "hot-meter-4","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25073604"},
+    "valve-1":{"id": "valve-1","name": "阀门","product_id": "aAHGgGOpNy","link_id": "mbus2","company":"001111","address": "15003024"},
+    "valve-2":{"id": "valve-2","name": "阀门","product_id": "aAHGgGOpNy","link_id": "mbus2","company":"001111","address": "17003024"},
+    "valve-3":{"id": "valve-3","name": "阀门","product_id": "aAHGgGOpNy","link_id": "mbus2","company":"001111","address": "48062624"},
+    "valve-big":{"id": "valve-big","name": "阀门","product_id": "Sw2UyvE700","link_id": "mbus2","company":"001111","address": "12001625"},
+    "hot-meter-5":{"id": "hot-meter-5","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "23087295"},
+    "hot-meter-6":{"id": "hot-meter-6","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "23111469"},
+    "hot-meter-7":{"id": "hot-meter-7","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25062381"},
+    "hot-meter-8":{"id": "hot-meter-8","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25045826"},
+    "hot-meter-9":{"id": "hot-meter-9","name": "热量表","product_id": "wKMUGRBKVL","link_id": "mbus2","company":"000000","address": "25045827"}
 }

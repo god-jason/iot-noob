@@ -242,11 +242,19 @@ function Cjt188Device:poll()
         return false, "no properties"
     end
 
+    local addr = self.company .. self.address
+
+    -- 逆序表示的地址（阀门）
+    if self.mapper.address_reverse then
+        addr = binary.encodeHex(binary.reverse(binary.decodeHex(self.company)))
+        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+    end
+
     for _, pt in pairs(self.mapper.properties) do
         log.info(tag, "poll", pt.name, pt.type, pt.code, pt.di)
 
         -- 读数据
-        local ret, data = self.master:read(self.address, pt.type or "20", pt.code or "01", pt.di)
+        local ret, data = self.master:read(addr, pt.type or "20", pt.code or "01", pt.di)
         log.info(tag, "poll read", ret, data)
         if ret then
             log.info(tag, "poll parse", binary.encodeHex(data))

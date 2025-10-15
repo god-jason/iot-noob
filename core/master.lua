@@ -86,6 +86,20 @@ local function on_command(topic, pkt)
     end
 end
 
+-- 处理配置操作
+local function on_config(topic, data)
+    local _, _, _, _, _, cfg, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "config", cfg, op)
+    if op == "delete" then
+        configs.delete(cfg)
+    elseif op == "save" then
+        configs.save(cfg, data)
+    elseif op == "load" then
+        local config = configs.load(cfg)
+        cloud:publish("noob/" .. options.id .. "/config/" .. cfg .. "/read/response", config)
+    end
+end
+
 -- 处理数据库操作
 local function on_database(topic, data)
     local _, _, _, _, _, db, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
@@ -138,7 +152,7 @@ local function report_status()
 
     -- CPU使用信息
     status.cpu = {
-        mhz = mcu.getClk(),
+        mhz = mcu.getClk()
     }
 
     -- 内存使用信息
@@ -176,7 +190,7 @@ end
 
 function master.open()
     -- 加载配置
-    options = configs.load_default(tag, default_options)
+    options = configs.load_default("master", default_options)
     if not options.enable then
         log.info(tag, "disabled")
         return
@@ -213,6 +227,7 @@ function master.open()
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", parse_json(on_pipe_start))
     cloud:subscribe("noob/" .. options.id .. "/pipe/stop", parse_json(on_pipe_stop))
     cloud:subscribe("noob/" .. options.id .. "/command", parse_json(on_command))
+    cloud:subscribe("noob/" .. options.id .. "/config/+/+", parse_json(on_config))
     cloud:subscribe("noob/" .. options.id .. "/database/+/+", parse_json(on_database))
 end
 
