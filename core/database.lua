@@ -36,7 +36,11 @@ end
 -- @param objs table 数据{k->v}
 local function save(col, objs)
     log.info(tag, "save", col)
-    local data = iot.json_encode(objs)
+    local data, err = iot.json_encode(objs)
+    if data == nil then
+        log.error(tag, err)
+        return false
+    end
     return iot.writeFile(dbname(col), data)
 end
 
@@ -52,7 +56,7 @@ end
 -- @param obj table 数据
 function database.insert(col, id, obj)
     local tab = load(col)
-    tab[id] = obj
+    tab[tostring(id)] = obj
     save(col, tab)
 end
 
@@ -62,7 +66,7 @@ end
 -- @param obj table 数据
 function database.update(col, id, obj)
     local tab = load(col)
-    tab[id] = obj
+    tab[tostring(id)] = obj
     save(col, tab)
 end
 
@@ -84,7 +88,7 @@ function database.insertArray(col, objs)
     local tab = load(col)
     for obj in ipairs(objs) do
         local id = objs["id"]
-        tab[id] = obj
+        tab[tostring(id)] = obj
     end
     save(col, tab)
 end
@@ -95,7 +99,7 @@ end
 function database.delete(col, id)
     local tab = load(col)
     if tab ~= nil then
-        table.remove(tab, id)
+        table.remove(tab, tostring(id))
         save(col, tab)
     end
 end
@@ -107,7 +111,7 @@ end
 function database.get(col, id)
     local tab = load(col)
     if tab ~= nil then
-        return tab[id]
+        return tab[tostring(id)]
     end
     return nil
 end

@@ -61,6 +61,7 @@ local function on_pipe_stop(topic, data)
     link:watch(nil)
 end
 
+-- 处理命令
 local function on_command(topic, pkt)
     local ret
     local response
@@ -85,24 +86,23 @@ local function on_command(topic, pkt)
     end
 end
 
-local function on_link(topic, data)
-    database.insert("link", data.id, data)
-end
-
-local function on_links(topic, data)
-    database.insertMany("link", data)
-end
-
-local function on_device(topic, data)
-    database.insert("device", data.id, data)
-end
-
-local function on_devices(topic, data)
-    database.insertMany("device", data)
-end
-
-local function on_model(topic, data)
-    database.insert("model", data.id, data)
+-- 处理数据库操作
+local function on_database(topic, data)
+    local _, _, _, _, _, db, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "database", db, op)
+    if op == "clear" then
+        database.clear(db)
+    elseif op == "delete" then
+        database.delete(db, data)
+    elseif op == "update" then
+        database.update(db, data.id, data)
+    elseif op == "insert" then
+        database.insert(db, data.id, data)
+    elseif op == "insertMany" then
+        database.insertMany(db, data)
+    elseif op == "insertArray" then
+        database.insertArray(db, data)
+    end
 end
 
 -- 上报设备信息
@@ -139,7 +139,6 @@ local function report_status()
     -- CPU使用信息
     status.cpu = {
         mhz = mcu.getClk(),
-        usage = 0, --cpu.usage
     }
 
     -- 内存使用信息
@@ -214,12 +213,7 @@ function master.open()
     cloud:subscribe("noob/" .. options.id .. "/pipe/start", parse_json(on_pipe_start))
     cloud:subscribe("noob/" .. options.id .. "/pipe/stop", parse_json(on_pipe_stop))
     cloud:subscribe("noob/" .. options.id .. "/command", parse_json(on_command))
-    cloud:subscribe("noob/" .. options.id .. "/link", parse_json(on_link))
-    cloud:subscribe("noob/" .. options.id .. "/links", parse_json(on_links))
-    cloud:subscribe("noob/" .. options.id .. "/device", parse_json(on_device))
-    cloud:subscribe("noob/" .. options.id .. "/devices", parse_json(on_devices))
-    cloud:subscribe("noob/" .. options.id .. "/model", parse_json(on_model))
-
+    cloud:subscribe("noob/" .. options.id .. "/database/+/+", parse_json(on_database))
 end
 
 function master.task()
