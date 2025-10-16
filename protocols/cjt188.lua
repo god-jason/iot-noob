@@ -225,7 +225,16 @@ end
 ---控制阀门
 function Cjt188Device:write(type, code, di, dat)
     -- self.master:write(self.address, "50", "16", "A017", string.char(oper))
-    self.master:write(self.address, type, code, di, dat)
+
+    local addr = self.company .. self.address
+
+    -- 逆序表示的地址（阀门）
+    if self.mapper.address_reverse then
+        addr = binary.encodeHex(binary.reverse(binary.decodeHex(self.company)))
+        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+    end
+
+    self.master:write(addr, type, code, di, dat)
 end
 
 ---读取所有数据
