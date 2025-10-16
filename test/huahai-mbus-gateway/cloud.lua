@@ -191,7 +191,7 @@ local function report_device(dev)
     end
 
     -- 在线状态
-    if dev.product_id == "wKMUGRBKVL" then
+    if dev.product_id == "uAoFDo5MjH" then
         obj.hmDeviceNum = {
             value = dev.address
         }
@@ -229,7 +229,7 @@ local function report_device(dev)
             }
         end
     end
-    if dev.product_id == "aAHGgGOpNy" or dev.product_id == "Sw2UyvE700" then
+    if dev.product_id == "iVQhTSrPjJ" or dev.product_id == "XYhPLRJOAb" then
         obj.valveDeviceNum = {
             value = dev.address
         }
