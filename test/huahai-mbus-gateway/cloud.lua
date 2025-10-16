@@ -248,6 +248,9 @@ local function report_device(dev)
                 value = obj.controlMode.value == 1
             }
         end
+        if obj.openValue and obj.openValue.value > 100 then
+            obj.openValue.value = 100
+        end
     end
 
     -- 数据更新时间 TODO 应该在dev._updated
@@ -300,10 +303,10 @@ local function on_sub_property_set(topic, data)
     for key, value in pairs(data.params.params) do
         dev:set(key, value)
         -- 开阀门 特例处理
-        if key == "openControl" and dev.product_id == "aAHGgGOpNy" then
+        if key == "openControl" and dev.product_id == "iVQhTSrPjJ" then
             dev:write("50", "16", "A017", string.char(value))
         end
-        if key == "openControl" and dev.product_id == "Sw2UyvE700" then
+        if key == "openControl" and dev.product_id == "XYhPLRJOAb" then
             dev:write("55", "16", "A017", string.char(value))
         end
         -- 采集并上传
