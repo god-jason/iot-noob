@@ -1,7 +1,7 @@
 {
-    "wKMUGRBKVL": {
-        "id": "wKMUGRBKVL",
-        "name": "热量表",
+    "uAoFDo5MjH": {
+        "id": "uAoFDo5MjH",
+        "name": "大河片区有线热表",
         "properties": [
             {
                 "name": "基础数据",
@@ -97,9 +97,9 @@
             }
         ]
     },
-    "aAHGgGOpNy": {
-        "id": "aAHGgGOpNy",
-        "name": "智能阀",
+    "iVQhTSrPjJ": {
+        "id": "iVQhTSrPjJ",
+        "name": "大河片区有线智能阀",
         "address_reverse": true,
         "properties": [
             {
@@ -200,8 +200,8 @@
             }
         ]
     },
-    "Sw2UyvE700": {
-        "id": "Sw2UyvE700",
+    "XYhPLRJOAb": {
+        "id": "XYhPLRJOAb",
         "name": "智能阀 单元",
         "address_reverse": true,
         "properties": [
