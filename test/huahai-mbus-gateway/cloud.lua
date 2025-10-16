@@ -37,38 +37,40 @@ local config = {
 
 local topics = {}
 
-local info = {
-    hwVersion = {
-        value = "1.0.0"
-    },
-    swVersion = {
-        value = _G.VERSION
-    },
-    network = {
-        value = 0
-    }, -- 默认移动
-    radio = {
-        value = mobile.csq()
-    },
-    cycleUpload = {
-        value = config.cycle_upload
-    },
-    timeCalibration = {
-        value = os.date("%Y%m%d%H%M%S", os.time())
-    },
-    timeAcqu = {
-        value = os.date("%Y%m%d%H%M%S", os.time())
-    },
-    IMEI = {
-        value = mobile.imei()
-    },
-    IMSI = {
-        value = mobile.imsi()
-    },
-    ICCID = {
-        value = mobile.iccid()
+local function get_gateway_info()
+    return {
+        hwVersion = {
+            value = "1.0.0"
+        },
+        swVersion = {
+            value = _G.VERSION
+        },
+        network = {
+            value = 0
+        }, -- 默认移动
+        radio = {
+            value = mobile.csq()
+        },
+        cycleUpload = {
+            value = config.cycle_upload
+        },
+        timeCalibration = {
+            value = os.date("%Y%m%d%H%M%S", os.time())
+        },
+        timeAcqu = {
+            value = os.date("%Y%m%d%H%M%S", os.time())
+        },
+        IMEI = {
+            value = mobile.imei()
+        },
+        IMSI = {
+            value = mobile.imsi()
+        },
+        ICCID = {
+            value = mobile.iccid()
+        }
     }
-}
+end
 
 -- 解析JSON
 local function parse_json(callback)
@@ -121,17 +123,13 @@ local function on_property_set(topic, data)
         end
         -- 修改上传周期
         if key == "cycleUpload" then
-            info.cycleUpload.value = value
             config.cycle_upload = value
             configs.save("cloud", config) -- 保存配置
         end
         -- 采集并上传
-        if key == "report" and value == true then
+        if key == "report" and value == true then            
             -- 上报网关信息
-            info.radio.value = mobile.csq()
-            info.timeCalibration.value = os.date("%Y%m%d%H%M%S", os.time())
-            info.timeAcqu.value = os.date("%Y%m%d%H%M%S", os.time())
-            property_post(info)
+            property_post(get_gateway_info())
         end
     end
     data.code = 200
@@ -462,10 +460,7 @@ function cloud.task()
     while true do
 
         -- 上报网关信息
-        info.radio.value = mobile.csq()
-        info.timeCalibration.value = os.date("%Y%m%d%H%M%S", os.time())
-        info.timeAcqu.value = os.date("%Y%m%d%H%M%S", os.time())
-        property_post(info)
+        property_post(get_gateway_info())
 
         local devices = gateway.get_all_device_instanse();
 
