@@ -1,5 +1,149 @@
 local ui = {}
 
+-- 样式
+local parts = {
+    OBJ_PART_MAIN = lvgl.OBJ_PART_MAIN,
+    OBJ_PART_ALL = lvgl.OBJ_PART_ALL,
+    ARC_PART_BG = lvgl.ARC_PART_BG,
+    ARC_PART_INDIC = lvgl.ARC_PART_INDIC,
+    ARC_PART_KNOB = lvgl.ARC_PART_KNOB,
+    CONT_PART_MAIN = lvgl.CONT_PART_MAIN,
+    BTN_PART_MAIN = lvgl.BTN_PART_MAIN,
+    LABEL_PART_MAIN = lvgl.LABEL_PART_MAIN,
+    BAR_PART_BG = lvgl.BAR_PART_BG,
+    BAR_PART_INDIC = lvgl.BAR_PART_INDIC,
+    BTNMATRIX_PART_BG = lvgl.BTNMATRIX_PART_BG,
+    BTNMATRIX_PART_BTN = lvgl.BTNMATRIX_PART_BTN,
+    CALENDAR_PART_BG = lvgl.CALENDAR_PART_BG,
+    CALENDAR_PART_HEADER = lvgl.CALENDAR_PART_HEADER,
+    CALENDAR_PART_DAY_NAMES = lvgl.CALENDAR_PART_DAY_NAMES,
+    CALENDAR_PART_DATE = lvgl.CALENDAR_PART_DATE,
+    IMG_PART_MAIN = lvgl.IMG_PART_MAIN,
+    CANVAS_PART_MAIN = lvgl.CANVAS_PART_MAIN,
+    LINE_PART_MAIN = lvgl.LINE_PART_MAIN,
+    CHART_PART_BG = lvgl.CHART_PART_BG,
+    CHART_PART_SERIES_BG = lvgl.CHART_PART_SERIES_BG,
+    CHART_PART_SERIES = lvgl.CHART_PART_SERIES,
+    CHART_PART_CURSOR = lvgl.CHART_PART_CURSOR,
+    CHECKBOX_PART_BG = lvgl.CHECKBOX_PART_BG,
+    CHECKBOX_PART_BULLET = lvgl.CHECKBOX_PART_BULLET,
+    CPICKER_PART_MAIN = lvgl.CPICKER_PART_MAIN,
+    CPICKER_PART_KNOB = lvgl.CPICKER_PART_KNOB,
+    PAGE_PART_BG = lvgl.PAGE_PART_BG,
+    PAGE_PART_SCROLLBAR = lvgl.PAGE_PART_SCROLLBAR,
+    PAGE_PART_EDGE_FLASH = lvgl.PAGE_PART_EDGE_FLASH,
+    PAGE_PART_SCROLLABLE = lvgl.PAGE_PART_SCROLLABLE,
+    DROPDOWN_PART_MAIN = lvgl.DROPDOWN_PART_MAIN,
+    DROPDOWN_PART_LIST = lvgl.DROPDOWN_PART_LIST,
+    DROPDOWN_PART_SCROLLBAR = lvgl.DROPDOWN_PART_SCROLLBAR,
+    DROPDOWN_PART_SELECTED = lvgl.DROPDOWN_PART_SELECTED,
+    LINEMETER_PART_MAIN = lvgl.LINEMETER_PART_MAIN,
+    GAUGE_PART_MAIN = lvgl.GAUGE_PART_MAIN,
+    GAUGE_PART_MAJOR = lvgl.GAUGE_PART_MAJOR,
+    GAUGE_PART_NEEDLE = lvgl.GAUGE_PART_NEEDLE,
+    IMGBTN_PART_MAIN = lvgl.IMGBTN_PART_MAIN,
+    KEYBOARD_PART_BG = lvgl.KEYBOARD_PART_BG,
+    KEYBOARD_PART_BTN = lvgl.KEYBOARD_PART_BTN,
+    LED_PART_MAIN = lvgl.LED_PART_MAIN,
+    LIST_PART_BG = lvgl.LIST_PART_BG,
+    LIST_PART_SCROLLBAR = lvgl.LIST_PART_SCROLLBAR,
+    LIST_PART_EDGE_FLASH = lvgl.LIST_PART_EDGE_FLASH,
+    LIST_PART_SCROLLABLE = lvgl.LIST_PART_SCROLLABLE,
+    MSGBOX_PART_BG = lvgl.MSGBOX_PART_BG,
+    MSGBOX_PART_BTN_BG = lvgl.MSGBOX_PART_BTN_BG,
+    MSGBOX_PART_BTN = lvgl.MSGBOX_PART_BTN,
+    OBJMASK_PART_MAIN = lvgl.OBJMASK_PART_MAIN,
+    ROLLER_PART_BG = lvgl.ROLLER_PART_BG,
+    ROLLER_PART_SELECTED = lvgl.ROLLER_PART_SELECTED,
+    SLIDER_PART_BG = lvgl.SLIDER_PART_BG,
+    SLIDER_PART_INDIC = lvgl.SLIDER_PART_INDIC,
+    SLIDER_PART_KNOB = lvgl.SLIDER_PART_KNOB,
+    TEXTAREA_PART_BG = lvgl.TEXTAREA_PART_BG,
+    TEXTAREA_PART_SCROLLBAR = lvgl.TEXTAREA_PART_SCROLLBAR,
+    TEXTAREA_PART_EDGE_FLASH = lvgl.TEXTAREA_PART_EDGE_FLASH,
+    TEXTAREA_PART_CURSOR = lvgl.TEXTAREA_PART_CURSOR,
+    TEXTAREA_PART_PLACEHOLDER = lvgl.TEXTAREA_PART_PLACEHOLDER,
+    SPINBOX_PART_BG = lvgl.SPINBOX_PART_BG,
+    SPINBOX_PART_CURSOR = lvgl.SPINBOX_PART_CURSOR,
+    SPINNER_PART_BG = lvgl.SPINNER_PART_BG,
+    SPINNER_PART_INDIC = lvgl.SPINNER_PART_INDIC,
+    SWITCH_PART_BG = lvgl.SWITCH_PART_BG,
+    SWITCH_PART_INDIC = lvgl.SWITCH_PART_INDIC,
+    SWITCH_PART_KNOB = lvgl.SWITCH_PART_KNOB,
+    TABLE_PART_BG = lvgl.TABLE_PART_BG,
+    TABLE_PART_CELL1 = lvgl.TABLE_PART_CELL1,
+    TABLE_PART_CELL2 = lvgl.TABLE_PART_CELL2,
+    TABLE_PART_CELL3 = lvgl.TABLE_PART_CELL3,
+    TABLE_PART_CELL4 = lvgl.TABLE_PART_CELL4,
+    WIN_PART_BG = lvgl.WIN_PART_BG,
+    WIN_PART_HEADER = lvgl.WIN_PART_HEADER,
+    WIN_PART_CONTENT_SCROLLABLE = lvgl.WIN_PART_CONTENT_SCROLLABLE,
+    WIN_PART_SCROLLBAR = lvgl.WIN_PART_SCROLLBAR,
+    TABVIEW_PART_BG = lvgl.TABVIEW_PART_BG,
+    TABVIEW_PART_BG_SCROLLABLE = lvgl.TABVIEW_PART_BG_SCROLLABLE,
+    TABVIEW_PART_TAB_BG = lvgl.TABVIEW_PART_TAB_BG,
+    TABVIEW_PART_TAB_BTN = lvgl.TABVIEW_PART_TAB_BTN,
+    TABVIEW_PART_INDIC = lvgl.TABVIEW_PART_INDIC,
+    TILEVIEW_PART_BG = lvgl.TILEVIEW_PART_BG,
+    TILEVIEW_PART_SCROLLBAR = lvgl.TILEVIEW_PART_SCROLLBAR,
+    TILEVIEW_PART_EDGE_FLASH = lvgl.TILEVIEW_PART_EDGE_FLASH
+}
+
+-- 透明度
+local opacties = {
+    OPA_TRANSP = lvgl.OPA_TRANSP,
+    OPA_0 = lvgl.OPA_0,
+    OPA_10 = lvgl.OPA_10,
+    OPA_20 = lvgl.OPA_20,
+    OPA_30 = lvgl.OPA_30,
+    OPA_40 = lvgl.OPA_40,
+    OPA_50 = lvgl.OPA_50,
+    OPA_60 = lvgl.OPA_60,
+    OPA_70 = lvgl.OPA_70,
+    OPA_80 = lvgl.OPA_80,
+    OPA_90 = lvgl.OPA_90,
+    OPA_100 = lvgl.OPA_100,
+    OPA_COVER = lvgl.OPA_COVER
+}
+
+-- 对齐
+local aligns = {
+    CENTER = lvgl.ALIGN_CENTER,
+    IN_TOP_LEFT = lvgl.ALIGN_IN_TOP_LEFT,
+    IN_TOP_MID = lvgl.ALIGN_IN_TOP_MID,
+    IN_TOP_RIGHT = lvgl.ALIGN_IN_TOP_RIGHT,
+    IN_BOTTOM_LEFT = lvgl.ALIGN_IN_BOTTOM_LEFT,
+    IN_BOTTOM_MID = lvgl.ALIGN_IN_BOTTOM_MID,
+    IN_BOTTOM_RIGHT = lvgl.ALIGN_IN_BOTTOM_RIGHT,
+    IN_LEFT_MID = lvgl.ALIGN_IN_LEFT_MID,
+    IN_RIGHT_MID = lvgl.ALIGN_IN_RIGHT_MID,
+    OUT_TOP_LEFT = lvgl.ALIGN_OUT_TOP_LEFT,
+    OUT_TOP_MID = lvgl.ALIGN_OUT_TOP_MID,
+    OUT_TOP_RIGHT = lvgl.ALIGN_OUT_TOP_RIGHT,
+    OUT_BOTTOM_LEFT = lvgl.ALIGN_OUT_BOTTOM_LEFT,
+    OUT_BOTTOM_MID = lvgl.ALIGN_OUT_BOTTOM_MID,
+    OUT_BOTTOM_RIGHT = lvgl.ALIGN_OUT_BOTTOM_RIGHT,
+    OUT_LEFT_TOP = lvgl.ALIGN_OUT_LEFT_TOP,
+    OUT_LEFT_MID = lvgl.ALIGN_OUT_LEFT_MID,
+    OUT_LEFT_BOTTOM = lvgl.ALIGN_OUT_LEFT_BOTTOM,
+    OUT_RIGHT_TOP = lvgl.ALIGN_OUT_RIGHT_TOP,
+    OUT_RIGHT_MID = lvgl.ALIGN_OUT_RIGHT_MID,
+    OUT_RIGHT_BOTTOM = lvgl.ALIGN_OUT_RIGHT_BOTTOM
+}
+
+local label_aligns = {
+    LEFT = lvgl.LABEL_ALIGN_LEFT,
+    CENTER = lvgl.LABEL_ALIGN_CENTER,
+    RIGHT = lvgl.LABEL_ALIGN_RIGHT,
+    AUTO = lvgl.LABEL_ALIGN_AUTO
+}
+
+local fits = {
+    NONE = lvgl.FIT_NONE,
+    TIGHT = lvgl.FIT_TIGHT,
+    PARENT = lvgl.FIT_PARENT,
+    MAX = lvgl.FIT_MAX
+}
 
 local Widget = {}
 Widget.__index = Widget
@@ -105,8 +249,8 @@ function Widget:setSize(w, h)
     lvgl.obj_set_size(self.obj, w, h)
 end
 
-function Widget:align()
-    lvgl.obj_align(self.obj, nil, lvgl.ALIGN_CENTER, 0, 0)
+function Widget:align(align)
+    lvgl.obj_align(self.obj, nil, aligns[align] or 0, 0, 0)
 end
 
 function Widget:setClickable(on)
@@ -115,6 +259,21 @@ end
 
 function Widget:setEventHandler(cb)
     lvgl.obj_set_event_cb(self.obj, cb)
+end
+
+function Widget:setStyle(part, prop, val)
+    local fn = "obj_set_style_" .. prop
+    if lvgl[fn] then
+        lvgl[fn](self.obj, parts[part] or 0, lvgl.STATE_DEFAULT, val)
+    end
+end
+
+function Widget:addStyle(part, style)
+    lvgl.obj_add_style(self.obj, parts[part] or 0, style);
+end
+
+function Widget:removeStyle(part, style)
+    lvgl.obj_remove_style(self.obj, parts[part] or 0, style);
 end
 
 function Widget:createImage()
@@ -262,10 +421,6 @@ function Widget:createPage()
     return setmetatable(Widget:new(obj), Page)
 end
 
-function Label:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.LABEL_PART_MAIN, style);
-end
-
 function Label:setText(str)
     lvgl.label_set_text(self.obj, str)
 end
@@ -274,8 +429,8 @@ function Label:printf(fmt, ...)
     lvgl.label_set_text_fmt(self.obj, fmt, ...)
 end
 
-function Label:setAlign()
-    lvgl.label_set_align(self.obj, lvgl.LABEL_ALIGN_LEFT) -- /RIGHT/CENTER)
+function Label:setAlign(align)
+    lvgl.label_set_align(self.obj, label_aligns[align] or 0) -- /RIGHT/CENTER)
 end
 
 function Label:setRecolor(on)
@@ -284,11 +439,6 @@ end
 
 function Label:setLongMode()
     lvgl.label_set_long_mode(self.obj, lvgl.LABEL_LONG_BREAK);
-end
-
-
-function Led:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.LED_PART_MAIN, style);
 end
 
 function Led:on()
@@ -302,10 +452,6 @@ function Led:toggle()
 end
 function Led:setBright(bright)
     lvgl.led_set_bright(self.obj, bright);
-end
-
-function Arc:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.ARC_PART_MAIN, style);
 end
 
 function Arc:setBgAngles(start_angle, end_angle)
@@ -328,10 +474,6 @@ function Arc:setType(type)
     lvgl.arc_set_type(self.obj, type)
 end
 
-function Bar:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.BAR_PART_MAIN, style);
-end
-
 function Bar:setRange(min, max)
     lvgl.bar_set_range(self.obj, min, max)
 end
@@ -342,10 +484,6 @@ end
 
 function Bar:setAnimateTime(ms)
     lvgl.bar_set_anim_time(self.obj, ms);
-end
-
-function Button:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.BUTTON_PART_MAIN, style);
 end
 
 function Button:setLayout()
@@ -360,8 +498,8 @@ function Button:toggle()
     lvgl.btn_toggle(self.obj)
 end
 
-function Button:setFit2()
-    lvgl.btn_set_fit2(self.obj, lvgl.FIT_NONE, lvgl.FIT_TIGHT)
+function Button:setFit2(fit)
+    lvgl.btn_set_fit2(self.obj, lvgl.FIT_NONE, fits[fit] or 0)
 end
 
 function Button:setText(str)
@@ -369,10 +507,6 @@ function Button:setText(str)
         self.label = lvgl.label_create(self.obj, nil)
     end
     lvgl.label_set_text(self.label, str)
-end
-
-function Checkbox:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.CHECKBOX_PART_MAIN, style);
 end
 
 function Checkbox:on(handler)
@@ -416,10 +550,6 @@ function Series:SetNext(pt)
     lvgl.chart_set_next(self.chart, self.series, 90);
 end
 
-function Chart:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.CHART_PART_MAIN, style);
-end
-
 function Chart:setType()
     lvgl.chart_set_type(self.obj, lvgl.CHART_TYPE_LINE);
 end
@@ -433,20 +563,12 @@ function Chart:refresh()
     lvgl.chart_refresh(self.obj);
 end
 
-function Container:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.CONT_PART_MAIN, style);
-end
-
-function Container:setFit()
-    lvgl.cont_set_fit(self.obj, lvgl.FIT_TIGHT);
+function Container:setFit(fit)
+    lvgl.cont_set_fit(self.obj, fits[fit] or 0);
 end
 
 function Container:setLayout()
     lvgl.cont_set_layout(self.obj, lvgl.LAYOUT_COLUMN_MID);
-end
-
-function ColorPicker:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.CPIKCER_PART_MAIN, style);
 end
 
 function ColorPicker:setType()
@@ -463,10 +585,6 @@ end
 
 function ColorPicker:setKnobColored(on)
     lvgl.cpicker_set_knob_colored(self.obj, on)
-end
-
-function Dropdown:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.DROPDOWN_PART_MAIN, style);
 end
 
 function Dropdown:on(handler)
@@ -513,10 +631,6 @@ function Dropdown:close()
     lvgl.dropdown_close(self.obj, lvgl.ANIM_ON)
 end
 
-function Gauge:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.GAUGE_PART_MAIN, style);
-end
-
 function Gauge:setNeedleCount(num, colors)
     lvgl.gauge_set_needle_count(self.obj, num, colors)
 end
@@ -539,10 +653,6 @@ end
 
 function Gauge:setCriticalValue(value)
     lvgl.gauge_set_critical_value(self.obj, value)
-end
-
-function Image:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.IMG_PART_MAIN, style);
 end
 
 function Image:setSrc(src)
@@ -582,10 +692,6 @@ function Image:width()
 end
 function Image:height()
     lvgl.obj_get_height(self.obj)
-end
-
-function ImageButton:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.IMG_BTN_PART_MAIN, style);
 end
 
 function ImageButton:setReleased(src)
@@ -638,11 +744,6 @@ function Keyboard:new()
     lvgl.keyboard_set_textarea(kb, ta);
 end
 
-
-function Line:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.LINE_PART_MAIN, style);
-end
-
 function Line:setPoints()
     lvgl.line_set_points(lines, point_array, point_cnt)
 end
@@ -657,10 +758,6 @@ function List:remove(index)
     lvgl.list_remove(self.obj, index)
 end
 
-function LineMeter:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.LINEMETER_PART_MAIN, style);
-end
-
 function LineMeter:setRange(min, max)
     lvgl.linemeter_set_range(self.obj, min, max)
 end
@@ -669,10 +766,6 @@ function LineMeter:setValue(value)
 end
 function LineMeter:setScale(angle, line_num)
     lvgl.linemeter_set_scale(self.obj, angle, line_num)
-end
-
-function MsgBox:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.MSGBOX_PART_MAIN, style);
 end
 
 function MsgBox:setText(str)
@@ -691,17 +784,10 @@ function MsgBox:setAnimateTime(ms)
     lvgl.mbox_set_anim_time(self.obj, ms)
 end
 
-function Page:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.PAGE_PART_MAIN, style);
-end
-
 function Page:clean()
     lvgl.page_clean(self.obj)
 end
 
-function Roller:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.ROLLER_PART_MAIN, style);
-end
 function Roller:setOptions(options)
     lvgl.roller_set_options(self.obj, options, lvgl.ROLLER_MODE_NORMAL) -- /INFINITE)
 end
@@ -711,8 +797,8 @@ end
 function Roller:getSelected()
     return lvgl.roller_get_selected(self.obj)
 end
-function Roller:setAlign()
-    lvgl.roller_set_align(self.obj, lvgl.LABEL_ALIGN_LEFT) -- /CENTER/RIGHT)
+function Roller:setAlign(align)
+    lvgl.roller_set_align(self.obj, aligns[align] or 0) -- /CENTER/RIGHT)
 end
 function Roller:setAnimateTime(ms)
     lvgl.roller_set_anim_time(self.obj, ms)
@@ -721,10 +807,6 @@ function Roller:setVisibleRows(num)
     lvgl.roller_set_visible_row_count(self.obj, num)
 end
 
-
-function Slider:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.SLIDER_PART_MAIN, style);
-end
 function Slider:setRange(min, max)
     lvgl.slider_set_range(self.obj, min, max)
 end
@@ -735,10 +817,6 @@ function Slider:setAnimateTime(ms)
     lvgl.slider_set_anim_time(self.obj, ms)
 end
 
-
-function SpinBox:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.SPINBOX_PART_MAIN, style);
-end
 function SpinBox:setFormat(digit_count, separator_position)
     lvgl.spinbox_set_digit_format(self.obj, digit_count, separator_position)
 end
@@ -758,9 +836,6 @@ function SpinBox:decrement()
     lvgl.spinbox_decrement(self.obj)
 end
 
-function Spinner:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.SPINNER_PART_MAIN, style);
-end
 function Spinner:setArcLength(deg)
     lvgl.spinner_set_arc_length(self.obj, deg)
 end
@@ -777,9 +852,6 @@ function Spinner:setDir()
     lvgl.spinner_set_dir(self.obj, lvgl.SPINNER_DIR_FORWARD) -- BACKWARD
 end
 
-function Switch:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.SWITCH_PART_MAIN, style);
-end
 function Switch:on()
     lvgl.switch_on(self.obj, lvgl.ANIM_ON);
 end
@@ -793,17 +865,14 @@ function Switch:setAnimateTime(ms)
     lvgl.switch_set_anim_time(self.obj, ms)
 end
 
-function Table:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.TABLE_PART_MAIN, style);
-end
 function Table:setRows(cnt)
     lvgl.table_set_row_cnt(self.obj, cnt);
 end
 function Table:setColumns(cnt)
     lvgl.table_set_col_cnt(self.obj, cnt);
 end
-function Table:setCellAlign(row, col)
-    lvgl.table_set_cell_align(self.obj, row, col, lvgl.LABEL_ALIGN_CENTER);
+function Table:setCellAlign(row, col, align)
+    lvgl.table_set_cell_align(self.obj, row, col, aligns[align] or 0);
 end
 function Table:setCellType(row, col, type)
     -- 1表头 2第一栏 3突出
@@ -822,10 +891,6 @@ function Table:setCellCrop(col, row, b)
     lvgl.table_set_cell_crop(self.obj, row, col, b)
 end
 
-
-function TabView:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.TABVIEW_PART_MAIN, style);
-end
 function TabView:addTab(str)
     local tab = lvgl.tabview_add_tab(self.obj, str)
     return Widget:new(tab)
@@ -840,9 +905,6 @@ function TabView:setAnimateTime(ms)
     lvgl.tabview_set_anim_time(self.obj, ms)
 end
 
-function TextArea:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.TEXTAREA_PART_MAIN, style);
-end
 function TextArea:addChar(c)
     lvgl.textarea_add_char(self.obj, c)
 end
@@ -870,8 +932,8 @@ end
 function TextArea:setPwdMode(on)
     lvgl.textarea_set_pwd_mode(self.obj, on)
 end
-function TextArea:setTextAlign()
-    lvgl.textarea_set_text_align(self.obj, lvgl.LABEL_ALIGN_LET) -- /CENTER/RIGHT)
+function TextArea:setTextAlign(align)
+    lvgl.textarea_set_text_align(self.obj, aligns[align] or 0) -- /CENTER/RIGHT)
 end
 function TextArea:setMaxLength(num)
     lvgl.textarea_set_max_length(self.obj, num)
@@ -880,19 +942,12 @@ function TextArea:setSelectable(on)
     lvgl.textarea_set_text_sel(self.obj, on)
 end
 
-function Window:setStyle(style)
-    lvgl.obj_add_style(self.obj, lvgl.WIN_PART_MAIN, style);
-end
 function Window:setTitle(str)
     lvgl.win_set_title(self.obj, str)
 end
 function Window:AddButtonRight()
     lvgl.win_add_btn_right(self.obj, lvgl.SYMBOL_CLOSE)
 end
-
-
-
-
 
 function ui.init(width, height)
     lvgl.init(width, height)
@@ -906,7 +961,6 @@ end
 function ui.default()
     return Widget:new(lvgl.scr_act())
 end
-
 
 local Style = {}
 Style.__index = Style
@@ -931,8 +985,7 @@ function ui.style()
         style = style
     }, Style)
 
-    --TODO 不能直接这样用，LuatOS定义了 STYLE_XXX常量，用于设置
+    -- TODO 不能直接这样用，LuatOS定义了 STYLE_XXX常量，用于设置
 end
-
 
 return ui
