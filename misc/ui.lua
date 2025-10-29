@@ -1,5 +1,84 @@
 local ui = {}
 
+-- 符号图片
+local symbols = {
+    audio = lvgl.SYMBOL_AUDIO,
+    video = lvgl.SYMBOL_VIDEO,
+    list = lvgl.SYMBOL_LIST,
+    ok = lvgl.SYMBOL_OK,
+    close = lvgl.SYMBOL_CLOSE,
+    power = lvgl.SYMBOL_POWER,
+    settings = lvgl.SYMBOL_SETTINGS,
+    home = lvgl.SYMBOL_HOME,
+    download = lvgl.SYMBOL_DOWNLOAD,
+    drive = lvgl.SYMBOL_DRIVE,
+    refresh = lvgl.SYMBOL_REFRESH,
+    mute = lvgl.SYMBOL_MUTE,
+    volume_mid = lvgl.SYMBOL_VOLUME_MID,
+    volume_max = lvgl.SYMBOL_VOLUME_MAX,
+    image = lvgl.SYMBOL_IMAGE,
+    edit = lvgl.SYMBOL_EDIT,
+    prev = lvgl.SYMBOL_PREV,
+    play = lvgl.SYMBOL_PLAY,
+    pause = lvgl.SYMBOL_PAUSE,
+    stop = lvgl.SYMBOL_STOP,
+    next = lvgl.SYMBOL_NEXT,
+    eject = lvgl.SYMBOL_EJECT,
+    left = lvgl.SYMBOL_LEFT,
+    right = lvgl.SYMBOL_RIGHT,
+    plus = lvgl.SYMBOL_PLUS,
+    minus = lvgl.SYMBOL_MINUS,
+    eye_open = lvgl.SYMBOL_EYE_OPEN,
+    eye_close = lvgl.SYMBOL_EYE_CLOSE,
+    warning = lvgl.SYMBOL_WARNING,
+    shuffle = lvgl.SYMBOL_SHUFFLE,
+    up = lvgl.SYMBOL_UP,
+    down = lvgl.SYMBOL_DOWN,
+    loop = lvgl.SYMBOL_LOOP,
+    directory = lvgl.SYMBOL_DIRECTORY,
+    upload = lvgl.SYMBOL_UPLOAD,
+    call = lvgl.SYMBOL_CALL,
+    cut = lvgl.SYMBOL_CUT,
+    copy = lvgl.SYMBOL_COPY,
+    save = lvgl.SYMBOL_SAVE,
+    charge = lvgl.SYMBOL_CHARGE,
+    paste = lvgl.SYMBOL_PASTE,
+    bell = lvgl.SYMBOL_BELL,
+    keyboard = lvgl.SYMBOL_KEYBOARD,
+    gps = lvgl.SYMBOL_GPS,
+    file = lvgl.SYMBOL_FILE,
+    wifi = lvgl.SYMBOL_WIFI,
+    battery_full = lvgl.SYMBOL_BATTERY_FULL,
+    battery_3 = lvgl.SYMBOL_BATTERY_3,
+    battery_2 = lvgl.SYMBOL_BATTERY_2,
+    battery_1 = lvgl.SYMBOL_BATTERY_1,
+    battery_empty = lvgl.SYMBOL_BATTERY_EMPTY,
+    usb = lvgl.SYMBOL_USB,
+    bluetooth = lvgl.SYMBOL_BLUETOOTH,
+    trash = lvgl.SYMBOL_TRASH,
+    backspace = lvgl.SYMBOL_BACKSPACE,
+    sd_card = lvgl.SYMBOL_SD_CARD,
+    new_line = lvgl.SYMBOL_NEW_LINE,
+    dummy = "\xEF\xA3\xBF",
+    bullet = lvgl.SYMBOL_BULLET
+}
+
+-- 布局
+local layouts = {
+    off = lvgl.LAYOUT_OFF,
+    center = lvgl.LAYOUT_CENTER,
+    column_left = lvgl.LAYOUT_COLUMN_LEFT,
+    column_mid = lvgl.LAYOUT_COLUMN_MID,
+    column_right = lvgl.LAYOUT_COLUMN_RIGHT,
+    row_top = lvgl.LAYOUT_ROW_TOP,
+    row_mid = lvgl.LAYOUT_ROW_MID,
+    row_bottom = lvgl.LAYOUT_ROW_BOTTOM,
+    pretty_top = lvgl.LAYOUT_PRETTY_TOP,
+    pretty_mid = lvgl.LAYOUT_PRETTY_MID,
+    pretty_bottom = lvgl.LAYOUT_PRETTY_BOTTOM,
+    grid = lvgl.LAYOUT_GRID
+}
+
 -- 样式
 local parts = {
     main = 0,
@@ -146,6 +225,50 @@ local fits = {
     tight = lvgl.FIT_TIGHT,
     parent = lvgl.FIT_PARENT,
     max = lvgl.FIT_MAX
+}
+
+local arc_types = {
+    normal = lvgl.ARC_TYPE_NORMAL,
+    symmetric = lvgl.ARC_TYPE_SYMMETRIC,
+    reverse = lvgl.ARC_TYPE_REVERSE
+}
+local bar_types = {
+    normal = lvgl.BAR_TYPE_NORMAL,
+    symmetrical = lvgl.BAR_TYPE_SYMMETRICAL,
+    custom = lvgl.BAR_TYPE_CUSTOM
+}
+local chart_types = {
+    none = lvgl.CHART_TYPE_NONE,
+    line = lvgl.CHART_TYPE_LINE,
+    column = lvgl.CHART_TYPE_COLUMN
+}
+local cpicker_types = {
+    rect = lvgl.CPICKER_TYPE_RECT,
+    disc = lvgl.CPICKER_TYPE_DISC
+}
+local slider_types = {
+    normal = lvgl.SLIDER_TYPE_NORMAL,
+    symmetrical = lvgl.SLIDER_TYPE_SYMMETRICAL,
+    range = lvgl.SLIDER_TYPE_RANGE
+}
+local spinner_types = {
+    spinning_arc = lvgl.SPINNER_TYPE_SPINNING_ARC,
+    fillspin_arc = lvgl.SPINNER_TYPE_FILLSPIN_ARC,
+    constant_arc = lvgl.SPINNER_TYPE_CONSTANT_ARC
+}
+local indev_types = {
+    none = lvgl.INDEV_TYPE_NONE,
+    pointer = lvgl.INDEV_TYPE_POINTER,
+    keypad = lvgl.INDEV_TYPE_KEYPAD,
+    button = lvgl.INDEV_TYPE_BUTTON,
+    encoder = lvgl.INDEV_TYPE_ENCODER
+}
+local draw_mask_types = {
+    line = lvgl.DRAW_MASK_TYPE_LINE,
+    angle = lvgl.DRAW_MASK_TYPE_ANGLE,
+    radius = lvgl.DRAW_MASK_TYPE_RADIUS,
+    fade = lvgl.DRAW_MASK_TYPE_FADE,
+    map = lvgl.DRAW_MASK_TYPE_MAP
 }
 
 local Widget = {}
@@ -478,7 +601,7 @@ function Arc:setValue(value)
 end
 
 function Arc:setType(type)
-    lvgl.arc_set_type(self.obj, type)
+    lvgl.arc_set_type(self.obj, arc_types[type])
 end
 
 function Bar:setRange(min, max)
@@ -493,8 +616,12 @@ function Bar:setAnimateTime(ms)
     lvgl.bar_set_anim_time(self.obj, ms);
 end
 
-function Button:setLayout()
-    lvgl.btn_set_layout(self.obj, lvgl.LAYOUT_CENTER)
+function Bar:setType(type)
+    lvgl.bar_set_type(self.obj, bar_types[type])
+end
+
+function Button:setLayout(layout)
+    lvgl.btn_set_layout(self.obj, layouts[layout])
 end
 
 function Button:setCheckable(on)
@@ -557,8 +684,8 @@ function Series:SetNext(pt)
     lvgl.chart_set_next(self.chart, self.series, 90);
 end
 
-function Chart:setType()
-    lvgl.chart_set_type(self.obj, lvgl.CHART_TYPE_LINE);
+function Chart:setType(type)
+    lvgl.chart_set_type(self.obj, chart_types[type]);
 end
 
 function Chart:addSeries()
@@ -574,12 +701,12 @@ function Container:setFit(fit)
     lvgl.cont_set_fit(self.obj, fits[fit] or 0);
 end
 
-function Container:setLayout()
-    lvgl.cont_set_layout(self.obj, lvgl.LAYOUT_COLUMN_MID);
+function Container:setLayout(layout)
+    lvgl.cont_set_layout(self.obj, layouts[layout]);
 end
 
-function ColorPicker:setType()
-    lvgl.cpicker_set_type(self.obj, lvgl.CPICKER_TYPE_RECT) -- DISC
+function ColorPicker:setType(type)
+    lvgl.cpicker_set_type(self.obj, cpicker_types[type]) -- DISC
 end
 
 function ColorPicker:setColor(rgb)
@@ -764,6 +891,9 @@ end
 function List:remove(index)
     lvgl.list_remove(self.obj, index)
 end
+function List:setLayout(layout)
+    lvgl.list_set_layout(self.obj, layouts[layout]);
+end
 
 function LineMeter:setRange(min, max)
     lvgl.linemeter_set_range(self.obj, min, max)
@@ -823,6 +953,9 @@ end
 function Slider:setAnimateTime(ms)
     lvgl.slider_set_anim_time(self.obj, ms)
 end
+function Slider:setType(type)
+    lvgl.slider_set_type(self.obj, slider_types[type])
+end
 
 function SpinBox:setFormat(digit_count, separator_position)
     lvgl.spinbox_set_digit_format(self.obj, digit_count, separator_position)
@@ -850,10 +983,7 @@ function Spinner:setSpinTime(ms)
     lvgl.spinner_set_spin_time(self.obj, ms)
 end
 function Spinner:setType(type)
-    -- lvgl.SPINNER_TYPE_SPINNING_ARC 旋转弧线，在顶部减速
-    -- lvgl.SPINNER_TYPE_FILLSPIN_ARC 旋转弧线，在顶部放慢速度，但也伸展弧线
-    -- lvgl.SPINNER_TYPE_CONSTANT_ARC 以恒定速度旋转
-    lvgl.spinner_set_type(self.obj, type)
+    lvgl.spinner_set_type(self.obj, spinner_types[type])
 end
 function Spinner:setDir()
     lvgl.spinner_set_dir(self.obj, lvgl.SPINNER_DIR_FORWARD) -- BACKWARD
@@ -954,6 +1084,9 @@ function Window:setTitle(str)
 end
 function Window:AddButtonRight()
     lvgl.win_add_btn_right(self.obj, lvgl.SYMBOL_CLOSE)
+end
+function Window:setLayout(layout)
+    lvgl.win_set_layout(self.obj, layouts[layout]);
 end
 
 function ui.init(width, height)
