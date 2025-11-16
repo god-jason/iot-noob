@@ -35,7 +35,7 @@ end
 
 --- 创建协程
 -- @param func function 回调
--- @param arg1 any 参数
+-- @param arg1,arg2,arg3... any 参数
 -- @return interger 任务ID
 function iot.start(func, ...)
     -- TODO 这里返回是协程对象，不是线程ID
@@ -324,7 +324,7 @@ function iot.reboot()
     rtos.reboot()
 end
 
-local Socket = require("socket")
+local Socket = require("socket_client")
 
 --- 创建SOCKET
 -- @param opts
@@ -408,7 +408,7 @@ function iot.gpio(id, opts)
         gpio.setup(id, 0, pull)
     else
         -- 输入模式
-        gpio.set(id, opts.callback, pull)
+        gpio.setup(id, opts.callback, pull)
         if opts.debounce then
             gpio.debounce(id, opts.debounce)
         end
@@ -672,12 +672,12 @@ end
 
 --- 创建PWM对象
 -- @param id integer
--- @param opts table 参数 {freq, duty}
+-- @param opts table 参数 {freq, duty, count} 频率，占空比，次数
 -- @return boolean 成功与否
 -- @return PWM
 function iot.pwm(id, opts)
     opts = opts or {}
-    local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 10)
+    local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 50, opts.count or 0)
     if not ret then
         return false, "打开失败"
     end

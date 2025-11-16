@@ -63,6 +63,10 @@ local symbols = {
     bullet = lvgl.SYMBOL_BULLET
 }
 
+function ui.symbol(s)
+    return symbols[s] or symbols["dummy"]
+end
+
 -- 布局
 local layouts = {
     off = lvgl.LAYOUT_OFF,
