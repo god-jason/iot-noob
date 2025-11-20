@@ -396,7 +396,7 @@ end
 
 --- 创建GPIO对象
 -- @param id integer GPIO序号
--- @param opts table 参数 {pull, callback, debounce}
+-- @param opts table 参数 {pull, callback, debounce， when}
 -- @return boolean 成功与否
 -- @return GPIO
 function iot.gpio(id, opts)
@@ -407,15 +407,23 @@ function iot.gpio(id, opts)
         -- 输出模式
         gpio.setup(id, 0, pull)
     else
+        -- 触发时机
+        local when = gpio.BOTH
+        if opts.when == "RISING" or opts.when == "rising" then
+            when = gpio.RISING
+        elseif opts.when == "FAILING" or opts.when == "failing" then
+            when = gpio.FAILING
+        end
+
         -- 输入模式
-        gpio.setup(id, opts.callback, pull)
+        gpio.setup(id, opts.callback, pull, when)
         if opts.debounce then
             gpio.debounce(id, opts.debounce)
         end
     end
 
     -- 返回对象实例
-    return true, setmetatable({
+    return setmetatable({
         id = id
     }, GPIO)
 end
