@@ -12,8 +12,8 @@ local config = {
     broker = "10.125.254.3",
     port = 1883,
     device_id = "",
-    collect_cycle = 1, -- 采集周期 分钟
-    upload_cycle = 1, -- 上传周期 分钟
+    collect_cycle = 10, -- 采集周期 分钟
+    upload_cycle = 10, -- 上传周期 分钟
 }
 
 --- 平台连接
