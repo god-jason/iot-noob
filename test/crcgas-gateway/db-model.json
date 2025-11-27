@@ -6,24 +6,24 @@
             {
                 "name":"基础数据",
                 "points":[
-                    {"name":"Eps_D", "label":"日发电量", "address":"H0684", "type":"uint32", "rate":0.01},
-                    {"name":"Eps_M", "label":"月发电量", "address":"H0696", "type":"uint32", "rate":0.1},
-                    {"name":"Eps_Y", "label":"年发电量", "address":"H069E", "type":"uint32", "rate":0.1},
-                    {"name":"Temp", "label":"机内空气温度", "address":"H0420", "type":"uint16"},
-                    {"name":"P", "label":"有功功率", "address":"H0485", "type":"uint16", "rate":0.1},
-                    {"name":"Q", "label":"无功功率", "address":"H0486", "type":"uint16", "rate":0.1},
-                    {"name":"S", "label":"视在功率", "address":"H0487", "type":"uint16", "rate":0.1},
-                    {"name":"PFth", "label":"总功率因数", "address":"H048D", "type":"uint16", "rate":0.001},
-                    {"name":"F", "label":"电网频率", "address":"H0484", "type":"uint16", "rate":0.01},
-                    {"name":"Uab", "label":"AB线电压", "address":"H04BA", "type":"uint16", "rate":0.1},
-                    {"name":"Ubc", "label":"BC线电压", "address":"H04BB", "type":"uint16", "rate":0.1},
-                    {"name":"Uca", "label":"CA线电压", "address":"H04BC", "type":"uint16", "rate":0.1},
-                    {"name":"Ua", "label":"A相电压", "address":"H048D", "type":"uint16", "rate":0.1},
-                    {"name":"Ub", "label":"B相电压", "address":"H0498", "type":"uint16", "rate":0.1},
-                    {"name":"Uc", "label":"C相电压", "address":"H04A3", "type":"uint16", "rate":0.1},
-                    {"name":"Ia", "label":"A相电流", "address":"H048E", "type":"uint16", "rate":0.1},
-                    {"name":"Ib", "label":"B相电流", "address":"H0499", "type":"uint16", "rate":0.1},
-                    {"name":"Ic", "label":"C相电流", "address":"H04A4", "type":"uint16", "rate":0.1}
+                    {"name":"Eps_D", "label":"日发电量", "register":3, "address":"H0684", "type":"uint32", "rate":0.01},
+                    {"name":"Eps_M", "label":"月发电量", "register":3, "address":"H0696", "type":"uint32", "rate":0.1},
+                    {"name":"Eps_Y", "label":"年发电量", "register":3, "address":"H069E", "type":"uint32", "rate":0.1},
+                    {"name":"Temp", "label":"机内空气温度", "register":3, "address":"H0420", "type":"uint16"},
+                    {"name":"P", "label":"有功功率", "register":3, "address":"H0485", "type":"uint16", "rate":0.1},
+                    {"name":"Q", "label":"无功功率", "register":3, "address":"H0486", "type":"uint16", "rate":0.1},
+                    {"name":"S", "label":"视在功率", "register":3, "address":"H0487", "type":"uint16", "rate":0.1},
+                    {"name":"PFth", "label":"总功率因数", "register":3, "address":"H048D", "type":"uint16", "rate":0.001},
+                    {"name":"F", "label":"电网频率", "register":3, "address":"H0484", "type":"uint16", "rate":0.01},
+                    {"name":"Uab", "label":"AB线电压", "register":3, "address":"H04BA", "type":"uint16", "rate":0.1},
+                    {"name":"Ubc", "label":"BC线电压", "register":3, "address":"H04BB", "type":"uint16", "rate":0.1},
+                    {"name":"Uca", "label":"CA线电压", "register":3, "address":"H04BC", "type":"uint16", "rate":0.1},
+                    {"name":"Ua", "label":"A相电压", "register":3, "address":"H048D", "type":"uint16", "rate":0.1},
+                    {"name":"Ub", "label":"B相电压", "register":3, "address":"H0498", "type":"uint16", "rate":0.1},
+                    {"name":"Uc", "label":"C相电压", "register":3, "address":"H04A3", "type":"uint16", "rate":0.1},
+                    {"name":"Ia", "label":"A相电流", "register":3, "address":"H048E", "type":"uint16", "rate":0.1},
+                    {"name":"Ib", "label":"B相电流", "register":3, "address":"H0499", "type":"uint16", "rate":0.1},
+                    {"name":"Ic", "label":"C相电流", "register":3, "address":"H04A4", "type":"uint16", "rate":0.1}
                 ]
             }
         ]

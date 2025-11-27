@@ -1,0 +1,13 @@
+{
+    "RS485-1": {
+        "id": "RS485-1",
+        "type": "serial",
+        "name": "RS485-1",
+        "protocol": "modbus",
+        "port": 1,
+        "timeout": 1000,
+        "protocol_options":{
+            "poller_interval": 10
+        }
+    }
+}

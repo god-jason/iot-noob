@@ -5,26 +5,37 @@ local configs = require("configs")
 local gateway = require("gateway")
 local binary = require("binary")
 
+
+
 local config = {
-    broker = "",
+    server = "http://10.125.254.3:8080",
+    broker = "10.125.254.3",
     port = 1883,
     device_id = "",
-    collect_cycle = 10, -- 采集周期 分钟
-    upload_cycle = 10, -- 上传周期 分钟
+    collect_cycle = 1, -- 采集周期 分钟
+    upload_cycle = 1, -- 上传周期 分钟
 }
 
 --- 平台连接
 local client = nil
 
 local function auth()
-    local ret, headers, body = http.request("POST", "https://dm-dev.crcgas.com/v2/iot/devices/edge/auth", {
+    local ret, headers, body = http.request("POST", config.server .. "/v2/iot/devices/edge/auth", {
         ["Content-Type"] = "application/json"
     }, json.encode({
-        imei = mobile.imei(),
-        iccid = mobile.iccid()
+        id = 10001,
+        version = "V2.1",
+        ["function"] = "iot/auth",
+        caller = "RTU",
+        body = {
+            imei = mobile.imei(),
+            iccid = mobile.iccid()
+        }
     })).wait()
     log.info("crcgas auth response ", ret, json.encode(headers), body)
 
+    local data = json.decode(body)
+    config.device_id = data.value.devId
 end
 
 local function create_pack(type, param)
@@ -47,7 +58,7 @@ local function device_request()
 end
 
 -- 设备接入返回 /v2/#{deviceId}/device/down/reply
-local function on_device_reply(topic, data)
+local function on_device_reply(topic, data)    
     -- data.code 2000
 
 end
@@ -178,7 +189,7 @@ local topics = {}
 -- 解析JSON
 local function parse_json(callback)
     return function(topic, payload)
-        log.info(tag, "topic", topic)
+        log.info(tag, "topic", topic, payload)
         local data, err = iot.json_decode(payload)
         if err then
             log.info(tag, "decode", payload, err)
@@ -190,22 +201,14 @@ end
 
 --- 打开平台
 function cloud.open()
-    local ret, data = configs.load("cloud")
-    if not ret then
-        return false
-    end
-    config = data
+    config = configs.load_default("cloud", config)
     log.info(tag, "cloud config", iot.json_encode(config))
 
-    -- oneNet鉴权
-    
-
+    -- 鉴权   
     client = iot.mqtt({
         host = config.broker,
         port = config.port,
-        clientid = clientid,
-        username = username,
-        password = password
+        clientid = config.device_id,
     })
 
     -- 订阅主题
@@ -224,9 +227,21 @@ function cloud.task()
     -- 等待网络就绪
     iot.wait("IP_READY")
 
-    cloud.open()
+    -- 鉴权 TODO 不用重复鉴权
+    auth()
+
+    local ret = cloud.open()
+
+    -- 连接失败
+    if not ret then
+        log.info("连接云平台失败")
+        return
+    end
 
     log.info(tag, "cloud broker connected")
+
+    -- 设备连接请求，TODO 不用重复
+    device_request()
 
     -- iot.setInterval(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
@@ -235,13 +250,10 @@ function cloud.task()
         local devices = gateway.get_all_device_instanse();
 
         for id, dev in pairs(devices) do
-
-            -- 1 设备上线
-            
+            -- 1 设备上线            
 
             -- 2 上传数据
             report_data(id, dev:values())
-
         end
 
         iot.sleep(60 * 1000 * (config.upload_cycle or 1)) -- 上传周期

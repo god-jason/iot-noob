@@ -12,8 +12,26 @@ setmetatable(ModbusDevice, Device) -- 继承Device
 local database = require("database")
 local gateway = require("gateway")
 local points = require("points")
+local binary = require("binary")
 
 local mapper_cache = {}
+
+local function normalize_address(addr)
+    if type(addr) == "string" then
+        if addr:startsWith("H") or addr:startsWith("h") then
+            local buf = binary.decodeHex(addr:sub(2))
+            local num = 0
+            for i = 1, #buf do
+                num = num << 8
+                num = num + string.byte(buf:sub(i))
+            end
+            addr = num
+        else
+            addr = tonumber(addr)
+        end
+    end
+    return addr
+end
 
 -- 升序排列
 local function sortPoint(pt1, pt2)
@@ -40,6 +58,8 @@ local function load_mapper(product_id)
         pollers = {}
     }
 
+    log.info(tag, "load 2")
+
     -- 分类
     for _, prop in ipairs(model.properties or {}) do
         for _, pt in ipairs(prop.points) do
@@ -55,17 +75,33 @@ local function load_mapper(product_id)
         end
     end
 
+    -- 兼容字符串地址
+    for i, p in ipairs(mapper.coils) do
+        p.address = normalize_address(p.address)
+    end
+    for i, p in ipairs(mapper.discrete_inputs) do
+        p.address = normalize_address(p.address)
+    end
+    for i, p in ipairs(mapper.holding_registers) do
+        p.address = normalize_address(p.address)
+    end
+    for i, p in ipairs(mapper.input_registers) do
+        p.address = normalize_address(p.address)
+    end
+
     -- 排序
     table.sort(mapper.coils, sortPoint)
     table.sort(mapper.discrete_inputs, sortPoint)
     table.sort(mapper.holding_registers, sortPoint)
     table.sort(mapper.input_registers, sortPoint)
 
+    log.info(tag, "before pollers", iot.json_encode(mapper))
+
     -- 计算轮询
-    if #mapper.coils > 0 then
-        local begin = mapper.coils[0]
+    if #(mapper.coils) > 0 then
+        local begin = mapper.coils[1]
         local last = begin
-        for i = 2, #mapper.coils, 1 do
+        for i = 2, #(mapper.coils), 1 do
             if mapper.coils[i].address > last.address + 1 then
                 table.insert(mapper.pollers, {
                     register = 1,
@@ -82,10 +118,10 @@ local function load_mapper(product_id)
             length = last.address - begin.address + 1
         })
     end
-    if #mapper.discrete_inputs > 0 then
-        local begin = mapper.discrete_inputs[0]
+    if #(mapper.discrete_inputs) > 0 then
+        local begin = mapper.discrete_inputs[1]
         local last = begin
-        for i = 2, #mapper.discrete_inputs, 1 do
+        for i = 2, #(mapper.discrete_inputs), 1 do
             if mapper.discrete_inputs[i].address > last.address + 1 then
                 table.insert(mapper.pollers, {
                     register = 2,
@@ -102,12 +138,12 @@ local function load_mapper(product_id)
             length = last.address - begin.address + 1
         })
     end
-    if #mapper.holding_registers > 0 then
-        local begin = mapper.holding_registers[0]
+    if #(mapper.holding_registers) > 0 then
+        local begin = mapper.holding_registers[1]
         local last = begin
-        for i = 2, #mapper.holding_registers, 1 do
+        for i = 2, #(mapper.holding_registers), 1 do
 
-            local feagure = points.feagure[last.type]
+            local feagure = points.feagure(last.type)
             if feagure then
                 if mapper.holding_registers[i].address > last.address + feagure.word then
                     table.insert(mapper.pollers, {
@@ -122,7 +158,7 @@ local function load_mapper(product_id)
             last = mapper.holding_registers[i]
         end
 
-        local feagure = points.feagure[last.type]
+        local feagure = points.feagure(last.type)
         if feagure then
             table.insert(mapper.pollers, {
                 register = 3,
@@ -131,12 +167,12 @@ local function load_mapper(product_id)
             })
         end
     end
-    if #mapper.input_registers > 0 then
-        local begin = mapper.input_registers[0]
+    if #(mapper.input_registers) > 0 then
+        local begin = mapper.input_registers[1]
         local last = begin
-        for i = 2, #mapper.input_registers, 1 do
+        for i = 2, #(mapper.input_registers), 1 do
 
-            local feagure = points.feagure[last.type]
+            local feagure = points.feagure(last.type)
             if feagure then
                 if mapper.input_registers[i].address > last.address + feagure.word then
                     table.insert(mapper.pollers, {
@@ -151,7 +187,7 @@ local function load_mapper(product_id)
             last = mapper.input_registers[i]
         end
 
-        local feagure = points.feagure[last.type]
+        local feagure = points.feagure(last.type)
         if feagure then
             table.insert(mapper.pollers, {
                 register = 4,
@@ -160,6 +196,8 @@ local function load_mapper(product_id)
             })
         end
     end
+
+    log.info(tag, "pollers", iot.json_encode(mapper.pollers))
 
     mapper_cache[product_id] = mapper
     return mapper
@@ -301,7 +339,7 @@ function ModbusDevice:poll()
 
             if poller.register == 1 then
                 -- log.info(tag, "parse 1 ", #data)
-                for _, point in ipairs(self.options.mapper.coils) do
+                for _, point in ipairs(self.mapper.coils) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
@@ -312,7 +350,7 @@ function ModbusDevice:poll()
                 -- log.info(tag, "parse 1 ", iot.json_encode(values))
             elseif poller.register == 2 then
                 -- log.info(tag, "parse 2 ", #data)
-                for _, point in ipairs(self.options.mapper.discrete_inputs) do
+                for _, point in ipairs(self.mapper.discrete_inputs) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
@@ -323,7 +361,7 @@ function ModbusDevice:poll()
                 -- log.info(tag, "parse 2 ", iot.json_encode(values))
             elseif poller.register == 3 then
                 -- log.info(tag, "parse 3 ", #data)
-                for _, point in ipairs(self.options.mapper.holding_registers) do
+                for _, point in ipairs(self.mapper.holding_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
@@ -334,7 +372,7 @@ function ModbusDevice:poll()
                 -- log.info(tag, "parse 3 ", iot.json_encode(values))
             elseif poller.register == 4 then
                 -- log.info(tag, "parse 4 ", #data)
-                for _, point in ipairs(self.options.mapper.input_registers) do
+                for _, point in ipairs(self.mapper.input_registers) do
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
