@@ -95,7 +95,7 @@ local function load_mapper(product_id)
     table.sort(mapper.holding_registers, sortPoint)
     table.sort(mapper.input_registers, sortPoint)
 
-    log.info(tag, "before pollers", iot.json_encode(mapper))
+    --log.info(tag, "before pollers", iot.json_encode(mapper))
 
     -- 计算轮询
     if #(mapper.coils) > 0 then
