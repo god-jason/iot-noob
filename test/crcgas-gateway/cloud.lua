@@ -5,15 +5,13 @@ local configs = require("configs")
 local gateway = require("gateway")
 local binary = require("binary")
 
-
-
 local config = {
     server = "http://10.125.254.3:8080",
     broker = "10.125.254.3",
     port = 1883,
     device_id = "",
-    collect_cycle = 10, -- 采集周期 分钟
-    upload_cycle = 10, -- 上传周期 分钟
+    collect_cycle = 1, -- 采集周期 分钟
+    upload_cycle = 1 -- 上传周期 分钟
 }
 
 --- 平台连接
@@ -58,7 +56,7 @@ local function device_request()
 end
 
 -- 设备接入返回 /v2/#{deviceId}/device/down/reply
-local function on_device_reply(topic, data)    
+local function on_device_reply(topic, data)
     -- data.code 2000
 
 end
@@ -83,17 +81,21 @@ local function report_data(device_id, values)
     local param = {{
         subDeviceAddr = device_id,
         collectTime = os.time() * 1000,
-        data = data,
+        data = data
     }}
 
-    --table k->{value->any, time->int}
+    -- table k->{value->any, time->int}
     for k, v in pairs(values) do
-      table.insert(data, {
-        name = k,
-        value = v.value
-      })  
+
+        -- 过滤掉错误状态
+        if not k:startsWith("error_") then
+            table.insert(data, {
+                name = k,
+                value = v.value
+            })
+        end
     end
-    
+
     client:publish("/v2/" .. config.device_id .. "/data/up/collect", create_pack("DATA_COLLECT", param))
 end
 
@@ -152,8 +154,8 @@ local function upgrade_download(offset, size, taskId)
     client:publish("/v2/" .. config.device_id .. "/cmd/up/reply", create_pack("UPGRADE_DOWNLOAD", {{
         offset = offset,
         buffSize = size,
-        taskInfoId = taskId,
-    }}))    
+        taskInfoId = taskId
+    }}))
 end
 
 -- 平台返回升级包分片数据 /v2/{deviceId}/upgrade/down/download/reply
@@ -169,7 +171,7 @@ end
 local function report_upgrade_status(status, taskId)
     client:publish("/v2/" .. config.device_id .. "/upgrade/up/status", create_pack("UPGRADE_STATUS", {{
         status = status, -- 200下载成功 201下载失败 300升级成功 301升级失败
-        taskInfoId = taskId,
+        taskInfoId = taskId
     }}))
 end
 
@@ -182,7 +184,6 @@ end
 local function on_offline_reply(topic, data)
     -- data.param.respond 0同意下线 1不同意下线 有任务未完成
 end
-
 
 local topics = {}
 
@@ -208,18 +209,57 @@ function cloud.open()
     client = iot.mqtt({
         host = config.broker,
         port = config.port,
-        clientid = config.device_id,
+        clientid = config.device_id
     })
 
     -- 订阅主题
-    client:subscribe("/v2/"..config.device_id.."/device/down/reply", parse_json(on_device_reply))
-    client:subscribe("/v2/"..config.device_id.."/subDevice/down/reply", parse_json(on_sub_device_reply))
-    client:subscribe("/v2/"..config.device_id.."/data/down/reply", parse_json(on_report_data_reply))
-    client:subscribe("/v2/"..config.device_id.."/cmd/down/request", parse_json(on_cmd_request))
-    client:subscribe("/v2/"..config.device_id.."/upgrade/down/reply", parse_json(on_upgrade_request))
-    client:subscribe("/v2/"..config.device_id.."/upgrade/down/download/reply", on_upgrade_reply)
+    client:subscribe("/v2/" .. config.device_id .. "/device/down/reply", parse_json(on_device_reply))
+    client:subscribe("/v2/" .. config.device_id .. "/subDevice/down/reply", parse_json(on_sub_device_reply))
+    client:subscribe("/v2/" .. config.device_id .. "/data/down/reply", parse_json(on_report_data_reply))
+    client:subscribe("/v2/" .. config.device_id .. "/cmd/down/request", parse_json(on_cmd_request))
+    client:subscribe("/v2/" .. config.device_id .. "/upgrade/down/reply", parse_json(on_upgrade_request))
+    client:subscribe("/v2/" .. config.device_id .. "/upgrade/down/download/reply", on_upgrade_reply)
 
     return client:open()
+end
+
+-- local errors = {}
+
+function cloud.task_event()
+
+    -- 等待网络就绪
+    iot.wait("IP_READY")
+    iot.sleep(5000)
+
+    while true do
+        local devices = gateway.get_all_device_instanse();
+
+        for id, dev in pairs(devices) do
+            local values = dev:values()
+            for k, v in pairs(values) do
+                if k:startsWith("error_") then
+                    local ks = k:split("_")
+                    if #ks == 3 then
+                        if v.value ~= v.last and v.last ~= nil then
+
+                            if v.value then
+                                -- 报警开始
+                                report_event(id, 2, ks[2], 0, nil)
+                            else
+                                -- 报警结束
+                                report_event(id, 2, ks[2], 2, nil)
+                            end
+                        end
+                        v.last = v.value
+                    end
+                end
+            end
+        end
+
+        -- 2分钟检查一次
+        iot.sleep(2 * 60 * 1000)
+    end
+
 end
 
 function cloud.task()
@@ -262,5 +302,6 @@ function cloud.task()
 end
 
 iot.start(cloud.task)
+iot.start(cloud.task_event)
 
 return cloud

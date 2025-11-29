@@ -365,7 +365,14 @@ function ModbusDevice:poll()
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
-                            self:put_value(point.name, v)
+                            if point.bits ~= nil and #point.bits > 0 then
+                                for _, b in ipairs(point.bits) do
+                                    local vv = (0x01 << b.bit) & v > 0
+                                    self.put_value(b.name, vv)
+                                end
+                            else
+                                self:put_value(point.name, v)
+                            end
                         end
                     end
                 end
@@ -376,7 +383,14 @@ function ModbusDevice:poll()
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseWord(point, data, poller.address)
                         if r then
-                            self:put_value(point.name, v)
+                            if point.bits ~= nil and #point.bits > 0 then
+                                for _, b in ipairs(point.bits) do
+                                    local vv = (0x01 << b.bit) & v > 0
+                                    self.put_value(b.name, vv)
+                                end
+                            else
+                                self:put_value(point.name, v)
+                            end
                         end
                     end
                 end
