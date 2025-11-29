@@ -240,12 +240,13 @@ function cloud.task_event()
                 if k:startsWith("error_") then
                     local ks = k:split("_")
                     if #ks == 3 then
-                        if v.value ~= v.last and v.last ~= nil then
-
-                            if v.value then
+                        if v.value then
+                            if not v.last then
                                 -- 报警开始
-                                report_event(id, 2, ks[2], 0, nil)
-                            else
+                                report_event(id, 2, ks[2], 0, nil)                                
+                            end
+                        else
+                            if v.last then
                                 -- 报警结束
                                 report_event(id, 2, ks[2], 2, nil)
                             end
