@@ -6,47 +6,47 @@
             {
                 "name":"基础数据",
                 "points":[
-                    {"le":true, "name":"Os", "label":"有功功率", "register":3, "address":"H0404", "type":"uint16"},
+                    {"be":true, "name":"Os", "label":"有功功率", "register":3, "address":"H0404", "type":"uint16"},
                     
-                    {"le":true, "name":"TempA", "label":"环境温度", "register":3, "address":"H0418", "type":"int16"},
-                    {"le":true, "name":"TempB", "label":"散热器温度", "register":3, "address":"H041A", "type":"int16"},
-                    {"le":true, "name":"TempP", "label":"模块温度", "register":3, "address":"H0420", "type":"int16"},                  
+                    {"be":true, "name":"TempA", "label":"环境温度", "register":3, "address":"H0418", "type":"int16"},
+                    {"be":true, "name":"TempB", "label":"散热器温度", "register":3, "address":"H041A", "type":"int16"},
+                    {"be":true, "name":"TempP", "label":"模块温度", "register":3, "address":"H0420", "type":"int16"},                  
 
-                    {"le":true, "name":"Tgo", "label":"总运行时间", "register":3, "address":"H0429", "type":"uint32"},
-                    {"le":true, "name":"Riso", "label":"绝缘阻抗", "register":3, "address":"H042B", "type":"uint16"},
+                    {"be":true, "name":"Tgo", "label":"总运行时间", "register":3, "address":"H0429", "type":"uint32"},
+                    {"be":true, "name":"Riso", "label":"绝缘阻抗", "register":3, "address":"H042B", "type":"uint16"},
 
-                    {"le":true, "name":"Eps_D", "label":"日发电量", "register":3, "address":"H0684", "type":"uint32", "rate":0.01},
-                    {"le":true, "name":"Eps_M", "label":"月发电量", "register":3, "address":"H069C", "type":"uint32", "rate":0.1},
-                    {"le":true, "name":"Eps_Y", "label":"年发电量", "register":3, "address":"H069E", "type":"uint32", "rate":0.1},
-                    {"le":true, "name":"Temp", "label":"机内空气温度", "register":3, "address":"H0420", "type":"uint16"},
-                    {"le":true, "name":"P", "label":"有功功率", "register":3, "address":"H0485", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Q", "label":"无功功率", "register":3, "address":"H0486", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"S", "label":"视在功率", "register":3, "address":"H0487", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"PFth", "label":"总功率因数", "register":3, "address":"H048D", "type":"uint16", "rate":0.001},
-                    {"le":true, "name":"F", "label":"电网频率", "register":3, "address":"H0484", "type":"uint16", "rate":0.01},
-                    {"le":true, "name":"Uab", "label":"AB线电压", "register":3, "address":"H04BA", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ubc", "label":"BC线电压", "register":3, "address":"H04BB", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Uca", "label":"CA线电压", "register":3, "address":"H04BC", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ua", "label":"A相电压", "register":3, "address":"H048D", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ub", "label":"B相电压", "register":3, "address":"H0498", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Uc", "label":"C相电压", "register":3, "address":"H04A3", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ia", "label":"A相电流", "register":3, "address":"H048E", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ib", "label":"B相电流", "register":3, "address":"H0499", "type":"uint16", "rate":0.1},
-                    {"le":true, "name":"Ic", "label":"C相电流", "register":3, "address":"H04A4", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Eps_D", "label":"日发电量", "register":3, "address":"H0684", "type":"uint32", "rate":0.01},
+                    {"be":true, "name":"Eps_M", "label":"月发电量", "register":3, "address":"H069C", "type":"uint32", "rate":0.1},
+                    {"be":true, "name":"Eps_Y", "label":"年发电量", "register":3, "address":"H069E", "type":"uint32", "rate":0.1},
+                    {"be":true, "name":"Temp", "label":"机内空气温度", "register":3, "address":"H0420", "type":"uint16"},
+                    {"be":true, "name":"P", "label":"有功功率", "register":3, "address":"H0485", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Q", "label":"无功功率", "register":3, "address":"H0486", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"S", "label":"视在功率", "register":3, "address":"H0487", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"PFth", "label":"总功率因数", "register":3, "address":"H048D", "type":"uint16", "rate":0.001},
+                    {"be":true, "name":"F", "label":"电网频率", "register":3, "address":"H0484", "type":"uint16", "rate":0.01},
+                    {"be":true, "name":"Uab", "label":"AB线电压", "register":3, "address":"H04BA", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ubc", "label":"BC线电压", "register":3, "address":"H04BB", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Uca", "label":"CA线电压", "register":3, "address":"H04BC", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ua", "label":"A相电压", "register":3, "address":"H048D", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ub", "label":"B相电压", "register":3, "address":"H0498", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Uc", "label":"C相电压", "register":3, "address":"H04A3", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ia", "label":"A相电流", "register":3, "address":"H048E", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ib", "label":"B相电流", "register":3, "address":"H0499", "type":"uint16", "rate":0.1},
+                    {"be":true, "name":"Ic", "label":"C相电流", "register":3, "address":"H04A4", "type":"uint16", "rate":0.1},
 
 
-                    {"le":true, "label":"组串1 电压", "register":3, "address":"H0584", "type":"uint16", "rate":0.1,"name":"Ustr1"},
-                    {"le":true, "label":"组串1 电流", "register":3, "address":"H0585", "type":"int16", "rate":0.01,"name":"Istr1"},
-                    {"le":true, "label":"组串2 电压", "register":3, "address":"H0587", "type":"uint16", "rate":0.1,"name":"Ustr2"},
-                    {"le":true, "label":"组串2 电流", "register":3, "address":"H0588", "type":"int16", "rate":0.01,"name":"Istr2"},
-                    {"le":true, "label":"组串3 电压", "register":3, "address":"H058A", "type":"uint16", "rate":0.1,"name":"Ustr3"},
-                    {"le":true, "label":"组串3 电流", "register":3, "address":"H058B", "type":"int16", "rate":0.01,"name":"Istr3"},
-                    {"le":true, "label":"组串4 电压", "register":3, "address":"H058D", "type":"uint16", "rate":0.1,"name":"Ustr4"},
-                    {"le":true, "label":"组串4 电流", "register":3, "address":"H058E", "type":"int16", "rate":0.01,"name":"Istr4"},
-                    {"le":true, "label":"总 组串 功率", "register":3, "address":"H05C4", "type":"uint16", "rate":0.1,"name":"Pdc"},
-                    {"le":true, "label":"额定功率", "register":3, "address":"H06ED", "type":"uint16", "rate":0.1,"name":"Pra"},
+                    {"be":true, "label":"组串1 电压", "register":3, "address":"H0584", "type":"uint16", "rate":0.1,"name":"Ustr1"},
+                    {"be":true, "label":"组串1 电流", "register":3, "address":"H0585", "type":"int16", "rate":0.01,"name":"Istr1"},
+                    {"be":true, "label":"组串2 电压", "register":3, "address":"H0587", "type":"uint16", "rate":0.1,"name":"Ustr2"},
+                    {"be":true, "label":"组串2 电流", "register":3, "address":"H0588", "type":"int16", "rate":0.01,"name":"Istr2"},
+                    {"be":true, "label":"组串3 电压", "register":3, "address":"H058A", "type":"uint16", "rate":0.1,"name":"Ustr3"},
+                    {"be":true, "label":"组串3 电流", "register":3, "address":"H058B", "type":"int16", "rate":0.01,"name":"Istr3"},
+                    {"be":true, "label":"组串4 电压", "register":3, "address":"H058D", "type":"uint16", "rate":0.1,"name":"Ustr4"},
+                    {"be":true, "label":"组串4 电流", "register":3, "address":"H058E", "type":"int16", "rate":0.01,"name":"Istr4"},
+                    {"be":true, "label":"总 组串 功率", "register":3, "address":"H05C4", "type":"uint16", "rate":0.1,"name":"Pdc"},
+                    {"be":true, "label":"额定功率", "register":3, "address":"H06ED", "type":"uint16", "rate":0.1,"name":"Pra"},
 
-                    {"register":3, "address":"H0405", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0405", "type":"uint16", "bits":[
                         {"label":"电网过压保护", "bit":0, "name":"error_99026_1"},
                         {"label":"电网欠压保护", "bit":1, "name":"error_99027_1"},
                         {"label":"电网过频保护", "bit":2, "name":"error_99030_1"},
@@ -66,7 +66,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H0406", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0406", "type":"uint16", "bits":[
                         {"label":"电网电流采样错误", "bit":0, "name":"error_99226_2"},
                         {"label":"DCI 采样错误(AC)", "bit":1, "name":"error_99227_2"},
                         {"label":"网压采样错误(DC)", "bit":2, "name":"error_99228_2"},
@@ -86,7 +86,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H0407", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0407", "type":"uint16", "bits":[
                         {"label":"SPI 通信错误(DC)", "bit":0, "name":"error_99242_2"},
                         {"label":"SPI 通信错误(AC)", "bit":1, "name":"error_99243_2"},
                         {"label":"芯片错误(DC)", "bit":2, "name":"error_99244_1"},
@@ -106,7 +106,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H0408", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0408", "type":"uint16", "bits":[
                         {"label":"电池温度保护", "bit":0, "name":"error_99256_1"},
                         {"label":"散热器 1 温度保护", "bit":1, "name":"error_99257_1"},
                         {"label":"散热器 2 温度保护", "bit":2, "name":"error_99258_1"},
@@ -124,7 +124,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H0409", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0409", "type":"uint16", "bits":[
                         {"label":"母线有效值不平衡", "bit":0, "name":"error_99270_1"},
                         {"label":"母线瞬时值不平衡", "bit":1, "name":"error_99271_1"},
                         {"label":"并网过程母线欠压", "bit":2, "name":"error_99272_1"},
@@ -140,7 +140,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040A", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040A", "type":"uint16", "bits":[
                         {"label":"电池过流软件保护", "bit":0, "name":"error_99282_1"},
                         {"label":"Dci 过流保护", "bit":1, "name":"error_99283_1"},
                         {"label":"输出瞬时电流保护", "bit":2, "name":"error_99284_1"},
@@ -160,7 +160,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040B", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040B", "type":"uint16", "bits":[
                         {"label":"LLC 母线硬件过压", "bit":0, "name":"error_99298_1"},
                         {"label":"逆变母线硬件过压", "bit":1, "name":"error_99299_1"},
                         {"label":"BckBst 硬件过流", "bit":2, "name":"error_99300_1"},
@@ -180,7 +180,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040C", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040C", "type":"uint16", "bits":[
                         {"label":"过温降载", "bit":0, "name":"error_99314_2"},
                         {"label":"频率降载", "bit":1, "name":"error_99315_2"},
                         {"label":"频率加载", "bit":2, "name":"error_99316_2"},
@@ -196,7 +196,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040D", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040D", "type":"uint16", "bits":[
                         {"label":"AC 硬件过流故障", "bit":0, "name":"error_99326_1"},
                         {"label":"Bus 过压故障", "bit":1, "name":"error_99327_1"},
                         {"label":"Bus 硬件过压故障", "bit":2, "name":"error_99328_1"},
@@ -216,7 +216,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040E", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040E", "type":"uint16", "bits":[
                         {"label":"USB 故障", "bit":0, "name":"error_99340_2"},
                         {"label":"WIFI 故障", "bit":1, "name":"error_99341_2"},
                         {"label":"蓝牙故障", "bit":2, "name":"error_99342_2"},
@@ -236,7 +236,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H040F", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H040F", "type":"uint16", "bits":[
                         {"label":"强制关机", "bit":0, "name":"error_99356_1"},
                         {"label":"远程关机", "bit":1, "name":"error_99357_1"},
                         {"label":"Drms0 关机", "bit":2, "name":"error_99358_1"},
@@ -253,7 +253,7 @@
                     ]},
 
 
-                    {"register":3, "address":"H0410", "type":"uint16", "bits":[
+                    {"be":true, "register":3, "address":"H0410", "type":"uint16", "bits":[
                         {"label":"BMS 过压保护", "bit":0, "name":"error_99369_1"},
                         {"label":"BMS 欠压保护", "bit":1, "name":"error_99370_1"},
                         {"label":"BMS 高温保护", "bit":2, "name":"error_99371_1"},

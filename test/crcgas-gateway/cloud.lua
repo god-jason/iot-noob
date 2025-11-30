@@ -286,6 +286,13 @@ function cloud.task()
 
     -- iot.setInterval(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
+    iot.sleep(1000)    
+    report_event("1", 2, "99026", 0, nil)    
+    iot.sleep(1000)
+    report_event("1", 2, "4", 0, nil)   
+
+
+
     while true do
 
         local devices = gateway.get_all_device_instanse();
@@ -299,6 +306,8 @@ function cloud.task()
 
         iot.sleep(60 * 1000 * (config.upload_cycle or 1)) -- 上传周期
     end
+
+    
 
 end
 

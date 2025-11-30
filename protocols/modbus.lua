@@ -368,7 +368,7 @@ function ModbusDevice:poll()
                             if point.bits ~= nil and #point.bits > 0 then
                                 for _, b in ipairs(point.bits) do
                                     local vv = (0x01 << b.bit) & v > 0
-                                    self.put_value(b.name, vv)
+                                    self:put_value(b.name, vv)
                                 end
                             else
                                 self:put_value(point.name, v)
@@ -386,7 +386,7 @@ function ModbusDevice:poll()
                             if point.bits ~= nil and #point.bits > 0 then
                                 for _, b in ipairs(point.bits) do
                                     local vv = (0x01 << b.bit) & v > 0
-                                    self.put_value(b.name, vv)
+                                    self:put_value(b.name, vv)
                                 end
                             else
                                 self:put_value(point.name, v)
@@ -667,6 +667,9 @@ function ModbusMaster:_polling()
             if not ret then
                 log.error(tag, "polling", dev.id, "error", info)
             end
+
+            -- 避免太快
+            iot.sleep(500)
 
         end
 
