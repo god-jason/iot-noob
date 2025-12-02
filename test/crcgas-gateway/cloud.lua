@@ -106,14 +106,14 @@ end
 
 -- 事件上报接口 /v2/#{deviceId}/data/up/event
 local function report_event(device_id, type, code, status, data)
-    client:publish("/v2/" .. config.device_id .. "/data/up/event", create_pack("DATA_EVENT", {{
+    client:publish("/v2/" .. config.device_id .. "/data/up/event", create_pack("DATA_EVENT", {
         subDeviceAddr = device_id,
         eventTime = os.time() * 1000,
         eventType = type, -- 1故障 2告警 3离线 4其他
         eventCode = code, -- 错误码
         eventStatus = status, -- 0开始 1中 2结束
         data = data
-    }}))
+    }))
 end
 
 -- 指令下发接口 /v2/#{deviceId}/cmd/down/request
@@ -243,12 +243,12 @@ function cloud.task_event()
                         if v.value then
                             if not v.last then
                                 -- 报警开始
-                                report_event(id, 2, ks[2], 0, nil)                                
+                                report_event(id, 2, ks[2], 0, {{code=0}})                                
                             end
                         else
                             if v.last then
                                 -- 报警结束
-                                report_event(id, 2, ks[2], 2, nil)
+                                report_event(id, 2, ks[2], 2, {{code=0}})
                             end
                         end
                         v.last = v.value
@@ -287,9 +287,9 @@ function cloud.task()
     -- iot.setInterval(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
     iot.sleep(1000)    
-    report_event("1", 2, "99026", 0, nil)    
-    iot.sleep(1000)
-    report_event("1", 2, "4", 0, nil)   
+    --report_event("1", 2, "99026", 0, {{code=0}})    
+    -- iot.sleep(1000)
+    -- report_event("1", 2, "4", 0, nil)   
 
 
 
