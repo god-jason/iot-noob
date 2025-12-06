@@ -111,14 +111,14 @@ local function calc_field(time, field, key, upper, min, max)
     local added = false
     -- 跳过年，计算 月 日 时 分 秒
     if field.every then
-        -- log.info(tag, "calc_next every", f)
+        -- log.info(tag, "calc_next every", key)
         -- 所有，不用计算了
         return false
     elseif field.mod then
         -- 计算模
-        -- log.info(tag, "calc_next mod", f)
+        -- log.info(tag, "calc_next mod", key)
         while time[key] % field.mod ~= 0 do
-            -- log.info(tag, "calc_next mod", f, tm[f])
+            -- log.info(tag, "calc_next mod", key, time[key])
             time[key] = time[key] + 1
 
             -- 越界
@@ -164,7 +164,7 @@ local function get_month_days(time)
 end
 
 local function calc_next(job, now)
-    -- log.info(tag, "calc_next()", job.crontab)
+    log.info(tag, "calc_next()", job.crontab)
 
     -- 复制当前时间，并延后1秒再执行
     local next = now + 1
@@ -174,31 +174,33 @@ local function calc_next(job, now)
     -- 迭代计算下一个时间
     while added do
 
-        local tm = os.date("!*t", next)
+        -- local tm = os.date("!*t", next)
+        local tm = os.date("*t", next)
         -- log.info(tag, "next begin", iot.json_encode(tm))
 
-        -- 先计算星期
-        added = calc_wday(tm, job.wday) or calc_field(tm, job.month, "month", "year", 1, 12) or
+        -- 逐级计算累加时间
+        added = calc_field(tm, job.sec, "sec", "min", 0, 59) or calc_field(tm, job.min, "min", "hour", 0, 59) or
+                    calc_field(tm, job.hour, "hour", "day", 0, 23) or
                     calc_field(tm, job.day, "day", "month", 1, get_month_days(tm)) or
-                    calc_field(tm, job.hour, "hour", "day", 0, 23) or calc_field(tm, job.min, "min", "hour", 0, 59) or
-                    calc_field(tm, job.sec, "sec", "min", 0, 59)
+                    calc_field(tm, job.month, "month", "year", 1, 12) or calc_wday(tm, job.wday)
+
         -- log.info(tag, "next end", iot.json_encode(tm))
 
         -- 重新计算时间
         if added then
-            next = os.time(tm)
+            next = os.time(tm) - 8 * 3600 -- 减去UTC 8小时 东八区
             -- log.info(tag, "calc_next added")
         end
     end
 
     job.next = next
 
-    log.info(tag, job.crontab, "next is", os.date("%y/%m/%d, %H:%M:%S", next))
+    log.info(tag, job.crontab, "next is", iot.json_encode(os.date("%Y-%m-%d %H:%M:%S", next)))
 end
 
 local next_time
 
-local function execute()
+function cron.execute()
     log.info(tag, "execute()")
 
     -- 找到下一个执行时间点，但后
@@ -225,7 +227,7 @@ local function execute()
         if not next_time or next_time ~= next then
             next_time = next
             log.info(tag, "wait", (next - now))
-            iot.setTimeout(execute, (next - now) * 1000)
+            iot.setTimeout(cron.execute, (next - now) * 1000)
         end
     end
 end
@@ -265,7 +267,7 @@ function cron.start(crontab, callback)
     }
     increment = increment + 1
 
-    execute() -- 强制执行一次
+    cron.execute() -- 强制执行一次
 
     return true, increment - 1
 end
@@ -276,14 +278,31 @@ function cron.stop(id)
     for k, job in pairs(jobs) do
         if job.callbacks[id] ~= nil then
             if job.count <= 1 then
-                table.remove(jobs, k)
+                -- table.remove(jobs, k)
+                jobs[k] = nil
                 break
             end
-            table.remove(job.callbacks, id)
+            --table.remove(job.callbacks, id)
+            job.callbacks[id] = nil
             job.count = job.count - 1
             break
         end
     end
+end
+
+--- 创建时钟格式的计划任务
+-- @param time 时间，支持到秒 06:00 06:00:00
+-- @param callback function
+-- @return boolean 成功与否
+-- @return integer 任务ID
+function cron.clock(time, callback)
+    local crontab = ""
+    local h, m = time:match("(%d+):(%d+)")
+    if h == nil or m == nil then
+        return false, "错误格式"
+    end
+    crontab = "0 " .. tonumber(m) .. " " .. tonumber(h) .. " * * *"
+    return cron.start(crontab, callback)
 end
 
 return cron

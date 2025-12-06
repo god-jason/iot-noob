@@ -160,10 +160,19 @@ function points.parseWord(point, data, address)
     end
 
     -- 解码数据
-    local be = point.be and ">" or "<"
+    local be = point.le and "<" or ">"
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
     local _, value = iot.unpack(buf, be .. pk)
+
+    -- 枚举
+    if point.enumerations and #point.enumerations > 0 then
+        for _, enum in ipairs(point.enumerations) do
+            if enum.index == value then
+                return true, enum.value
+            end
+        end
+    end
 
     -- 倍率
     if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
@@ -173,6 +182,7 @@ function points.parseWord(point, data, address)
     if point.correct ~= nil and point.correct ~= 0 then
         value = value + point.correct
     end
+
 
     return true, value
 end
@@ -197,10 +207,19 @@ function points.parse(point, data, address)
     end
 
     -- 解码数据
-    local be = point.be and ">" or "<"
+    local be = point.le and "<" or ">"
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
-    local _, value = iot.unpack(buf, be .. pk)
+    local _, value = iot.unpack(buf, be .. pk)    
+
+    -- 枚举
+    if point.enumerations and #point.enumerations > 0 then
+        for _, enum in ipairs(point.enumerations) do
+            if enum.index == value then
+                return true, enum.value
+            end
+        end
+    end
 
     -- 倍率
     if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
@@ -220,6 +239,16 @@ end
 -- @return boolean 成功与否
 -- @return string|nil
 function points.encode(point, value)
+
+    -- 枚举
+    if point.enumerations and #point.enumerations > 0 then
+        for _, enum in ipairs(point.enumerations) do
+            if enum.value == value then
+                value = enum.index
+            end
+        end
+    end
+
     local feagure = feagures[point.type]
     if not feagure then
         log.error(tag, "encode unkown type", point.type)
@@ -236,7 +265,7 @@ function points.encode(point, value)
         value = value / point.rate
     end
 
-    local be = point.be and ">" or "<"
+    local be = point.le and "<" or ">"
     local pk = feagure.pack
     local data = iot.pack(be .. pk, value)
     return true, data

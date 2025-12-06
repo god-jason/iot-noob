@@ -4,7 +4,9 @@ local master = {}
 
 local tag = "master"
 
+local actions = require("actions")
 local commands = require("commands")
+local settings = require("settings")
 local configs = require("configs")
 local gateway = require("gateway")
 local MqttClient = require("mqtt_client")
@@ -24,7 +26,7 @@ local default_options = {
 -- 解析JSON
 local function parse_json(callback)
     return function(topic, payload)
-        log.info(tag, "topic", topic)
+        log.info(tag, "mqtt message", topic, payload)
         local data, err = iot.json_decode(payload)
         if err then
             log.info(tag, "decode", payload, err)
@@ -82,7 +84,7 @@ local function on_command(topic, pkt)
     end
 
     if response ~= nil then
-        cloud:publish("noob/" .. options.id .. "/command/response", response)
+        cloud:publish("device/" .. options.id .. "/command/response", response)
     end
 end
 
@@ -96,7 +98,7 @@ local function on_config(topic, data)
         configs.save(cfg, data)
     elseif op == "load" then
         local config = configs.load(cfg)
-        cloud:publish("noob/" .. options.id .. "/config/" .. cfg .. "/read/response", config)
+        cloud:publish("device/" .. options.id .. "/config/" .. cfg .. "/read/response", config)
     end
 end
 
@@ -119,10 +121,49 @@ local function on_database(topic, data)
     end
 end
 
--- 上报设备信息
+-- 处理事件操作
+local function on_action(topic, data)
+    local _, _, _, _, _, action = topic:find("(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "action", action)
+
+    local handler = actions[action]
+    if type(handler) == "function" then
+        local ret, dat = handler(data)
+        cloud:publish(topic .. "/response", {
+            ok = ret,
+            data = dat
+        })
+    else
+        cloud:publish(topic .. "/response", {
+            ok = false,
+            error = "找不到响应"
+        })
+    end
+end
+
+local function on_setting(topic, data)
+    local _, _, _, _, _, setting = topic:find("(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "setting", setting)
+
+    settings.update(setting, data)
+
+    cloud:publish(topic .. "/response", {
+        ok = true
+    })
+end
+
+local function on_setting_read(topic, data)
+    local _, _, _, _, _, setting, _ = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "setting read", setting)
+    cloud:publish(topic .. "/response", settings[setting])
+end
+
+-- 上报设备信息 TODO 改为配置文件
 local function register()
-    log.info(tag, "report_info")
+    log.info(tag, "register")
     local info = {
+        id = mobile.imei(),
+        product_id = "feeder", -- 产品ID TODO 配置化
         bsp = rtos.bsp(),
         firmware = rtos.firmware(),
         imei = mobile.imei(),
@@ -130,62 +171,31 @@ local function register()
         iccid = mobile.iccid()
     }
 
-    cloud:publish("noob/" .. options.id .. "/register", info)
+    cloud:publish("device/" .. options.id .. "/register", info)
+end
+
+
+-- 变化上传
+local status = {}
+local changed = {}
+local function put_status(k, v)
+    if status[k] ~= v then
+        status[k] = v
+        changed[k] = v
+    end
 end
 
 -- 上报设备状态（周期执行）
 local function report_status()
     log.info(tag, "report_status")
 
-    local status = {
-        date = os.date("%Y-%m-%d %H:%M:%S") -- 系统时间
-    }
-
-    -- 4G信息
-    local scell = mobile.scell()
-    status.net = {
-        mcc = scell.mcc,
-        mnc = scell.mnc,
-        rssi = scell.rssi,
-        csq = mobile.csq()
-    }
-
-    -- CPU使用信息
-    status.cpu = {
-        mhz = mcu.getClk()
-    }
-
-    -- 内存使用信息
+    put_status("csq", mobile.csq())
     local total, used, top = rtos.meminfo()
-    status.mem = {
-        total = total,
-        used = used,
-        top = top
-    }
+    put_status("memory", used)
 
-    -- 文件系统使用
-    local ret, block_total, block_used, block_size = fs.fsstat()
-    if ret then
-        status.fs = {
-            total = block_total * block_size,
-            used = block_used * block_size,
-            block = block_size
-        }
-    end
-
-    -- 电池使用
-    -- local ret2, percent = battery.get()
-    -- if ret2 then
-    --     status.battery = percent
-    -- end
-
-    -- GPS定位
-    -- local ret3, location = gnss.get()
-    -- if ret2 then
-    --     status.location = location
-    -- end
-
-    cloud:publish("noob/" .. options.id .. "/status", status)
+    -- 变化上传，节省流量
+    cloud:publish("device/" .. options.id .. "/values", changed)
+    changed = {}
 end
 
 function master.open()
@@ -217,41 +227,53 @@ function master.open()
         return
     end
 
-    -- 自动注册
-    iot.on("MQTT_CONNECT_" .. cloud.id, register)
+    -- TODO 自动注册
+    -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
+    register()
+    
+    -- 在线
+    cloud:publish("device/" .. options.id .. "/online", {})
 
     -- 周期上报状态
     -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
 
     -- 订阅网关消息
-    cloud:subscribe("noob/" .. options.id .. "/pipe/start", parse_json(on_pipe_start))
-    cloud:subscribe("noob/" .. options.id .. "/pipe/stop", parse_json(on_pipe_stop))
-    cloud:subscribe("noob/" .. options.id .. "/command", parse_json(on_command))
-    cloud:subscribe("noob/" .. options.id .. "/config/+/+", parse_json(on_config))
-    cloud:subscribe("noob/" .. options.id .. "/database/+/+", parse_json(on_database))
+    cloud:subscribe("device/" .. options.id .. "/command", parse_json(on_command))
+    cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
+    cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
+    cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
+    cloud:subscribe("device/" .. options.id .. "/setting/+", parse_json(on_setting))
+    cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
 end
 
 function master.task()
-
     -- 等待网络就绪
     iot.wait("IP_READY")
 
     master.open();
-
-    log.info(tag, "master broker connected start")
+    log.info(tag, "master broker connected")
 
     register()
-    iot.setInterval(report_status, 1000 * 60) -- 10分钟上传一次状态
+
+    -- 30分钟上传一次全部数据
+    iot.setInterval(function()
+        status = {}
+    end, 10 * 60 * 1000)
 
     while true do
-        -- 上报数据？
-        -- local devices = gateway.get_all_device_instanse();
-        -- for id, dev in pairs(devices) do
-        --     -- TODO 定时上传
-        --     local values = dev.values()
-        -- end
+        report_status()
 
-        iot.sleep(60 * 1000)
+        -- 正在查看时，1秒上传一次
+        if actions.watching then
+            iot.sleep(1000)
+        else
+            -- 避免首次等10秒
+            for i = 1, 10, 1 do
+                if not actions.watching then
+                    iot.sleep(10 * 1000)
+                end
+            end
+        end
     end
 end
 

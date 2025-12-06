@@ -243,12 +243,12 @@ function cloud.task_event()
                         if v.value then
                             if not v.last then
                                 -- 报警开始
-                                report_event(id, 2, ks[2], 0, {{code=0}})                                
+                                report_event(id, 2, ks[2], 0, {{code="0"}})                                
                             end
                         else
                             if v.last then
                                 -- 报警结束
-                                report_event(id, 2, ks[2], 2, {{code=0}})
+                                report_event(id, 2, ks[2], 2, {{code="0"}})
                             end
                         end
                         v.last = v.value
@@ -287,8 +287,11 @@ function cloud.task()
     -- iot.setInterval(report_all, 1000 * 60 * 60) -- 一小时全部传一次
 
     iot.sleep(1000)    
-    --report_event("1", 2, "99026", 0, {{code=0}})    
+
+    -- report_event("1", 2, "99026", 0, {{code="0"}})    
     -- iot.sleep(1000)
+    -- report_event("1", 2, "99026", 2, {{code="0"}})  
+    -- iot.sleep(1000) 
     -- report_event("1", 2, "4", 0, nil)   
 
 
@@ -298,7 +301,7 @@ function cloud.task()
         local devices = gateway.get_all_device_instanse();
 
         for id, dev in pairs(devices) do
-            -- 1 设备上线            
+            -- 1 设备上线     
 
             -- 2 上传数据
             report_data(id, dev:values())
