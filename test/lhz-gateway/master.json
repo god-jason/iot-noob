@@ -1,0 +1,6 @@
+{
+    "id": "num001",
+    "host": "iot.njzhihangzhekj.com",
+    "port": 1883,
+    "key": "master"
+}

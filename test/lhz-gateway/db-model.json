@@ -7,10 +7,10 @@
                 "name":"基础数据",
                 "points":[
                     
-                    {"name":"TempA", "label":"A相温度", "register":3, "address":"0", "type":"int16", "rate":0.1},
-                    {"name":"TempB", "label":"B相温度", "register":3, "address":"1", "type":"int16", "rate":0.1},
-                    {"name":"TempC", "label":"C相温度", "register":3, "address":"2", "type":"int16", "rate":0.1},
-                    {"name":"TempD", "label":"D相温度", "register":3, "address":"3", "type":"int16", "rate":0.1},
+                    {"name":"tempA", "label":"A相温度", "register":3, "address":"0", "type":"int16", "rate":0.1},
+                    {"name":"tempB", "label":"B相温度", "register":3, "address":"1", "type":"int16", "rate":0.1},
+                    {"name":"tempC", "label":"C相温度", "register":3, "address":"2", "type":"int16", "rate":0.1},
+                    {"name":"tempD", "label":"D相温度", "register":3, "address":"3", "type":"int16", "rate":0.1},
                   
 
                     {"register":4, "address":"0", "type":"uint16", "bits":[

@@ -174,7 +174,6 @@ local function register()
     cloud:publish("device/" .. options.id .. "/register", info)
 end
 
-
 -- 变化上传
 local status = {}
 local changed = {}
@@ -198,13 +197,22 @@ local function report_status()
     changed = {}
 end
 
+local function report_devices()
+    local devices = gateway.get_all_device_instanse();
+    for id, dev in pairs(devices) do
+        local values = dev:values()
+
+        local data = {}
+        for k, v in pairs(values) do
+            data[k] = v.value
+        end
+        cloud:publish("device/" .. id .. "/values", data)
+    end
+end
+
 function master.open()
     -- 加载配置
     options = configs.load_default("master", default_options)
-    if not options.enable then
-        log.info(tag, "disabled")
-        return
-    end
 
     -- 默认使用IMEI号作为ID
     if not options.id or #options.id == 0 then
@@ -230,7 +238,7 @@ function master.open()
     -- TODO 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
     register()
-    
+
     -- 在线
     cloud:publish("device/" .. options.id .. "/online", {})
 
@@ -250,9 +258,11 @@ function master.task()
     -- 等待网络就绪
     iot.wait("IP_READY")
 
-    master.open();
+    master.open()
     log.info(tag, "master broker connected")
+    iot.sleep(1000)
 
+    -- 设备注册
     register()
 
     -- 30分钟上传一次全部数据
@@ -261,7 +271,12 @@ function master.task()
     end, 10 * 60 * 1000)
 
     while true do
+
+        -- 设备状态上报
         report_status()
+
+        -- 子设备数据上报
+        report_devices()
 
         -- 正在查看时，1秒上传一次
         if actions.watching then
