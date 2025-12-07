@@ -168,7 +168,8 @@ local function register()
         firmware = rtos.firmware(),
         imei = mobile.imei(),
         imsi = mobile.imsi(),
-        iccid = mobile.iccid()
+        iccid = mobile.iccid(),
+        settings = settings.timesamps, -- 配置时间戳
     }
 
     cloud:publish("device/" .. options.id .. "/register", info)
