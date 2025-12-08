@@ -7,13 +7,13 @@ local configs = require "configs"
 -- 所有参数
 local names = configs.load_default("settings", {})
 
-settings.timesamps = {}
+settings.timestamps = {}
 
 -- 加载配置
 function settings.load(name)
     local config = configs.load_default(name, {})
     settings[name] = config.data or {}
-    settings.timesamps[name] = config.timestamp or 0
+    settings.timestamps[name] = config.timestamp or 0
 end
 
 -- 加载所有配置
@@ -32,7 +32,7 @@ end
 
 -- 保存配置
 function settings.save(name)
-    settings.timesamps[name] = os.time()
+    settings.timestamps[name] = os.time()
     configs.save(name, {
         data = settings[name],
         timestamp = os.time()

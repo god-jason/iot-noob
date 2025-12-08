@@ -158,18 +158,36 @@ local function on_setting_read(topic, data)
     cloud:publish(topic .. "/response", settings[setting])
 end
 
+-- 同步表数据
+local function sync_table(col)
+    local results = {}
+    local tab = database.load(col)
+    for id, data in pairs(tab) do
+        results[id] = {
+            updated = data.updated,
+            created = data.created
+        }
+    end
+    return results
+end
+
 -- 上报设备信息 TODO 改为配置文件
 local function register()
     log.info(tag, "register")
     local info = {
         id = mobile.imei(),
-        product_id = "feeder", -- 产品ID TODO 配置化
+        product_id = options.product_id,
         bsp = rtos.bsp(),
         firmware = rtos.firmware(),
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
-        settings = settings.timesamps, -- 配置时间戳
+        settings = settings.timestamps, -- 配置时间戳
+        databases = {
+            link = sync_table("link"),
+            model = sync_table("model"),
+            device = sync_table("device")
+        }
     }
 
     cloud:publish("device/" .. options.id .. "/register", info)
@@ -198,18 +216,25 @@ local function report_status()
     changed = {}
 end
 
+-- 上报子设备数据（周期执行）
 local function report_devices()
     local devices = gateway.get_all_device_instanse();
     for id, dev in pairs(devices) do
         local values = dev:values()
 
+        local has_data = false
         local data = {}
         for k, v in pairs(values) do
             data[k] = v.value
+            has_data = true
         end
-        cloud:publish("device/" .. id .. "/values", data)
+
+        if has_data then
+            cloud:publish("device/" .. id .. "/values", data)
+        end
     end
 end
+
 
 function master.open()
     -- 加载配置

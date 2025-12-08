@@ -104,7 +104,9 @@ function MqttClient:open()
             local ret, topic, payload = iot.wait("MQTT_MESSAGE_" .. self.id, 30000)
             if ret then
                 local ts = string.split(topic, "/")
-                find_callback(self.sub_tree, ts, topic, payload)
+                --find_callback(self.sub_tree, ts, topic, payload)                
+                -- 加入异常处理，避免异常崩溃
+                pcall(find_callback, self.sub_tree, ts, topic, payload)
             end
         end
         log.info(tag, "message handling task exit")

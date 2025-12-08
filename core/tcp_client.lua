@@ -6,7 +6,7 @@ TcpClient.__index = TcpClient
 local Link = require("link")
 setmetatable(TcpClient, Link) -- 继承Link
 
-require("links").register("tcp-client", TcpClient)
+require("gateway").register("tcp-client", TcpClient)
 
 ---创建TCP实例
 -- @param opts table

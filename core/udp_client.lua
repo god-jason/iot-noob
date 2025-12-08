@@ -6,7 +6,7 @@ UdpClient.__index = UdpClient
 local Link = require("link")
 setmetatable(UdpClient, Link) -- 继承Link
 
-require("links").register("udp-client", UdpClient)
+require("gateway").register("udp-client", UdpClient)
 
 ---创建TCP实例
 -- @param opts table
