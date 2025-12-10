@@ -14,20 +14,20 @@ local database = require("database")
 local gateway = require("gateway")
 local binary = require("binary")
 
-local mapper_cache = {}
-local function load_mapper(product_id)
-    if mapper_cache[product_id] then
-        return mapper_cache[product_id]
+local model_cache = {}
+local function load_model(product_id)
+    if model_cache[product_id] then
+        return model_cache[product_id]
     end
 
-    log.info(tag, "load mapper", product_id)
+    log.info(tag, "load model", product_id)
 
     local model = database.get("model", product_id)
     if not model then
         return nil
     end
 
-    mapper_cache[product_id] = model
+    model_cache[product_id] = model
     return model
 end
 
@@ -193,7 +193,7 @@ end
 ---打开设备
 function Cjt188Device:open()
     log.info(tag, "device open", self.id, self.product_id)
-    self.mapper = load_mapper(self.product_id)
+    self.model = load_model(self.product_id)
 end
 
 ---读取数据
@@ -215,52 +215,55 @@ end
 -- @return boolean 成功与否
 function Cjt188Device:set(key, value)
     log.info(tag, "set", key, value)
-    -- self.master.read(0, 0, 0, 0)
+    
     self._values[key] = {
         value = value,
         timestamp = os.time()
     }
-end
 
----控制阀门
-function Cjt188Device:write(type, code, di, dat)
-    -- self.master:write(self.address, "50", "16", "A017", string.char(oper))
+    -- 找到点位，写入数据
+    for _, pt in ipairs(self.model.properties) do
+        for _, point in ipairs(pt.points) do
+            if point.name == key then
+                local addr = self.company .. self.address
+                -- 逆序表示的地址（阀门）
+                if pt.address_reverse then
+                    addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
+                    addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+                end
 
-    local addr = self.company .. self.address
-
-    -- 逆序表示的地址（阀门）
-    if self.mapper.address_reverse then
-        addr = binary.encodeHex(binary.reverse(binary.decodeHex(self.company)))
-        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+                self.master:write(addr, pt.type, pt.code, pt.di, value)
+            end
+        end        
     end
-
-    self.master:write(addr, type, code, di, dat)
 end
+
 
 ---读取所有数据
 -- @return boolean 成功与否
 -- @return table|nil 值
 function Cjt188Device:poll()
     log.info(tag, "poll", self.id)
-    if not self.mapper then
-        log.error(tag, "poll", self.id, "no mapper")
-        return false, "no mapper"
+    if not self.model then
+        log.error(tag, "poll", self.id, "no model")
+        return false, "no model"
     end
-    if not self.mapper.properties then
+    if not self.model.properties then
         log.error(tag, "poll", self.id, "no properties")
         return false, "no properties"
     end
 
-    local addr = self.company .. self.address
-
-    -- 逆序表示的地址（阀门）
-    if self.mapper.address_reverse then
-        addr = binary.encodeHex(binary.reverse(binary.decodeHex(self.company)))
-        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
-    end
-
-    for _, pt in pairs(self.mapper.properties) do
+    for _, pt in pairs(self.model.properties) do
         log.info(tag, "poll", pt.name, pt.type, pt.code, pt.di)
+        
+
+        local addr = pt.company .. self.address
+
+        -- 逆序表示的地址（阀门）
+        if self.model.address_reverse then
+            addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
+            addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+        end
 
         -- 读数据
         local ret, data = self.master:read(addr, pt.type or "20", pt.code or "01", pt.di)
@@ -293,19 +296,20 @@ function Cjt188Device:poll()
                             for i = 1, fmt.size do
                                 value = (value << 8) | str:byte(1)
                             end
+                            
                             -- 取位，布尔型
-                            if point.bit and point.bit > 0 then
-                                if (value >> (point.bit - 1)) & 0x01 > 0 then
-                                    value = true
-                                else
-                                    value = false
+                            if point.bits ~= nil and #point.bits > 0 then
+                                for _, b in ipairs(point.bits) do
+                                    local vv = (0x01 << b.bit) & value > 0
+                                    --取反
+                                    if b["not"] then
+                                        value = not value
+                                    end
+                                    self:put_value(b.name, vv)
                                 end
-                                --取反
-                                if point["not"] then
-                                    value = not value
-                                end
+                            else
+                                self:put_value(point.name, value)
                             end
-                            self:put_value(point.name, value)
                         elseif fmt.type == "datetime" then
                             str = binary.reverse(str)
                             value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
