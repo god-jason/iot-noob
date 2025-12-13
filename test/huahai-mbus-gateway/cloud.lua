@@ -191,7 +191,7 @@ local function report_device(dev)
     end
 
     -- 在线状态
-    if dev.product_id == "uAoFDo5MjH" then
+    if dev.model.type == "hot-meter" then
         obj.hmDeviceNum = {
             value = dev.address
         }
@@ -229,7 +229,7 @@ local function report_device(dev)
             }
         end
     end
-    if dev.product_id == "iVQhTSrPjJ" or dev.product_id == "XYhPLRJOAb" then
+    if dev.model.type == "valve" then
         obj.valveDeviceNum = {
             value = dev.address
         }
@@ -302,16 +302,24 @@ local function on_sub_property_set(topic, data)
 
     for key, value in pairs(data.params.params) do
         dev:set(key, value)
+
         -- 开阀门 特例处理
-        if key == "openControl" and dev.product_id == "iVQhTSrPjJ" then
-            dev:write("50", "16", "A017", string.char(value))
+        -- if key == "openControl" and dev.product_id == "iVQhTSrPjJ" then
+        --     dev:write("50", "16", "A017", string.char(value))
+        -- end
+
+        -- if key == "openControl" and dev.product_id == "XYhPLRJOAb" then
+        --     dev:write("55", "16", "A017", string.char(value))
+        -- end
+
+        -- 阀门 特例处理
+        if key == "openControl" then
+            dev:set("openControl", string.char(value))
         end
-        if key == "openControl" and dev.product_id == "XYhPLRJOAb" then
-            dev:write("55", "16", "A017", string.char(value))
-        end
+
         -- 采集并上传
         if key == "report" and value == true then
-            dev:poll()
+            --dev:poll()
             report_device(dev)
         end
     end
