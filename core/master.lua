@@ -18,9 +18,9 @@ local cloud = nil -- MqttClient:new()
 local options = {}
 local default_options = {
     enable = true,
-    host = "hub.busycloud.cn",
+    host = "iot.busycloud.cn",
     port = 1883,
-    key = "master"
+    key = "noob"
 }
 
 -- 解析JSON

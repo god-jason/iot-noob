@@ -1,0 +1,7 @@
+{
+    "enable": true,
+    "host": "iot.busycloud.cn",
+    "port": 1883,
+    "product_id": "crcgas-gateway",
+    "key": "crcgas"
+}

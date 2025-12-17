@@ -1,6 +1,6 @@
 -- 主程序入口
 PROJECT = "iot-noob-crcgas-gateway"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 local tag = "main"
 
 log.info(tag, PROJECT, VERSION)
@@ -20,9 +20,9 @@ end
 log.setLevel(2)
 
 -- APN卡
---mobile.apn(0, 1, "crcgasm2m.gziot", "", "", nil, 0)
+mobile.apn(0, 1, "crcgasm2m.gziot", "", "", nil, 0)
 
--- 自动识别SIM2
+-- 自动识别SIM1 2
 mobile.simid(2, true)
 
 -- 主进程
