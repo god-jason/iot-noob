@@ -269,6 +269,8 @@ function gateway.boot()
     -- 加载所有连接
     gateway.load_links()
 
+    iot.emit("GATEWAY_READY")
+
 end
 
 -- 创建设备

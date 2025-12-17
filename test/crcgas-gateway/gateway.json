@@ -8,6 +8,15 @@
             "parity": "N",
             "stop_bits": 1,
             "rs485_gpio": 1
+        },
+        {
+            "id": 2,
+            "name": "RS485-2",
+            "baud_rate": 9600,
+            "data_bits": 8,
+            "parity": "N",
+            "stop_bits": 1,
+            "rs485_gpio": 21
         }
     ]
 }

@@ -37,11 +37,11 @@ function Agent:ask(request, len)
 
     -- log.info(tag, "ask", request, len)
     if request ~= nil and #request > 0 then
-        local ret = self.link:write(request)
+        local ret, err = self.link:write(request)
         if not ret then
-            log.error(tag, "write failed")
+            log.error(tag, "write failed", err)
             self.asking = false
-            return false, "write failed"
+            return false, "write failed "
         end
     end
 

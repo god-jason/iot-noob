@@ -51,4 +51,10 @@ function Link:watch(cb)
     self.watcher = cb
 end
 
+--- 开启透传
+-- @param peer Link 对等连接
+function Link:pipe(peer)
+    self.peer = peer
+end
+
 return Link

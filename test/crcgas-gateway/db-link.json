@@ -7,7 +7,13 @@
         "port": 1,
         "timeout": 1000,
         "protocol_options":{
-            "poller_interval": 10
+            "poller_interval": 5
         }
+    },
+    "RS485-2": {
+        "id": "RS485-2",
+        "type": "serial",
+        "name": "RS485-2",
+        "port": 2
     }
 }

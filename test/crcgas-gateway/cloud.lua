@@ -33,7 +33,12 @@ local function auth()
     log.info("crcgas auth response ", ret, json.encode(headers), body)
 
     local data = json.decode(body)
-    config.device_id = data.value.devId
+    if data  ~= nil then
+        config.device_id = data.value.devId
+        return true
+    else
+        return false, "auth failed"
+    end    
 end
 
 local function create_pack(type, param)
@@ -269,10 +274,13 @@ function cloud.task()
     iot.wait("IP_READY")
 
     -- 鉴权 TODO 不用重复鉴权
-    auth()
+    local ret = auth()
+    if not ret then
+        log.info("云平台鉴权失败")
+        return
+    end
 
-    local ret = cloud.open()
-
+    cloud.open()
     -- 连接失败
     if not ret then
         log.info("连接云平台失败")
