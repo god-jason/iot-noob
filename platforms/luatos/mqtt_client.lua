@@ -85,7 +85,6 @@ function MqttClient:open()
         if event == "recv" then
             iot.emit("MQTT_MESSAGE_" .. self.id, topic, payload)
         elseif event == "conack" then
-            iot.emit("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
                 if cnt > 0 then
@@ -93,6 +92,7 @@ function MqttClient:open()
                     client:subscribe(filter)
                 end
             end
+            iot.emit("MQTT_CONNECT_" .. self.id)
         elseif event == "disconnect" then
             iot.emit("MQTT_DISCONNECT_" .. self.id)
         end

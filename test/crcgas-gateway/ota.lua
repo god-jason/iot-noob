@@ -37,8 +37,8 @@ end
 
 -- 定时自动升级, 每隔4小时自动检查一次
 -- sys.timerLoopStart(libfota2.request, 4 * 3600000, fota_cb)
-sys.timerLoopStart(fota, 4 * 3600000, fota_cb)
---sys.timerLoopStart(fota, 600000, fota_cb) -- 每10分钟检查一次
+--sys.timerLoopStart(fota, 4 * 3600000, fota_cb)
+sys.timerLoopStart(fota, 600000, fota_cb) -- 每10分钟检查一次
 
 -- 启动60秒后进行第一次升级
 sys.timerStart(fota, 10000)

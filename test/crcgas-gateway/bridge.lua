@@ -51,11 +51,11 @@ iot.start(function()
                 uart1:pipe(nil)
                 iot.sleep(pipe_timeout)
             else
-                log.info(tag, "piping, sleep briefly", remain)
+                --log.info(tag, "piping, sleep briefly", remain)
                 iot.sleep(remain)
             end
         else
-            log.info(tag, "not piping, sleep")
+            --log.info(tag, "not piping, sleep")
             iot.sleep(pipe_timeout)
         end
     end
