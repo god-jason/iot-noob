@@ -24,12 +24,12 @@ local function fota_cb(ret)
 end
 
 local function fota()
-    log.info("fota", "switch to SIM1 for fota")
+    log.info("fota", "开始升级流程")
 
     mobile.simid(1) -- 切换到SIM1进行升级
 
     -- 强制连接网关平台，下载配置和数据库
-    iot.start(master.task)
+    --iot.start(master.task)
 
     -- 避免升级失败，无返回
     sys.timerStart(fota_end, 60000)
@@ -38,6 +38,7 @@ end
 -- 定时自动升级, 每隔4小时自动检查一次
 -- sys.timerLoopStart(libfota2.request, 4 * 3600000, fota_cb)
 sys.timerLoopStart(fota, 4 * 3600000, fota_cb)
+--sys.timerLoopStart(fota, 600000, fota_cb) -- 每10分钟检查一次
 
 -- 启动60秒后进行第一次升级
 sys.timerStart(fota, 10000)

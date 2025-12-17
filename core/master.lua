@@ -261,7 +261,9 @@ function master.open()
         return
     end
 
-    -- TODO 自动注册
+    log.info(tag, "master broker connected")
+
+    -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
     register()
 
@@ -280,16 +282,14 @@ function master.open()
     cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
 end
 
+
+
 function master.task()
     -- 等待网络就绪
     iot.wait("IP_READY")
-
     master.open()
-    log.info(tag, "master broker connected")
+    
     iot.sleep(1000)
-
-    -- 设备注册
-    register()
 
     -- 30分钟上传一次全部数据
     iot.setInterval(function()

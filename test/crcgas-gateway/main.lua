@@ -1,6 +1,6 @@
 -- 主程序入口
-PROJECT = "iot-noob-crcgas-gateway"
-VERSION = "1.0.1"
+PROJECT = "crcgas-gateway"
+VERSION = "1.0.2"
 local tag = "main"
 
 log.info(tag, PROJECT, VERSION)
