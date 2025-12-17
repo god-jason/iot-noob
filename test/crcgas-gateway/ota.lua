@@ -2,7 +2,7 @@ local libfota2 = require "libfota2"
 
 
 -- 产品Key, 请根据实际产品修改
-PRODUCT_KEY = "pgHEBKHLTryaYpYAaGDUOBncHYPR9m1l"
+PRODUCT_KEY = "jqeAzhScC7ofp918QkZPe2NiFWVBQJJl"
 
 -- 固件升级结果回调函数
 local function fota_cb(ret)
