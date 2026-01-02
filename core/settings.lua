@@ -3,14 +3,11 @@
 local settings = {}
 local tag = "setting"
 
--- local timestamp_name = "settings"
-
 local configs = require "configs"
 
--- 所有参数
---local names = configs.load_default("settings", {})
 
-settings.timestamps = configs.load_default("timestamps", {})
+-- 配置版本号
+settings.versions = configs.load_default("versions", {})
 
 -- 加载配置
 function settings.load(name)
@@ -18,10 +15,10 @@ function settings.load(name)
 end
 
 -- 更新配置
-function settings.update(name, cfg)
-    settings.timestamps[name] = os.time()
-    settings[name] = cfg
-    configs.save(name, cfg)
+function settings.update(name, content, version)
+    settings[name] = content
+    settings.versions[name] = version
+    configs.save(name, content)
 end
 
 -- 保存配置

@@ -142,10 +142,7 @@ local function on_action(topic, data)
 end
 
 local function on_setting(topic, data)
-    local _, _, _, _, _, setting = topic:find("(.+)/(.+)/(.+)/(.+)")
-    log.info(tag, "setting", setting)
-
-    settings.update(setting, data)
+    settings.update(data.name, data.content, data.version)
 
     cloud:publish(topic .. "/response", {
         ok = true
@@ -182,7 +179,7 @@ local function register()
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
-        settings = settings.timestamps, -- 配置时间戳
+        settings = settings.versions,
         databases = {
             link = sync_table("link"),
             model = sync_table("model"),
@@ -278,7 +275,7 @@ function master.open()
     cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
     cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
     cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
-    cloud:subscribe("device/" .. options.id .. "/setting/+", parse_json(on_setting))
+    cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
     cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
 end
 
