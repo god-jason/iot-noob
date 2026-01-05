@@ -162,7 +162,8 @@ local function sync_table(col)
     for id, data in pairs(tab) do
         results[id] = {
             updated = data.updated,
-            created = data.created
+            created = data.created,
+            product_id = data.product_id
         }
     end
     return results
