@@ -1,8 +1,8 @@
 {
     "broker": "nyiot.xazhny.com",
     "port": 1883,
-    "product_id": "jS3X9RdDra",
-    "device_name": "JQC-OV-QDQ-ZLL-1-1",
-    "device_key": "E3sKEobFXEXJfus/GzHiS2LQeFOF89j6E5jn7xmBxfo=",
+    "product_id": "i8VKuhPT2r",
+    "device_name": "hub-001",
+    "device_key": "p7c7a6AXtQEGhklOQRDRJj2/5VbLir4Gv6UOGMmHTv0=",
     "cycle_upload": 10
 }

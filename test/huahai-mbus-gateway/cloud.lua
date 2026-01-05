@@ -191,7 +191,7 @@ local function report_device(dev)
     end
 
     -- 在线状态
-    if dev.model.type == "hot-meter" then
+    if dev.model and dev.model.type == "hot-meter" then
         obj.hmDeviceNum = {
             value = dev.address
         }
@@ -229,7 +229,7 @@ local function report_device(dev)
             }
         end
     end
-    if dev.model.type == "valve" then
+    if dev.model and dev.model.type == "valve" then
         obj.valveDeviceNum = {
             value = dev.address
         }

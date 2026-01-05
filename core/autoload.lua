@@ -9,12 +9,15 @@ local tag = "autoload"
 function autoload.load(name)
     log.info(tag, "load", name)
 
-    -- 使用pcall 避免异常退出
-    local ret, info = pcall(require, name)
-    if not ret then
-        log.error(tag, name, info)
+    if RELEASE then
+        -- 使用pcall 避免异常退出
+        local ret, info = pcall(require, name)
+        if not ret then
+            log.error(tag, name, info)
+        end
+    else
+        require(name)
     end
-
     -- iot.sleep(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end
 

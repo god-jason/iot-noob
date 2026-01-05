@@ -176,6 +176,7 @@ local function register()
         product_id = options.product_id,
         bsp = rtos.bsp(),
         firmware = rtos.firmware(),
+        version = VERSION,
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
@@ -260,6 +261,14 @@ function master.open()
 
     log.info(tag, "master broker connected")
 
+    -- 订阅网关消息
+    cloud:subscribe("device/" .. options.id .. "/command", parse_json(on_command))
+    cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
+    cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
+    cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
+    cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
+    cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
+
     -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
     register()
@@ -269,24 +278,16 @@ function master.open()
 
     -- 周期上报状态
     -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
-
-    -- 订阅网关消息
-    cloud:subscribe("device/" .. options.id .. "/command", parse_json(on_command))
-    cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
-    cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
-    cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
-    cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
-    cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
 end
-
-
 
 function master.task()
     -- 等待网络就绪
     iot.wait("IP_READY")
+
     master.open()
-    
-    iot.sleep(1000)
+    log.info(tag, "master broker connected")
+
+
 
     -- 30分钟上传一次全部数据
     iot.setInterval(function()

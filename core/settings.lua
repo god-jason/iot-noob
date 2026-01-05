@@ -1,5 +1,5 @@
---- 对配置文件的封装，增加了时间戳，方便同步
--- @module database
+--- 对配置文件的封装，增加了版本号，方便同步
+-- @module settings
 local settings = {}
 local tag = "setting"
 
@@ -16,9 +16,18 @@ end
 
 -- 更新配置
 function settings.update(name, content, version)
+    -- 保存配置
     settings[name] = content
-    settings.versions[name] = version
     configs.save(name, content)
+
+    -- 更新版本
+    if version ~= nil then
+        settings.versions[name] = version
+    elseif settings.versions[name] ~= nil then
+        settings.versions[name] = settings.versions[name] + 1 -- 自增版本号
+    end
+    configs.save("versions", settings.versions)
+
 end
 
 -- 保存配置

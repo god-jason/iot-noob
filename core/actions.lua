@@ -2,6 +2,8 @@ local actions = {}
 
 local tag = "actions"
 
+local database = require "database"
+
 
 actions.watching = false
 
@@ -27,5 +29,23 @@ function actions.watch(data)
     return true
 end
 
+
+-- 清除数据
+function actions.reset()
+    log.info(tag, "清除数据")
+    database.clear("device")
+    database.clear("model")
+
+    iot.setTimeout(iot.reboot, 2000)
+    return true
+end
+
+
+-- 重启设备
+function actions.reboot()
+    iot.emit("device_log", "重启设备")
+    rtos.reboot()
+    return true
+end
 
 return actions
