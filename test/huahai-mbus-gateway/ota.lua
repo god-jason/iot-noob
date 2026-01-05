@@ -3,10 +3,6 @@ local libfota2 = require "libfota2"
 -- 产品Key, 请根据实际产品修改
 PRODUCT_KEY = "ig4SKehs2IWsas9eQvWNJtJ5EtpHJHpu"
 
-PROJECT = "huahai-mbus-gateway"
-VERSION = "1.0.3"
-
-
 local function fota_cb(ret)
     log.info("fota", ret)
     if ret == 0 then
