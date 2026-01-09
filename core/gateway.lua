@@ -25,12 +25,14 @@ local options = {}
 -- @param id string 设备ID
 -- @param dev Device 子类实例
 function gateway.register_device_instanse(id, dev)
+    log.info(tag, "register device", id, dev)
     gateway.devices[id] = dev
 end
 
 --- 反注册设备实例
 -- @param id string 设备ID
 function gateway.unregister_device_instanse(id)
+    log.info(tag, "unregister device", id)
     table.remove(gateway.devices, id)
 end
 

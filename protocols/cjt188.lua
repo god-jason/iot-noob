@@ -224,29 +224,42 @@ end
 -- @return boolean 成功与否
 function Cjt188Device:set(key, value)
     log.info(tag, "set", key, value)
-    
+
     self._values[key] = {
         value = value,
         timestamp = os.time()
     }
 
+    -- 转换数据格式
+    if type(value) == "boolean" then
+        if value then
+            value = string.char(1)
+        else
+            value = string.char(0)
+        end
+    end
+    if type(value) == "number" then
+        value = string.char(value)
+    end
+
     -- 找到点位，写入数据
     for _, pt in ipairs(self.model.properties) do
-        for _, point in ipairs(pt.points) do
-            if point.name == key then
-                local addr = self.company .. self.address
-                -- 逆序表示的地址（阀门）
-                if pt.address_reverse then
-                    addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
-                    addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
-                end
+        if pt.writable then
+            for _, point in ipairs(pt.points) do
+                if point.name == key then
+                    local addr = pt.company .. self.address
+                    -- 逆序表示的地址（阀门）
+                    if pt.address_reverse then
+                        addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
+                        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+                    end
 
-                self.master:write(addr, pt.type, pt.code, pt.di, value)
+                    self.master:write(addr, pt.type, pt.code, pt.di, value)
+                end
             end
-        end        
+        end
     end
 end
-
 
 ---读取所有数据
 -- @return boolean 成功与否
@@ -263,102 +276,104 @@ function Cjt188Device:poll()
     end
 
     for _, pt in pairs(self.model.properties) do
-        log.info(tag, "poll", pt.name, pt.type, pt.code, pt.di)
-        
+        if not pt.writable then
 
-        local addr = pt.company .. self.address
+            log.info(tag, "poll", pt.name, pt.type, pt.code, pt.di)
 
-        -- 逆序表示的地址（阀门）
-        if self.model.address_reverse then
-            addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
-            addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
-        end
+            local addr = pt.company .. self.address
 
-        -- 读数据
-        local ret, data = self.master:read(addr, pt.type or "20", pt.code or "01", pt.di)
-        log.info(tag, "poll read", ret, data)
-        if ret then
-            log.info(tag, "poll parse", binary.encodeHex(data))
+            -- 逆序表示的地址（阀门）
+            if pt.address_reverse then
+                addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
+                addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+            end
 
-            for _, point in ipairs(pt.points) do
-                local fmt = types[point.type]
-                if fmt then
-                    if #data > point.address then
-                        local str = data:sub(point.address + 1, point.address + fmt.size)
-                        log.info(tag, "poll decode", point.name, point.label, fmt.type, binary.encodeHex(str), str)
+            -- 读数据
+            local ret, data = self.master:read(addr, pt.type or "20", pt.code or "01", pt.di)
+            log.info(tag, "poll read", ret, data)
+            if ret then
+                log.info(tag, "poll parse", binary.encodeHex(data))
 
-                        local value
-                        if fmt.type == "bcd" then
-                            str = binary.reverse(str)
-                            value = binary.decodeBCD(fmt.size, str)
-                            if point.hasUnit then
-                                local unit = data:byte(point.address + fmt.size + 1)
-                                log.info(tag, "data unit", point.name, value, units[unit])
-                                value = unit_convert(unit, value)
-                            end
-                            if fmt.rate then
-                                value = value * fmt.rate
-                            end
-                            self:put_value(point.name, value)
-                        elseif fmt.type == "hex" then
-                            value = 0
-                            for i = 1, fmt.size do
-                                value = (value << 8) | str:byte(1)
-                            end
-                            
-                            -- 取位，布尔型
-                            if point.bits ~= nil and #point.bits > 0 then
-                                for _, b in ipairs(point.bits) do
-                                    local vv = (0x01 << b.bit) & value > 0
-                                    --取反
-                                    if b["not"] then
-                                        value = not value
-                                    end
-                                    self:put_value(b.name, vv)
+                for _, point in ipairs(pt.points) do
+                    local fmt = types[point.type]
+                    if fmt then
+                        if #data > point.address then
+                            local str = data:sub(point.address + 1, point.address + fmt.size)
+                            log.info(tag, "poll decode", point.name, point.label, fmt.type, binary.encodeHex(str), str)
+
+                            local value
+                            if fmt.type == "bcd" then
+                                str = binary.reverse(str)
+                                value = binary.decodeBCD(fmt.size, str)
+                                if point.hasUnit then
+                                    local unit = data:byte(point.address + fmt.size + 1)
+                                    log.info(tag, "data unit", point.name, value, units[unit])
+                                    value = unit_convert(unit, value)
                                 end
-                            else
+                                if fmt.rate then
+                                    value = value * fmt.rate
+                                end
                                 self:put_value(point.name, value)
+                            elseif fmt.type == "hex" then
+                                value = 0
+                                for i = 1, fmt.size do
+                                    value = (value << 8) | str:byte(1)
+                                end
+
+                                -- 取位，布尔型
+                                if point.bits ~= nil and #point.bits > 0 then
+                                    for _, b in ipairs(point.bits) do
+                                        local vv = (0x01 << b.bit) & value > 0
+                                        -- 取反
+                                        if b["not"] then
+                                            value = not value
+                                        end
+                                        self:put_value(b.name, vv)
+                                    end
+                                else
+                                    self:put_value(point.name, value)
+                                end
+                            elseif fmt.type == "datetime" then
+                                str = binary.reverse(str)
+                                value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
+                                self:put_value(point.name, value)
+                            elseif fmt.type == "date" then
+                                str = binary.reverse(str)
+                                value = binary.encodeHex(str) -- 字符串 YYYYMMDD
+                                self:put_value(point.name, value)
+                            elseif fmt.type == "datetime6" then
+                                str = binary.reverse(str)
+                                value = "20" .. binary.encodeHex(str) -- 字符串
+                            elseif fmt.type == "datetime5" then
+                                str = binary.reverse(str)
+                                value = "20" .. binary.encodeHex(str) .. "00" -- 字符串
+                            elseif fmt.type == "u8" then
+                                value = str:byte(1)
+                                if fmt.rate then
+                                    value = value * fmt.rate
+                                end
+                                if point.rate then
+                                    value = value * point.rate
+                                end
+                                self:put_value(point.name, value)
+                            elseif fmt.type == "u16" then
+                                _, value = iot.unpack(str, "<H")
+                                if fmt.rate then
+                                    value = value * fmt.rate
+                                end
+                                if point.rate then
+                                    value = value * point.rate
+                                end
+                                self:put_value(point.name, value)
+                            else
+                                log.error(tag, "poll", self.id, "unknown format type", fmt.type)
                             end
-                        elseif fmt.type == "datetime" then
-                            str = binary.reverse(str)
-                            value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
-                            self:put_value(point.name, value)
-                        elseif fmt.type == "date" then
-                            str = binary.reverse(str)
-                            value = binary.encodeHex(str) -- 字符串 YYYYMMDD
-                            self:put_value(point.name, value)
-                        elseif fmt.type == "datetime6" then
-                            str = binary.reverse(str)
-                            value = "20" .. binary.encodeHex(str) -- 字符串
-                        elseif fmt.type == "datetime5" then
-                            str = binary.reverse(str)
-                            value = "20" .. binary.encodeHex(str) .. "00" -- 字符串
-                        elseif fmt.type == "u8" then
-                            value = str:byte(1)
-                            if fmt.rate then
-                                value = value * fmt.rate
-                            end
-                            if point.rate then
-                                value = value * point.rate
-                            end
-                            self:put_value(point.name, value)
-                        elseif fmt.type == "u16" then
-                            _, value = iot.unpack(str, "<H")
-                            if fmt.rate then
-                                value = value * fmt.rate
-                            end
-                            if point.rate then
-                                value = value * point.rate
-                            end
-                            self:put_value(point.name, value)
                         else
-                            log.error(tag, "poll", self.id, "unknown format type", fmt.type)
+                            log.error(tag, "poll", self.id, "data too short", #data, point.address)
                         end
                     else
-                        log.error(tag, "poll", self.id, "data too short", #data, point.address)
+                        log.error(tag, "poll", self.id, "unknown format", point.type)
                     end
-                else
-                    log.error(tag, "poll", self.id, "unknown format", point.type)
                 end
             end
         end
@@ -387,7 +402,7 @@ function Cjt188Master:new(link, opts)
     master.timeout = opts.timeout or 2000
     master.agent = Agent:new(link, master.timeout)
     master.poller_interval = opts.poller_interval or 10
-    master.increment = 1
+    master.increment = 0
 
     return master
 end
@@ -411,8 +426,8 @@ function Cjt188Master:ask(addr, type, code, di, data)
     frame = frame .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
     frame = frame .. binary.decodeHex(code or "01") .. string.char(dl) -- 控制符，长度
     frame = frame .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
-    self.increment = (self.increment + 1) % 256
     frame = frame .. iot.pack("b1", self.increment) -- 序号
+    self.increment = (self.increment + 1) % 256
     if data and #data > 0 then
         frame = frame .. data
     end

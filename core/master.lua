@@ -216,7 +216,7 @@ local function report_status()
 end
 
 -- 上报子设备数据（周期执行）
-local function report_devices()
+local function report_sub_devices()
     local devices = gateway.get_all_device_instanse();
     for id, dev in pairs(devices) do
         local values = dev:values()
@@ -234,6 +234,102 @@ local function report_devices()
     end
 end
 
+local function report_sub_devices_status()
+    local devices = gateway.get_all_device_instanse();
+    for id, dev in pairs(devices) do
+        -- local values = dev:values()
+        -- local has_data = false
+        -- for k, v in pairs(values) do
+        --     has_data = true
+        -- end
+        -- if has_data then
+        --     cloud:publish("device/" .. id .. "/online", nil)
+        -- end
+        cloud:publish("device/" .. id .. "/online", nil)
+    end
+end
+
+-- 设备写请求
+local function on_write(topic, data)
+    local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
+    log.info(tag, "on_write", id, data)
+    local dev = gateway.get_device_instanse(id)
+    if dev then
+        for k, v in pairs(data) do
+            dev:set(k, v)
+        end
+    end
+end
+
+-- 子设备写请求
+local function on_sub_write(topic, data)
+    local _, _, _, id, _, sub, _ = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "on_sub_write", id, sub, data)
+    local dev = gateway.get_device_instanse(sub)
+    if dev then
+        for k, v in pairs(data) do
+            dev:set(k, v)
+        end
+    end
+end
+
+-- 设备读请求
+local function on_read(topic, data)
+    local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
+    log.info(tag, "on_read", id, data)
+    local dev = gateway.get_device_instanse(id)
+    if dev then
+        local results = {}
+        for _, k in ipairs(data) do
+            local v = dev:get(k)
+            results[k] = v
+        end
+        cloud:publish("device/" .. id .. "/read/response", results)
+    end
+end
+
+-- 子设备读请求
+local function on_sub_read(topic, data)
+    local _, _, _, id, _, sub, _ = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "on_sub_read", id, sub, data)
+    local dev = gateway.get_device_instanse(sub)
+    if dev then
+        local results = {}
+        for _, k in ipairs(data) do
+            local v = dev:get(k)
+            results[k] = v
+        end
+        cloud:publish("device/" .. sub .. "/read/response", results)
+    end
+end
+
+-- 设备同步请求
+local function on_sync(topic, data)
+    local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
+    log.info(tag, "on_sync", id)
+    local dev = gateway.get_device_instanse(id)
+    if dev then
+        dev:poll()
+    end
+end
+
+-- 子设备同步请求
+local function on_sub_sync(topic, data)
+    local _, _, _, id, _, sub, _ = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "on_sub_sync", id, sub)
+    local dev = gateway.get_device_instanse(sub)
+    if dev then
+        dev:poll(data)
+    end
+end
+
+local function on_sub_action(topic, data)
+    local _, _, _, id, _, sub, _, action = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)/(.+)/(.+)")
+    log.info(tag, "sub action", sub, action)
+
+    -- TODO 子设备操作
+
+end
 
 function master.open()
     -- 加载配置
@@ -266,7 +362,14 @@ function master.open()
     cloud:subscribe("device/" .. options.id .. "/command", parse_json(on_command))
     cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
     cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
+    cloud:subscribe("device/" .. options.id .. "/write", parse_json(on_write))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/write", parse_json(on_sub_write))
+    cloud:subscribe("device/" .. options.id .. "/read", parse_json(on_read))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/read", parse_json(on_sub_read))
+    cloud:subscribe("device/" .. options.id .. "/sync", parse_json(on_sync))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/sync", parse_json(on_sub_sync))
     cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/action/+", parse_json(on_sub_action))
     cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
     cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
 
@@ -288,12 +391,14 @@ function master.task()
     master.open()
     log.info(tag, "master broker connected")
 
-
-
     -- 30分钟上传一次全部数据
     iot.setInterval(function()
         status = {}
     end, 10 * 60 * 1000)
+
+    report_sub_devices_status()
+
+    iot.setInterval(report_sub_devices_status, 10 * 60 * 1000) -- 10分钟 上传一次子设备状态
 
     while true do
 
@@ -301,16 +406,16 @@ function master.task()
         report_status()
 
         -- 子设备数据上报
-        report_devices()
+        report_sub_devices()
 
         -- 正在查看时，1秒上传一次
         if actions.watching then
             iot.sleep(1000)
         else
-            -- 避免首次等10秒
-            for i = 1, 10, 1 do
+            -- 避免首次等60秒
+            for i = 1, 60, 1 do
                 if not actions.watching then
-                    iot.sleep(10 * 1000)
+                    iot.sleep(1000)
                 end
             end
         end

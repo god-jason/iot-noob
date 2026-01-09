@@ -1,6 +1,6 @@
 -- 主程序入口
 PROJECT = "huahai-mbus-gateway"
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 local tag = "main"
 
