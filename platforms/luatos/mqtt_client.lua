@@ -73,7 +73,7 @@ function MqttClient:open()
 
     self.client:keepalive(self.options.keepalive or 240) -- 默认值240s
 
-    self.client:autoreconn(true, 5000) -- 自动重连机制
+    self.client:autoreconn(true, self.reconnect_timeout or 5000) -- 自动重连机制 ms
 
     if self.options.will ~= nil then
         self.client:will(self.options.will.topic, self.options.will.payload)
@@ -85,6 +85,7 @@ function MqttClient:open()
         if event == "recv" then
             iot.emit("MQTT_MESSAGE_" .. self.id, topic, payload)
         elseif event == "conack" then
+            iot.emit("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
                 if cnt > 0 then
@@ -92,7 +93,6 @@ function MqttClient:open()
                     client:subscribe(filter)
                 end
             end
-            iot.emit("MQTT_CONNECT_" .. self.id)
         elseif event == "disconnect" then
             iot.emit("MQTT_DISCONNECT_" .. self.id)
         end
@@ -104,9 +104,15 @@ function MqttClient:open()
             local ret, topic, payload = iot.wait("MQTT_MESSAGE_" .. self.id, 30000)
             if ret then
                 local ts = string.split(topic, "/")
-                --find_callback(self.sub_tree, ts, topic, payload)                
-                -- 加入异常处理，避免异常崩溃
-                pcall(find_callback, self.sub_tree, ts, topic, payload)
+                if RELEASE then
+                    -- 加入异常处理，避免异常崩溃
+                    local ret, info = pcall(find_callback, self.sub_tree, ts, topic, payload)
+                    if not ret then
+                        iot.emit("error", info)
+                    end
+                else
+                    find_callback(self.sub_tree, ts, topic, payload)
+                end
             end
         end
         log.info(tag, "message handling task exit")
@@ -199,6 +205,7 @@ function MqttClient:unsubscribe(filter, cb)
     -- 取消订阅
     if self.subs[filter] ~= nil then
         if cb == nil then
+            self.subs[filter] = 0
             self.client:unsubscribe(filter)
         else
             self.subs[filter] = self.subs[filter] - 1

@@ -313,9 +313,9 @@ local function on_sub_property_set(topic, data)
         -- end
 
         -- 阀门 特例处理
-        if key == "openControl" then
-            dev:set("openControl", string.char(value))
-        end
+        -- if key == "openControl" then
+        --     dev:set("openControl", string.char(value))
+        -- end
 
         -- 采集并上传
         if key == "report" and value == true then

@@ -145,6 +145,11 @@ local types = {
         type = "bcd",
         size = 2
     },
+    ["XX.XX"] = {
+        type = "bcd",
+        size = 2,
+        rate = 0.01
+    },
     ["XX"] = {
         type = "bcd",
         size = 1
@@ -164,6 +169,10 @@ local types = {
     ["YYMMDDhhmmss"] = {
         type = "datetime6",
         size = 6
+    },
+    ["YYMMDDhhmm"] = {
+        type = "datetime5",
+        size = 5
     },
     ["YYYYMMDD"] = {
         type = "date",
@@ -321,6 +330,9 @@ function Cjt188Device:poll()
                         elseif fmt.type == "datetime6" then
                             str = binary.reverse(str)
                             value = "20" .. binary.encodeHex(str) -- 字符串
+                        elseif fmt.type == "datetime5" then
+                            str = binary.reverse(str)
+                            value = "20" .. binary.encodeHex(str) .. "00" -- 字符串
                         elseif fmt.type == "u8" then
                             value = str:byte(1)
                             if fmt.rate then
