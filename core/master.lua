@@ -343,7 +343,7 @@ function master.open()
 
     -- 生成秘钥， username:imei, password:md5(imei+date+key)
     -- local date = os.date("%Y-%m-%d") -- 系统可能还没获取到正确的时间
-    options.clienid = options.id
+    options.clientid = options.id
     options.username = options.id
     options.password = crypto.md5(options.id .. options.key)
 
