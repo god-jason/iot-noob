@@ -117,11 +117,15 @@ local feagures = {
 function points.findEnumIndex(point, value)
     if point.enumerations and #point.enumerations > 0 then
         for _, enum in ipairs(point.enumerations) do
-            if value == true and enum.value == "true"then
-                return true, enum.index
-            end            
-            if value == false and enum.value == "false" then
-                return true, enum.index
+            if enum.value == "true" then
+                if value == true or value == 1 then
+                    return true, enum.index
+                end
+            end
+            if enum.value == "false" then
+                if value == false or value == 0 then
+                    return true, enum.index
+                end
             end
             if enum.value == value then
                 return true, enum.index

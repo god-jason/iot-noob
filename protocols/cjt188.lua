@@ -231,18 +231,6 @@ function Cjt188Device:set(key, value)
         timestamp = os.time()
     }
 
-    -- 转换数据格式
-    if type(value) == "boolean" then
-        if value then
-            value = string.char(1)
-        else
-            value = string.char(0)
-        end
-    end
-    if type(value) == "number" then
-        value = string.char(value)
-    end
-
     -- 找到点位，写入数据
     for _, pt in ipairs(self.model.properties) do
         if pt.writable then
@@ -251,6 +239,18 @@ function Cjt188Device:set(key, value)
 
                     -- 枚举
                     _, value = points.findEnumIndex(point, value)
+
+                    -- 转换数据格式
+                    if type(value) == "boolean" then
+                        if value then
+                            value = string.char(1)
+                        else
+                            value = string.char(0)
+                        end
+                    end
+                    if type(value) == "number" then
+                        value = string.char(value)
+                    end
 
                     local addr = pt.company .. self.address
                     -- 逆序表示的地址（阀门）
