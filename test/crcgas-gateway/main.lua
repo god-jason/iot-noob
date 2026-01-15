@@ -1,6 +1,6 @@
 -- 主程序入口
 PROJECT = "crcgas-gateway"
-VERSION = "1.0.2"
+VERSION = "1.0.4" -- 2026-1-14
 local tag = "main"
 
 log.info(tag, PROJECT, VERSION)

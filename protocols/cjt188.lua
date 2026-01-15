@@ -13,6 +13,7 @@ setmetatable(Cjt188Device, Device) -- 继承Device
 local database = require("database")
 local gateway = require("gateway")
 local binary = require("binary")
+local points = require("points")
 
 local model_cache = {}
 local function load_model(product_id)
@@ -247,6 +248,10 @@ function Cjt188Device:set(key, value)
         if pt.writable then
             for _, point in ipairs(pt.points) do
                 if point.name == key then
+
+                    -- 枚举
+                    _, value = points.findEnumIndex(point, value)
+
                     local addr = pt.company .. self.address
                     -- 逆序表示的地址（阀门）
                     if pt.address_reverse then
@@ -331,6 +336,7 @@ function Cjt188Device:poll()
                                         self:put_value(b.name, vv)
                                     end
                                 else
+                                    _, value = points.findEnumValue(point, value) -- 枚举
                                     self:put_value(point.name, value)
                                 end
                             elseif fmt.type == "datetime" then
@@ -355,6 +361,7 @@ function Cjt188Device:poll()
                                 if point.rate then
                                     value = value * point.rate
                                 end
+                                _, value = points.findEnumValue(point, value) -- 枚举
                                 self:put_value(point.name, value)
                             elseif fmt.type == "u16" then
                                 _, value = iot.unpack(str, "<H")
@@ -364,6 +371,7 @@ function Cjt188Device:poll()
                                 if point.rate then
                                     value = value * point.rate
                                 end
+                                _, value = points.findEnumValue(point, value) -- 枚举
                                 self:put_value(point.name, value)
                             else
                                 log.error(tag, "poll", self.id, "unknown format type", fmt.type)

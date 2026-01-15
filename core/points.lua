@@ -113,6 +113,30 @@ local feagures = {
     }
 }
 
+-- 查找枚举索引
+function points.findEnumIndex(point, value)
+    if point.enumerations and #point.enumerations > 0 then
+        for _, enum in ipairs(point.enumerations) do
+            if enum.value == value then
+                return true, enum.index
+            end
+        end
+    end
+    return false, value
+end
+
+-- 查找枚举值
+function points.findEnumValue(point, value)
+    if point.enumerations and #point.enumerations > 0 then
+        for _, enum in ipairs(point.enumerations) do
+            if enum.index == value then
+                return true, enum.value
+            end
+        end
+    end
+    return false, value
+end
+
 ---点位信息
 -- @param type string 点位类型
 -- @return table
@@ -127,7 +151,7 @@ end
 -- @return boolean
 -- @return any
 function points.parseBit(point, data, address)
-    --log.info(tag, "parseBit", point, #data, address)
+    -- log.info(tag, "parseBit", point, #data, address)
     local offset = point.address - address
     local cursor = math.floor(offset / 8) + 1
     if #data <= cursor then
@@ -146,7 +170,7 @@ end
 -- @return boolean
 -- @return any
 function points.parseWord(point, data, address)
-    --log.info(tag, "parseWord", point.name, point.address, #data, address)
+    -- log.info(tag, "parseWord", point.name, point.address, #data, address)
     local feagure = feagures[point.type]
     if not feagure then
         log.error(tag, "parseWord unkown type", point.type)
@@ -166,12 +190,10 @@ function points.parseWord(point, data, address)
     local _, value = iot.unpack(buf, be .. pk)
 
     -- 枚举
-    if point.enumerations and #point.enumerations > 0 then
-        for _, enum in ipairs(point.enumerations) do
-            if enum.index == value then
-                return true, enum.value
-            end
-        end
+    local ret
+    ret, value = points.findEnumValue(point, value)
+    if ret then
+        return true, value
     end
 
     -- 倍率
@@ -182,7 +204,6 @@ function points.parseWord(point, data, address)
     if point.correct ~= nil and point.correct ~= 0 then
         value = value + point.correct
     end
-
 
     return true, value
 end
@@ -210,15 +231,14 @@ function points.parse(point, data, address)
     local be = point.le and "<" or ">"
     local pk = feagure.pack
     local buf = string.sub(data, cursor)
-    local _, value = iot.unpack(buf, be .. pk)    
+    local _, value = iot.unpack(buf, be .. pk)
 
     -- 枚举
-    if point.enumerations and #point.enumerations > 0 then
-        for _, enum in ipairs(point.enumerations) do
-            if enum.index == value then
-                return true, enum.value
-            end
-        end
+    -- 枚举
+    local ret
+    ret, value = points.findEnumValue(point, value)
+    if ret then
+        return true, value
     end
 
     -- 倍率
@@ -239,30 +259,26 @@ end
 -- @return boolean 成功与否
 -- @return string|nil
 function points.encode(point, value)
-
-    -- 枚举
-    if point.enumerations and #point.enumerations > 0 then
-        for _, enum in ipairs(point.enumerations) do
-            if enum.value == value then
-                value = enum.index
-            end
-        end
-    end
-
     local feagure = feagures[point.type]
     if not feagure then
         log.error(tag, "encode unkown type", point.type)
         return false
     end
 
-    -- 校准
-    if point.correct ~= nil and point.correct ~= 0 then
-        value = value - point.correct
-    end
+    -- 枚举
+    local ret
+    ret, value = points.findEnumIndex(point, value)
 
-    -- 倍率
-    if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
-        value = value / point.rate
+    -- 非枚举
+    if not ret then
+        -- 校准
+        if point.correct ~= nil and point.correct ~= 0 then
+            value = value - point.correct
+        end
+        -- 倍率
+        if point.rate ~= nil and point.rate ~= 0 and point.rate ~= 1 then
+            value = value / point.rate
+        end
     end
 
     local be = point.le and "<" or ">"
