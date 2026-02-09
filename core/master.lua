@@ -209,6 +209,7 @@ local function report_status()
     put_status("csq", mobile.csq())
     local total, used, top = rtos.meminfo()
     put_status("memory", used)
+    put_status("version", VERSION)
 
     -- 变化上传，节省流量
     cloud:publish("device/" .. options.id .. "/values", changed)
@@ -234,18 +235,26 @@ local function report_sub_devices()
     end
 end
 
+-- 定时上报状态
 local function report_sub_devices_status()
+    local now = os.time()
+
     local devices = gateway.get_all_device_instanse();
     for id, dev in pairs(devices) do
-        -- local values = dev:values()
-        -- local has_data = false
-        -- for k, v in pairs(values) do
-        --     has_data = true
-        -- end
-        -- if has_data then
-        --     cloud:publish("device/" .. id .. "/online", nil)
-        -- end
-        cloud:publish("device/" .. id .. "/online", nil)
+        local status = ""
+
+        -- 10分钟无数据离线
+        if now - dev._updated > 10 * 60 then
+            status = "offline"
+        else
+            status = "online"
+        end
+
+        -- 状态变化才上传
+        if dev._status ~= status then
+            cloud:publish("device/" .. id .. "/" .. status, nil)
+            dev._status = status
+        end
     end
 end
 
@@ -396,9 +405,9 @@ function master.task()
         status = {}
     end, 10 * 60 * 1000)
 
-    report_sub_devices_status()
-
-    iot.setInterval(report_sub_devices_status, 10 * 60 * 1000) -- 10分钟 上传一次子设备状态
+    -- report_sub_devices_status()
+    iot.setInterval(report_sub_devices_status, 10 * 60 * 1000) -- 每10分钟 上传一次子设备状态
+    iot.setTimeout(report_sub_devices_status, 2 * 60 * 1000) -- 2分钟 先上传一次状态
 
     while true do
 

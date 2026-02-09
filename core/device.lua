@@ -15,6 +15,7 @@ function Device:new(obj)
     local dev = setmetatable(obj or {}, self)
     dev._values = {}
     dev._modified_values = {}
+    dev._updated = 0 -- 数据更新时间
     return dev
 end
 

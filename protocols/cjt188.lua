@@ -383,11 +383,11 @@ function Cjt188Device:poll()
                         log.error(tag, "poll", self.id, "unknown format", point.type)
                     end
                 end
+
+                -- 数据更新时间
+                self._updated = os.time()
             end
         end
-
-        -- 数据更新时间
-        self._updated = os.time()
     end
 
     return true

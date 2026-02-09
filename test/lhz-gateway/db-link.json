@@ -9,5 +9,16 @@
         "protocol_options":{
             "poller_interval": 10
         }
+    },
+    "TTL-2": {
+        "id": "TTL-2",
+        "type": "serial",
+        "name": "TTL-2",
+        "protocol": "modbus",
+        "port": 2,
+        "timeout": 1000,
+        "protocol_options":{
+            "poller_interval": 10
+        }
     }
 }

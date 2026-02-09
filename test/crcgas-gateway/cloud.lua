@@ -312,7 +312,8 @@ function cloud.task()
             -- 1 设备上线     
 
             -- 2 上传数据
-            report_data(id, dev:values())
+            --report_data(id, dev:values())
+            report_data(tostring(dev.slave), dev:values())
         end
 
         iot.sleep(60 * 1000 * (config.upload_cycle or 1)) -- 上传周期

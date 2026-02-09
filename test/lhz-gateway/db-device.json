@@ -1,8 +1,8 @@
 {
-    "1": {
+    "num001": {
         "id": "num001",
         "slave": 1,
-        "link_id": "RS485-1",
+        "link_id": "TTL-2",
         "product_id": "tc01"
     }
 }
