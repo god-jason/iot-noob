@@ -17,7 +17,7 @@
                         {"label":"风机状态", "bit":0, "name":"fan"},
                         {"label":"超温跳闸", "bit":1, "name":"over_temp"},
                         {"label":"超温报警", "bit":2, "name":"error_temp"},
-                        {"label":"故障报警", "bit":3, "name":"error"}
+                        {"label":"故障报警", "bit":4, "name":"error"}
                     ]}
 
                 ]

@@ -41,6 +41,7 @@ end
 -- @param data string 数据
 -- @return boolean 成功与否
 function Serial:write(data)
+    log.info("serial write", self.port, data:toHex())
     if self.peer then
         return false, "cannot write when piping"
     end
@@ -72,6 +73,8 @@ function Serial:read()
     end
 
     local ret, data = self.uart:read()
+    log.info("serial read", self.port, data:toHex())
+
     if ret and self.watcher then
         self.watcher(data) -- 转发到监听器
     end
@@ -103,6 +106,7 @@ function Serial:pipe(peer)
             this.uart:wait(1000)
             local ret, data = this.uart:read()
             if ret and #data > 0 and this.peer ~= nil then
+                log.info("serial write to peer", data:toHex())
                 this.peer:write(data)
             end
         end
@@ -115,6 +119,7 @@ function Serial:pipe(peer)
             if this.peer ~= nil then
                 local ret, data = this.peer:read()
                 if ret and #data > 0 then
+                    log.info("serial read from peer", data:toHex())
                     this.uart:write(data)
                 end
             end

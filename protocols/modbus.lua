@@ -263,7 +263,7 @@ function ModbusDevice:get(key)
 
     local data
     if point.register == 1 or point.register == 2 then
-        ret, data = self.master:read(self.station.slave, point.register, point.address, 1)
+        ret, data = self.master:read(self.slave, point.register, point.address, 1)
         if not ret then
             return false
         end
@@ -274,7 +274,7 @@ function ModbusDevice:get(key)
         if not feagure then
             return false
         end
-        ret, data = self.master:read(self.station.slave, point.register, point.address, feagure.word)
+        ret, data = self.master:read(self.slave, point.register, point.address, feagure.word)
         if not ret then
             return false
         end
@@ -318,7 +318,7 @@ function ModbusDevice:set(key, value)
         code = 6
     end
 
-    return self.master:write(self.station.slave, code, point.address, data)
+    return self.master:write(self.slave, code, point.address, data)
 end
 
 ---读取所有数据
