@@ -4,14 +4,11 @@ local configs = {}
 
 local tag = "configs"
 
---local utils = require("utils")
+-- local utils = require("utils")
 
 local function luadb_config(name)
-    if #name <= 26 then -- 带后缀名，长度不能大于31
-        return "/luadb/" .. string.gsub(name, "/", "-") .. ".json"
-    end
-    local md5 = crypto.md5(name) -- substr(md5, 8, 24)
-    return "/luadb/" .. string.sub(md5, 9, 24) .. ".json"
+    -- 带后缀名，长度不能大于31
+    return "/luadb/" .. string.gsub(name, "/", "-") .. ".json"
 end
 
 ---加载配置文件，自动解析json
@@ -24,12 +21,8 @@ function configs.load(name)
 
     -- 1、找原始JSON文件hen
     local path = "/" .. name .. ".json"
-    -- 2、找压缩的JSON文件
-    local path2 = "/" .. name .. ".json.flz"
-    -- 3、从luadb中找，（编译时添加）文件名长度限制在31字节。。。
-    local path3 = luadb_config(name) -- 要避免重复计算MD5 ？？？
-
-    local compressed = false -- 压缩引擎
+    -- 2、从luadb中找，（编译时添加）文件名长度限制在31字节。。。
+    local path2 = luadb_config(name) 
 
     -- 降低启动速度，避免日志输出太快，从而导致丢失
     -- iot.sleep(100)
@@ -37,13 +30,10 @@ function configs.load(name)
     if iot.exists(path) then
         -- do nothing 找到了未压缩的文件
         log.info(tag, "found", path)
-    elseif fastlz and iot.exists(path2) then
-        compressed = true
+    elseif iot.exists(path2) then
         path = path2
-    elseif iot.exists(path3) then
-        path = path3
     else
-        --log.info(tag, name, "not found")
+        -- log.info(tag, name, "not found")
         return false
     end
 
@@ -58,12 +48,7 @@ function configs.load(name)
     if not ret then
         return false, "文件打开失败"
     end
-    --log.info(tag, "from", path, #data)
-
-    -- 解压
-    if compressed then
-        data = fastlz.uncompress(data, 32 * 1024) -- 最大32KB
-    end
+    -- log.info(tag, "from", path, #data)
 
     local obj, err = iot.json_decode(data)
     if err then
@@ -112,26 +97,13 @@ function configs.save(name, data)
 
     -- 找文件
     local path = "/" .. name .. ".json"
-    local compressed -- 压缩引擎
 
     os.remove(path)
-
-    -- 大于一个block-size（flash 4k）
-    if fastlz and #data > 4096 then
-        path = path .. ".flz"
-        compressed = true
-        os.remove(path)
-    end
 
     -- 删除历史(到底需不需要)，另外，是否需要备份
     -- if io.exists(path) then
     --     os.remove(path)
     -- end
-
-    -- 压缩
-    if compressed then
-        data = fastlz.compress(data)
-    end
 
     return iot.writeFile(path, data)
 end
@@ -144,12 +116,6 @@ function configs.delete(name)
     -- 找文件
     local path = "/" .. name .. ".json"
     os.remove(path)
-
-    -- 删除压缩版
-    if fastlz then
-        path = path .. ".flz"
-        os.remove(path)
-    end
 
     -- 删除目录
     -- utils.remove_all(name)
