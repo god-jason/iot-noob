@@ -1,5 +1,5 @@
-[![Lua Check](https://github.com/god-jason/iot-noob/actions/workflows/check.yml/badge.svg)](https://github.com/god-jason/iot-noob/actions/workflows/check.yml)
-[![Lua Doc](https://github.com/god-jason/iot-noob/actions/workflows/doc.yml/badge.svg)](https://github.com/god-jason/iot-noob/actions/workflows/doc.yml)
+[![Lua Check](https://github.com/god-jason/iot-os/actions/workflows/check.yml/badge.svg)](https://github.com/god-jason/iot-os/actions/workflows/check.yml)
+[![Lua Doc](https://github.com/god-jason/iot-os/actions/workflows/doc.yml/badge.svg)](https://github.com/god-jason/iot-os/actions/workflows/doc.yml)
 
 # 物联小白
 
@@ -11,7 +11,7 @@
 
 # 在线文档
 
-[god-jason.github.io/iot-noob](https://god-jason.github.io/iot-noob)
+[god-jason.github.io/iot-os](https://god-jason.github.io/iot-os)
 
 ## 定时器
 
@@ -249,6 +249,6 @@ ssl为 {
 
 ## 开源协议
 
-[GPL](https://github.com/zgwit/iot-noob/blob/main/LICENSE)
+[GPL](https://github.com/zgwit/iot-os/blob/main/LICENSE)
 
 补充：产品仅限个人免费使用，商业需求请联系我们

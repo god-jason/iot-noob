@@ -1,7 +1,0 @@
-{
-    "enable": true,
-    "host": "iot.busycloud.cn",
-    "port": 1883,
-    "product_id": "huahai-mbus-gateway",
-    "key": "huahai"
-}
