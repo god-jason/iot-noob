@@ -106,8 +106,8 @@ function MqttClient:open()
                 local ts = string.split(topic, "/")
                 if RELEASE then
                     -- 加入异常处理，避免异常崩溃
-                    local ret, info = pcall(find_callback, self.sub_tree, ts, topic, payload)
-                    if not ret then
+                    local ret2, info = pcall(find_callback, self.sub_tree, ts, topic, payload)
+                    if not ret2 then
                         iot.emit("error", info)
                     end
                 else

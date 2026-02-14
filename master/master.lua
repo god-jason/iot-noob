@@ -241,19 +241,19 @@ local function report_sub_devices_status()
 
     local devices = gateway.get_all_device_instanse();
     for id, dev in pairs(devices) do
-        local status = ""
+        local st = ""
 
         -- 10分钟无数据离线
         if now - dev._updated > 10 * 60 then
-            status = "offline"
+            st = "offline"
         else
-            status = "online"
+            st = "online"
         end
 
         -- 状态变化才上传
-        if dev._status ~= status then
-            cloud:publish("device/" .. id .. "/" .. status, nil)
-            dev._status = status
+        if dev._status ~= st then
+            cloud:publish("device/" .. id .. "/" .. st, nil)
+            dev._status = st
         end
     end
 end
