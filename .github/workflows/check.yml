@@ -12,4 +12,4 @@ jobs:
       - name: Luacheck
         uses: lunarmodules/luacheck@v1
         with:
-          args: . -u -a --globals PROJECT VERSION PRODUCT_KEY _ sys iot log gpio uart can netdrv pack json zbuff crypt string rtos mcu mobile lcd mqtt io socket u8g2 audio i2c i2s spi fs fatfs libgnss pm pwm rtc adc crypto iotauth fskv fastlz libfota2 http wdt bit
+          args: . -u -a --globals PROJECT VERSION PRODUCT_KEY RELEASE DEBUG _ sys iot log gpio uart can netdrv pack json zbuff crypt string rtos mcu mobile lcd mqtt io socket u8g2 audio i2c i2s spi fs fatfs libgnss pm pwm rtc adc crypto iotauth fskv fastlz libfota2 http wdt bit
