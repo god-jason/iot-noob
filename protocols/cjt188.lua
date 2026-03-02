@@ -15,23 +15,7 @@ local devices = require("devices")
 local protocols = require("protocols")
 local binary = require("binary")
 local points = require("points")
-
-local model_cache = {}
-local function load_model(product_id)
-    if model_cache[product_id] then
-        return model_cache[product_id]
-    end
-
-    log.info("load model", product_id)
-
-    local model = database.get("model", product_id)
-    if not model then
-        return nil
-    end
-
-    model_cache[product_id] = model
-    return model
-end
+local model = require("model")
 
 -- 单位转换代码
 local units = {
@@ -204,7 +188,7 @@ end
 ---打开设备
 function Cjt188Device:open()
     log.info("device open", self.id, self.product_id)
-    self.model = load_model(self.product_id)
+    self.model = model.get(self.product_id)
 end
 
 ---读取数据
