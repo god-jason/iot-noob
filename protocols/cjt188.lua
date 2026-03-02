@@ -189,6 +189,15 @@ end
 function Cjt188Device:open()
     log.info("device open", self.id, self.product_id)
     self.model = model.get(self.product_id)
+
+    -- 变化阈值
+    for _, prop in ipairs(model.properties or {}) do
+        for _, pt in ipairs(prop.points) do
+            if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
+                self:set_threshold(pt.name, pt.threshold)
+            end
+        end
+    end
 end
 
 ---读取数据
@@ -305,7 +314,7 @@ function Cjt188Device:poll()
                                 if fmt.rate then
                                     value = value * fmt.rate
                                 end
-                                --self:put_value(point.name, value)
+                                -- self:put_value(point.name, value)
                                 values[point.name] = value
                             elseif fmt.type == "hex" then
                                 value = 0
@@ -321,23 +330,23 @@ function Cjt188Device:poll()
                                         if b["not"] then
                                             value = not value
                                         end
-                                        --self:put_value(point.name, vv)
+                                        -- self:put_value(point.name, vv)
                                         values[point.name] = vv
                                     end
                                 else
                                     _, value = points.findEnumValue(point, value) -- 枚举
-                                    --self:put_value(point.name, value)
+                                    -- self:put_value(point.name, value)
                                     values[point.name] = value
                                 end
                             elseif fmt.type == "datetime" then
                                 str = binary.reverse(str)
                                 value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
-                                --self:put_value(point.name, value)
+                                -- self:put_value(point.name, value)
                                 values[point.name] = value
                             elseif fmt.type == "date" then
                                 str = binary.reverse(str)
                                 value = binary.encodeHex(str) -- 字符串 YYYYMMDD
-                                --self:put_value(point.name, value)
+                                -- self:put_value(point.name, value)
                                 values[point.name] = value
                             elseif fmt.type == "datetime6" then
                                 str = binary.reverse(str)
@@ -354,7 +363,7 @@ function Cjt188Device:poll()
                                     value = value * point.rate
                                 end
                                 _, value = points.findEnumValue(point, value) -- 枚举
-                                --self:put_value(point.name, value)
+                                -- self:put_value(point.name, value)
                                 values[point.name] = value
                             elseif fmt.type == "u16" then
                                 _, value = iot.unpack(str, "<H")
@@ -365,7 +374,7 @@ function Cjt188Device:poll()
                                     value = value * point.rate
                                 end
                                 _, value = points.findEnumValue(point, value) -- 枚举
-                                --self:put_value(point.name, value)
+                                -- self:put_value(point.name, value)
                                 values[point.name] = value
                             else
                                 log.error("poll", self.id, "unknown format type", fmt.type)

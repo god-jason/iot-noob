@@ -56,7 +56,8 @@ local function load_mapper(product_id)
         discrete_inputs = {},
         holding_registers = {},
         input_registers = {},
-        pollers = {}
+        pollers = {},
+        thresholds = {} -- 变化的阈值
     }
 
     log.info("load 2")
@@ -72,6 +73,11 @@ local function load_mapper(product_id)
                 table.insert(mapper.holding_registers, pt)
             elseif pt.register == 4 then
                 table.insert(mapper.input_registers, pt)
+            end
+
+            -- 变化阈值
+            if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
+                mapper.thresholds[pt.name] = pt.threshold
             end
         end
     end
@@ -96,7 +102,7 @@ local function load_mapper(product_id)
     table.sort(mapper.holding_registers, sortPoint)
     table.sort(mapper.input_registers, sortPoint)
 
-    --log.info("before pollers", iot.json_encode(mapper))
+    -- log.info("before pollers", iot.json_encode(mapper))
 
     -- 计算轮询
     if #(mapper.coils) > 0 then
@@ -218,6 +224,7 @@ end
 function ModbusDevice:open()
     log.info("device open", self.id, self.product_id)
     self.mapper = load_mapper(self.product_id)
+    self._thresholds = self.mapper.thresholds
 end
 
 ---查找点位
@@ -346,7 +353,7 @@ function ModbusDevice:poll()
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
-                            --self:put_value(point.name, v)
+                            -- self:put_value(point.name, v)
                             values[point.name] = v
                         end
                     end
@@ -358,7 +365,7 @@ function ModbusDevice:poll()
                     if poller.address <= point.address and point.address < poller.address + poller.length then
                         local r, v = points.parseBit(point, data, poller.address)
                         if r then
-                            --self:put_value(point.name, v)
+                            -- self:put_value(point.name, v)
                             values[point.name] = v
                         end
                     end
@@ -373,11 +380,11 @@ function ModbusDevice:poll()
                             if point.bits ~= nil and #point.bits > 0 then
                                 for _, b in ipairs(point.bits) do
                                     local vv = (0x01 << b.bit) & v > 0
-                                    --self:put_value(point.name, vv)
+                                    -- self:put_value(point.name, vv)
                                     values[point.name] = vv
                                 end
                             else
-                                --self:put_value(point.name, v)
+                                -- self:put_value(point.name, v)
                                 values[point.name] = v
                             end
                         end
@@ -393,11 +400,11 @@ function ModbusDevice:poll()
                             if point.bits ~= nil and #point.bits > 0 then
                                 for _, b in ipairs(point.bits) do
                                     local vv = (0x01 << b.bit) & v > 0
-                                    --self:put_value(point.name, vv)
+                                    -- self:put_value(point.name, vv)
                                     values[point.name] = vv
                                 end
                             else
-                                --self:put_value(point.name, v)
+                                -- self:put_value(point.name, v)
                                 values[point.name] = v
                             end
                         end
