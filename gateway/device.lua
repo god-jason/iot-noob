@@ -89,6 +89,8 @@ end
 function Device:put_value(key, value)
     log.info("put_value", self.id, key, value)
 
+    local has = false
+
     local val = {
         value = value,
         time = os.time()
@@ -99,13 +101,16 @@ function Device:put_value(key, value)
     if v then
         if v.value ~= value then
             self._modified_values[key] = val
+            has = true
         end
     end
 
     self._values[key] = val
 
     -- 监听变化
-    self.watcher:execute(key, value)
+    if has then
+        self.watcher:execute(key, value)
+    end
 end
 
 ---  修改多值（用于采集）
@@ -114,8 +119,21 @@ end
 function Device:put_values(values)
     local has = false
     for key, value in pairs(values) do
-        self:put_value(key, value)
-        has = true
+        local val = {
+            value = value,
+            time = os.time()
+        }
+
+        -- 记录变化的值
+        local v = self._values[key]
+        if v then
+            if v.value ~= value then
+                self._modified_values[key] = val
+                has = true
+            end
+        end
+
+        self._values[key] = val
     end
 
     -- 监听变化
