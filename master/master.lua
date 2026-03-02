@@ -316,7 +316,11 @@ local function on_sub_action(topic, data)
 
 end
 
-function master.open()
+
+local function master_task()
+    -- 等待网络就绪
+    iot.wait("IP_READY")
+
     -- 加载配置
     options = settings.master or default_options
 
@@ -340,22 +344,22 @@ function master.open()
         log.error("cloud open failed")
         return
     end
-
-    log.info("master broker connected")
+    log.info("cloud connected")
+    iot.emit("MASTER_READY")
 
     -- 订阅网关消息
-    cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
     cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database))
-    cloud:subscribe("device/" .. options.id .. "/write", parse_json(on_write))
-    cloud:subscribe("device/" .. options.id .. "/sub/+/write", parse_json(on_sub_write))
-    cloud:subscribe("device/" .. options.id .. "/read", parse_json(on_read))
-    cloud:subscribe("device/" .. options.id .. "/sub/+/read", parse_json(on_sub_read))
-    cloud:subscribe("device/" .. options.id .. "/sync", parse_json(on_sync))
-    cloud:subscribe("device/" .. options.id .. "/sub/+/sync", parse_json(on_sub_sync))
-    cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
-    cloud:subscribe("device/" .. options.id .. "/sub/+/action/+", parse_json(on_sub_action))
+    cloud:subscribe("device/" .. options.id .. "/config/+/+", parse_json(on_config))
     cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
     cloud:subscribe("device/" .. options.id .. "/setting/+/read", parse_json(on_setting_read))
+    cloud:subscribe("device/" .. options.id .. "/write", parse_json(on_write))
+    cloud:subscribe("device/" .. options.id .. "/read", parse_json(on_read))
+    cloud:subscribe("device/" .. options.id .. "/sync", parse_json(on_sync))
+    cloud:subscribe("device/" .. options.id .. "/action/+", parse_json(on_action))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/write", parse_json(on_sub_write))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/read", parse_json(on_sub_read))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/sync", parse_json(on_sub_sync))
+    cloud:subscribe("device/" .. options.id .. "/sub/+/action/+", parse_json(on_sub_action))
 
     -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
@@ -366,14 +370,6 @@ function master.open()
 
     -- 周期上报状态
     -- iot.setInterval(report_status, 300000) -- 5分钟 上传一次状态
-end
-
-function master.task()
-    -- 等待网络就绪
-    iot.wait("IP_READY")
-
-    master.open()
-    log.info("master broker connected")
 
     -- 10分钟上传一次全部数据
     iot.setInterval(report_status, 10 * 60 * 1000, true)
@@ -402,7 +398,7 @@ function master.task()
 end
 
 function master.open()
-    iot.start(master.task)
+    iot.start(master_task)
 end
 
 function master.close()

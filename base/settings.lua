@@ -51,11 +51,10 @@ function settings.reset(name)
     if name then
         configs.delete(name)
     else
-        for i, name in ipairs(names) do
+        for i, name in ipairs(options.names) do
             configs.delete(name)
         end
     end
-    rtos.reboot()
 end
 
 -- 加载配置

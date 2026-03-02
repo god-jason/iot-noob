@@ -2,6 +2,7 @@ local actions = {}
 
 local log = iot.logger("actions")
 
+local settings = require "settings"
 local database = require "database"
 
 -- 注册响应
@@ -36,7 +37,7 @@ function actions.reset()
     log.info("清除数据")
     database.clear("device")
     database.clear("model")
-
+    settings.reset()
     iot.setTimeout(iot.reboot, 2000)
     return true
 end
@@ -44,7 +45,7 @@ end
 -- 重启设备
 function actions.reboot()
     iot.emit("device_log", "重启设备")
-    rtos.reboot()
+    iot.setTimeout(iot.reboot, 2000)
     return true
 end
 
