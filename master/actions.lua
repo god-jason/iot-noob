@@ -49,4 +49,9 @@ function actions.reboot()
     return true
 end
 
+function actions.upgrade(data)
+    iot.emit("device_log", "升级设备" .. data.version)
+    iot.upgrade(data.url)
+end
+
 return actions

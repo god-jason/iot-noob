@@ -371,7 +371,7 @@ function iot.request(url, opts)
     local method = opts.method or "GET"
     local headers = opts.headers or {}
     local body = opts.body
-    return http.request(method, url, headers, body)
+    return http.request(method, url, headers, body).wait()
 end
 --- HTTP下载
 -- @param url string URL
@@ -388,7 +388,16 @@ function iot.download(url, dst, opts)
     local options = {
         dst = dst -- 下载文件
     }
-    return http.request(method, url, headers, body)
+    return http.request(method, url, headers, body, options).wait()
+end
+
+--- 升级文件
+function iot.upgrade(url)
+    iot.start(function()
+        os.remove("/update.bin")
+        iot.download(url, "/update.bin")
+        iot.reboot()
+    end)
 end
 
 -- MQTT
