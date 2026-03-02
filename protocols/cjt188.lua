@@ -11,7 +11,8 @@ local Device = require("device")
 setmetatable(Cjt188Device, Device) -- 继承Device
 
 local database = require("database")
-local gateway = require("gateway")
+local devices = require("devices")
+local protocols = require("protocols")
 local binary = require("binary")
 local points = require("points")
 
@@ -410,7 +411,7 @@ end
 local Cjt188Master = {}
 Cjt188Master.__index = Cjt188Master
 
-gateway.register_protocol("cjt188", Cjt188Master)
+protocols.register("cjt188", Cjt188Master)
 
 ---创建实例
 -- @param link any 连接实例
@@ -546,7 +547,7 @@ function Cjt188Master:open()
 
         self.devices[d.id] = dev
 
-        gateway.register_device_instanse(d.id, dev)
+        devices.register(d.id, dev)
     end
 
     -- 开启轮询

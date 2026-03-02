@@ -10,7 +10,8 @@ local Device = require("device")
 setmetatable(ModbusDevice, Device) -- 继承Device
 
 local database = require("database")
-local gateway = require("gateway")
+local devices = require("devices")
+local protocols = require("protocols")
 local points = require("points")
 local binary = require("binary")
 
@@ -421,7 +422,7 @@ end
 local ModbusMaster = {}
 ModbusMaster.__index = ModbusMaster
 
-gateway.register_protocol("modbus", ModbusMaster)
+protocols.register("modbus", ModbusMaster)
 
 ---创建实例
 -- @param link any 连接实例
@@ -633,7 +634,7 @@ function ModbusMaster:open()
 
         self.devices[d.id] = dev
 
-        gateway.register_device_instanse(d.id, dev)
+        devices.register(d.id, dev)
     end
 
     -- 开启轮询

@@ -13,6 +13,7 @@ local links = require("links")
 local devices = require("devices")
 local MqttClient = require("mqtt_client")
 local database = require("database")
+local gateway = require("gateway")
 
 --- @type MqttClient
 local cloud = nil -- MqttClient:new()
@@ -98,26 +99,6 @@ local function on_database(topic, data)
     end
 end
 
--- 处理事件操作
-local function on_action(topic, data)
-    local _, _, _, _, _, action = topic:find("(.+)/(.+)/(.+)/(.+)")
-    log.info("action", action)
-
-    local handler = actions[action]
-    if type(handler) == "function" then
-        local ret, dat = handler(data)
-        cloud:publish(topic .. "/response", {
-            ok = ret,
-            data = dat
-        })
-    else
-        cloud:publish(topic .. "/response", {
-            ok = false,
-            error = "找不到响应"
-        })
-    end
-end
-
 local function on_setting(topic, data)
     settings.update(data.name, data.content, data.version)
 
@@ -146,7 +127,7 @@ local function sync_table(col)
     return results
 end
 
--- 上报设备信息 TODO 改为配置文件
+-- 上报设备信息
 local function register()
     log.info("register")
     local info = {
@@ -158,7 +139,11 @@ local function register()
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
+
+        -- TODO 配置同步改为独立
         settings = settings.versions,
+
+        -- TODO 数据库同步改为独立
         databases = {
             link = sync_table("link"),
             model = sync_table("model"),
@@ -169,35 +154,32 @@ local function register()
     cloud:publish("device/" .. options.id .. "/register", info)
 end
 
--- 变化上传
-local status = {}
-local changed = {}
-local function put_status(k, v)
-    if status[k] ~= v then
-        status[k] = v
-        changed[k] = v
+-- 上报设备状态（周期执行）
+local function report_status(all)
+    log.info("report_status", all)
+
+    local has_data = false
+    local data = {}
+
+    local dev = gateway.device
+    local values = all and dev:values() or dev:modified_values(true)
+    for k, v in pairs(values) do
+        data[k] = v.value
+        has_data = true
+    end
+
+    if has_data then
+        cloud:publish("device/" .. options.id .. "/values", data)
     end
 end
 
--- 上报设备状态（周期执行）
-local function report_status()
-    log.info("report_status")
-
-    put_status("csq", mobile.csq())
-    local total, used, top = rtos.meminfo()
-    put_status("memory", used)
-    put_status("version", VERSION)
-
-    -- 变化上传，节省流量
-    cloud:publish("device/" .. options.id .. "/values", changed)
-    changed = {}
-end
-
 -- 上报子设备数据（周期执行）
-local function report_sub_devices()
+local function report_sub_devices(all)
+    log.info("report_sub_devices", all)
+
     for id, dev in pairs(devices) do
-        if type(dev) == "table" then
-            local values = dev:values()
+        if dev.values and not dev.inline then
+            local values = all and dev:values() or dev:modified_values(true)
 
             local has_data = false
             local data = {}
@@ -218,10 +200,10 @@ local function report_sub_devices_status()
     local now = os.time()
 
     for id, dev in pairs(devices) do
-        if type(dev) == "table" then
+        if dev._values then
             local st = ""
 
-            -- 10分钟无数据离线
+            -- 10分钟无数据离线 TODO 参数
             if now - dev._updated > 10 * 60 then
                 st = "offline"
             else
@@ -241,11 +223,9 @@ end
 local function on_write(topic, data)
     local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
     log.info("on_write", id, data)
-    local dev = devices[id]
-    if dev then
-        for k, v in pairs(data) do
-            dev:set(k, v)
-        end
+    local dev = gateway.device
+    for k, v in pairs(data) do
+        dev:set(k, v)
     end
 end
 
@@ -265,15 +245,13 @@ end
 local function on_read(topic, data)
     local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
     log.info("on_read", id, data)
-    local dev = devices[id]
-    if dev then
-        local results = {}
-        for _, k in ipairs(data) do
-            local v = dev:get(k)
-            results[k] = v
-        end
-        cloud:publish("device/" .. id .. "/read/response", results)
+    local dev = gateway.device
+    local results = {}
+    for _, k in ipairs(data) do
+        local v = dev:get(k)
+        results[k] = v
     end
+    cloud:publish("device/" .. id .. "/read/response", results)
 end
 
 -- 子设备读请求
@@ -295,10 +273,8 @@ end
 local function on_sync(topic, data)
     local _, _, _, id, _ = topic:find("(.+)/(.+)/(.+)")
     log.info("on_sync", id)
-    local dev = devices[id]
-    if dev then
-        dev:poll()
-    end
+    local dev = gateway.device
+    dev:poll()
 end
 
 -- 子设备同步请求
@@ -311,6 +287,27 @@ local function on_sub_sync(topic, data)
     end
 end
 
+-- 处理设备操作
+local function on_action(topic, data)
+    local _, _, _, _, _, action = topic:find("(.+)/(.+)/(.+)/(.+)")
+    log.info("action", action)
+
+    local handler = actions[action]
+    if type(handler) == "function" then
+        local ret, dat = handler(data)
+        cloud:publish(topic .. "/response", {
+            ok = ret,
+            data = dat
+        })
+    else
+        cloud:publish(topic .. "/response", {
+            ok = false,
+            error = "找不到响应"
+        })
+    end
+end
+
+-- 处理子设备操作
 local function on_sub_action(topic, data)
     local _, _, _, id, _, sub, _, action = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)/(.+)/(.+)")
     log.info("sub action", sub, action)
@@ -378,14 +375,9 @@ function master.task()
     master.open()
     log.info("master broker connected")
 
-    -- 30分钟上传一次全部数据
-    iot.setInterval(function()
-        status = {}
-    end, 10 * 60 * 1000)
-
-    -- report_sub_devices_status()
-    iot.setInterval(report_sub_devices_status, 10 * 60 * 1000) -- 每10分钟 上传一次子设备状态
-    iot.setTimeout(report_sub_devices_status, 2 * 60 * 1000) -- 2分钟 先上传一次状态
+    -- 10分钟上传一次全部数据
+    iot.setInterval(report_status, 10 * 60 * 1000, true)
+    iot.setInterval(report_sub_devices_status, 10 * 60 * 1000, true)
 
     while true do
 
