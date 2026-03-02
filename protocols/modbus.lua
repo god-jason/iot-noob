@@ -14,6 +14,7 @@ local devices = require("devices")
 local protocols = require("protocols")
 local points = require("points")
 local binary = require("binary")
+local model = require("model")
 
 local mapper_cache = {}
 
@@ -56,8 +57,7 @@ local function load_mapper(product_id)
         discrete_inputs = {},
         holding_registers = {},
         input_registers = {},
-        pollers = {},
-        thresholds = {} -- 变化的阈值
+        pollers = {}
     }
 
     log.info("load 2")
@@ -73,11 +73,6 @@ local function load_mapper(product_id)
                 table.insert(mapper.holding_registers, pt)
             elseif pt.register == 4 then
                 table.insert(mapper.input_registers, pt)
-            end
-
-            -- 变化阈值
-            if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
-                mapper.thresholds[pt.name] = pt.threshold
             end
         end
     end
@@ -224,7 +219,18 @@ end
 function ModbusDevice:open()
     log.info("device open", self.id, self.product_id)
     self.mapper = load_mapper(self.product_id)
-    self._thresholds = self.mapper.thresholds
+
+    self.model = model.get(self.product_id)
+    -- 变化阈值
+    if self.model then
+        for _, prop in ipairs(self.model.properties or {}) do
+            for _, pt in ipairs(prop.points) do
+                if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
+                    self:set_threshold(pt.name, pt.threshold)
+                end
+            end
+        end
+    end
 end
 
 ---查找点位
