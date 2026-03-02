@@ -17,6 +17,7 @@ function Device:new(obj)
     local dev = setmetatable(obj or {}, self)
     dev._values = {}
     dev._modified_values = {}
+    dev._thresholds = {} -- 变化阈值
     dev._updated = 0 -- 数据更新时间
     dev._watcher = Watcher:new()
     return dev
@@ -53,6 +54,10 @@ end
 -- @return boolean, error
 function Device:poll()
     return false, "Device poll() must be implemented"
+end
+
+function Device:set_threshold(key, threshold)
+    self._thresholds[key] = threshold
 end
 
 ---  变量
@@ -100,9 +105,17 @@ function Device:put_value(key, value)
     local v = self._values[key]
     if v then
         if v.value ~= value then
-            self._modified_values[key] = val
-            has = true
+            if self._thresholds[key] and type(v.value) == "number" and type(value) == "number" and
+                math.abs(v.value - value) < self._thresholds[key] then
+                -- 有变化阈值，且在范围之内，不变化
+            else
+                self._modified_values[key] = val
+                has = true
+            end
         end
+    else
+        self._modified_values[key] = val
+        has = true
     end
 
     self._values[key] = val
@@ -128,9 +141,17 @@ function Device:put_values(values)
         local v = self._values[key]
         if v then
             if v.value ~= value then
-                self._modified_values[key] = val
-                has = true
+                if self._thresholds[key] and type(v.value) == "number" and type(value) == "number" and
+                    math.abs(v.value - value) < self._thresholds[key] then
+                    -- 有变化阈值，且在范围之内，不变化
+                else
+                    self._modified_values[key] = val
+                    has = true
+                end
             end
+        else
+            self._modified_values[key] = val
+            has = true
         end
 
         self._values[key] = val
