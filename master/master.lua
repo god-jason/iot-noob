@@ -177,7 +177,7 @@ end
 local function report_sub_devices(all)
     log.info("report_sub_devices", all)
 
-    for id, dev in pairs(devices) do
+    for id, dev in pairs(devices.devices()) do
         if dev.values and not dev.inline then
             local values = all and dev:values() or dev:modified_values(true)
 
@@ -199,7 +199,7 @@ end
 local function report_sub_devices_status()
     local now = os.time()
 
-    for id, dev in pairs(devices) do
+    for id, dev in pairs(devices.devices()) do
         if dev._values then
             local st = ""
 

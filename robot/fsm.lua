@@ -1,7 +1,9 @@
 local log = iot.logger("fsm")
 
+local utils = require("utils")
+
 -- 自增ID
-local inc = increment_id()
+local inc = utils.increment()
 
 local FSM = {}
 FSM.__index = FSM
@@ -126,6 +128,10 @@ end
 
 -- 修改状态
 function FSM:set(name)
+    if not name then
+        return false, "nil state name"
+    end
+    
     -- 加载新状态
     local state = self.states[name]
     if not state then

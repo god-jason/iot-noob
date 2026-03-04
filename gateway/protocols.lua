@@ -50,13 +50,11 @@ end
 
 -- 创建所有协议
 function protocols.open()
-    for i, s in pairs(links) do
-        if type(s) == "table" then
-            if s.protocol and #s.protocol > 0 then
-                local ret, info = create_protocol(s)
-                if not ret then
-                    log.error(info)
-                end
+    for i, link in pairs(links.links()) do
+        if link.protocol and #link.protocol > 0 then
+            local ret, info = create_protocol(link)
+            if not ret then
+                log.error(info)
             end
         end
     end
@@ -73,6 +71,6 @@ end
 protocols.deps = {"links", "settings"}
 
 -- 注册
-boot.register("protocols", gateway)
+boot.register("protocols", protocols)
 
 return protocols

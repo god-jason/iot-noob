@@ -63,7 +63,7 @@ function settings.open()
     options = configs.load_default("settings", options)
 
     for i, name in ipairs(options.names) do
-        settings[name] = configs.load_default(name, {})
+        settings.load(name)
     end
 end
 

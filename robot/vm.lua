@@ -2,8 +2,10 @@ local log = iot.logger("vm")
 
 local instructions = {}
 
+local utils = require("utils")
+
 -- 自增ID
-local inc = increment_id()
+local inc = utils.increment()
 
 -- 定义实例
 local VM = {}

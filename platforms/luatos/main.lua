@@ -1,11 +1,10 @@
 -- 主程序入口
-PROJECT = "iot-noob"
+PROJECT = "iot-os"
 VERSION = "1.0.0"
 
 -- 引入系统适配层
 require("iot")
 
-local log = iot.logger("main")
 log.info("last power reson", pm.lastReson())
 
 -- 看门狗守护
@@ -15,7 +14,7 @@ if wdt then
 end
 
 -- 日志等级改为info
-log.setLevel(2)
+--log.setLevel(2)
 
 -- 自动识别SIM2
 mobile.simid(2, true)
@@ -24,7 +23,9 @@ mobile.simid(2, true)
 sys.taskInit(function()
     log.info("task")
 
-    sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
+    if not RELEASE then
+        sys.wait(1000) -- 等待USB初始化完成，否则日志丢失    
+    end    
 
     -- fskv.init() -- KV 数据库
 
@@ -34,6 +35,11 @@ sys.taskInit(function()
     -- 自动启动模块
     require("boot").startup()
 
+    while not RELEASE do
+        sys.wait(5000)
+        log.info("mem", rtos.meminfo())
+    end
+    
     log.info("exit")
 end)
 

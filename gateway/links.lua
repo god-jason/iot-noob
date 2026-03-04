@@ -2,7 +2,9 @@ local log = iot.logger("links")
 
 local links = {}
 
-_G.links = links
+local _links = {}
+
+_G.links = _links
 
 local settings = require("settings")
 local boot = require("boot")
@@ -26,10 +28,10 @@ function links.create(opts)
     local link = clazz:new(opts)
     if opts.id and #opts.id > 0 then
         -- 注册到全局
-        links[opts.id] = link
+        _links[opts.id] = link
     end
     if opts.name and #opts.name > 0 then
-        links[opts.name] = link
+        _links[opts.name] = link
     end
 
     local ret, info = link:open()
@@ -60,11 +62,19 @@ end
 
 -- 关闭连接
 function links.close()
-    for i, s in pairs(links) do
+    for i, s in pairs(_links) do
         if type(s) == "table" then
             pcall(s.close, s)
         end
     end
+end
+
+function links.links()
+    return _links
+end
+
+function links.get(id)
+    return _links[id]
 end
 
 links.deps = {"settings"}

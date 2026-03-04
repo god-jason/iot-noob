@@ -1,16 +1,26 @@
 local log = iot.logger("components")
 
-local components = {
+local components = {}
+
+local _components = {
     -- fan = Fan:new({})
 }
 
 -- 注册到全局
-_G.components = components
+_G.components = _components
 
 local settings = require("settings")
 local boot = require("boot")
 
 local types = {}
+
+function components.components()
+    return _components
+end
+
+function components.get(name)
+    return _components[name]
+end
 
 -- 注册组件
 function components.register(name, clazz)
@@ -26,8 +36,10 @@ function components.create(cmp)
         return false, "unkown type" .. cmp.type
     end
 
-    components[cmp.name] = fn:new(cmp)
-    return true
+    local comp = fn:new(cmp)
+
+    _components[cmp.name] = comp
+    return true, comp
 end
 
 -- 加载组件
@@ -44,7 +56,6 @@ function components.open()
 
     return true
 end
-
 
 components.deps = {"settings"}
 

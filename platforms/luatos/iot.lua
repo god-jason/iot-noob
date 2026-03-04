@@ -194,14 +194,14 @@ function iot.walk(path, cb, offset)
         local fn = path .. e.name
         if e.type == 1 then
             -- 遍历子目录
-            io.walk(fn .. "/", cb)
+            iot.walk(fn .. "/", cb)
         else
             cb(fn)
         end
     end
     -- 继续遍历
     if #data == 50 then
-        io.walk(path, cb, offset + 50)
+        iot.walk(path, cb, offset + 50)
     end
 end
 
