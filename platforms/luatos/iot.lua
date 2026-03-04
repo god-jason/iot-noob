@@ -462,7 +462,7 @@ function iot.gpio(id, opts)
         -- 输入模式
         gpio.setup(id, opts.callback, pull, when)
         if opts.debounce and opts.debounce > 0 then
-            gpio.debounce(id, opts.debounce)
+            gpio.debounce(id, opts.debounce, 1) --改为延迟模式
         end
     end
 
