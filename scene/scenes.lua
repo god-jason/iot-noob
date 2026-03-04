@@ -2,8 +2,10 @@ local log = iot.logger("scenes")
 
 local scenes = {}
 
+local _scenes = {}
+
 -- 注册到全局
-_G.scenes = scenes
+_G.scenes = _scenes
 
 local boot = require("boot")
 local database = require("database")
@@ -15,7 +17,7 @@ function scenes.create(scene)
     log.info("create", iot.json_encode(scene))
 
     local s = Scene:new(scene)
-    scenes[scene.id] = s
+    _scenes[scene.id] = s
 
     local ret, info = s:open()
     if not ret then
@@ -40,10 +42,8 @@ end
 
 -- 关闭场景
 function scenes.close()
-    for i, s in pairs(scenes) do
-        if s.__index == Scene then
-            s:close()
-        end
+    for i, s in pairs(_scenes) do
+        s:close()
     end
 end
 

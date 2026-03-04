@@ -24,7 +24,7 @@ sys.taskInit(function()
     log.info("task")
 
     if not RELEASE then
-        sys.wait(1000) -- 等待USB初始化完成，否则日志丢失    
+        --sys.wait(1000) -- 等待USB初始化完成，否则日志丢失    
     end    
 
     -- fskv.init() -- KV 数据库
