@@ -9,7 +9,7 @@ function Led:new(opts)
     opts = opts or {}
     local led = setmetatable({
         pin = opts.pin,
-        gpio = iot.gpio(pin),
+        gpio = iot.gpio(opts.pin),
         blinking = false,
     }, Led)
     return led

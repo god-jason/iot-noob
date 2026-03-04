@@ -30,11 +30,6 @@ function Fan:new(opts)
     return fan
 end
 
-function Fan:calc_duty(level)
-    local duty = math.floor(self.duty_min + (self.duty_max - self.duty_min) * (level / self.levels))
-    duty = math.max(self.duty_min, math.min(duty, self.duty_max))
-    return duty
-end
 
 function Fan:open(level)
     local ret, pwm = iot.pwm(self.pwm_id, {
