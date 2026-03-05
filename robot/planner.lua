@@ -1,7 +1,7 @@
 local planner = {}
 local log = iot.logger("planner")
 
-local fns = {}
+local planners = {}
 
 --[[
 计划器参考
@@ -14,17 +14,30 @@ end
 ]] --
 
 -- 注册计划器
-function planner.register(job, fn)
-    fns[job] = fn
+function planner.register(name, fn)
+    planners[name] = fn
+
+    if type(name) == "string" and type(fn) == "function" then
+        planners[name] = fn
+    end
+
+    -- 批量注册
+    if type(name) == "table" then
+        for k, v in pairs(name) do
+            if type(v) == "function" then
+                planners[k] = v
+            end
+        end
+    end
 end
 
 --- 生成计划
----@param job string 计算名称
+---@param name string 计算名称
 ---@param data any 参数
 ---@return boolean 成功与否
 ---@return string|table 任务 VM格式
-function planner.plan(job, data)
-    local fn = fns[job]
+function planner.plan(name, data)
+    local fn = planners[name]
     if not fn then
         return false, "找不到计划器"
     end
@@ -35,7 +48,7 @@ function planner.plan(job, data)
     end
 
     return res, {
-        job = job,
+        job = name,
         tasks = tasks,
         created = os.time()
     }

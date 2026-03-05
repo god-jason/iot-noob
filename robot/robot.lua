@@ -5,7 +5,7 @@ local log = iot.logger("robot")
 
 local configs = require("configs")
 
-local vm = require("vm")
+local Executor = require("executor")
 local fsm = require("fsm")
 local cron = require("cron")
 local planner = require("planner")
@@ -24,8 +24,8 @@ function robot.plan(name, data)
     end
 
     -- 创建一个虚拟机并执行
-    robot.vm = vm:new(plan)
-    robot.vm:start()
+    robot.executor = Executor:new(plan)
+    robot.executor:start()
 
     return true
 end

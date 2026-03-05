@@ -25,7 +25,19 @@ end
 -- @param string name 名称
 -- @param table state 状态 (需要有三个回调函数 enter, tick, leave)
 function FSM:register(name, state)
-    self.states[name] = state
+    -- self.states[name] = state    
+    if type(name) == "string" and type(state) == "table" then
+        self.states[name] = state
+    end
+
+    -- 批量注册
+    if type(name) == "table" then
+        for k, v in pairs(name) do
+            if type(v) == "table" then
+                self.states[k] = v
+            end
+        end
+    end
 end
 
 -- 克隆状态机
@@ -90,8 +102,8 @@ function FSM:execute()
         if ret then
             -- 被中断
             log.info(self.name, self.state_name, "被中断", info)
-            --break
-        end        
+            -- break
+        end
     end
 
     -- 执行离开
@@ -131,7 +143,7 @@ function FSM:set(name)
     if not name then
         return false, "nil state name"
     end
-    
+
     -- 加载新状态
     local state = self.states[name]
     if not state then

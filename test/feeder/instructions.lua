@@ -1,32 +1,35 @@
-local vm = require("vm")
+local instructions = {}
+
+local Executor = require("executor")
 local components = require("components")
 
 local log = iot.logger("instruction")
 
-vm.register("wait", function(context, task)
+function instructions.wait(context, task)
     -- VM中监测wait_timeout并等待
-end)
+end
 
-vm.register("fan", function(context, task)
+function instructions.fan(context, task)
     components.fan.speed(task.level)
-end)
+end
 
-vm.register("move", function(context, task)
+function instructions.move(context, task)
     local rpm = components.move_speeder:calc(task.level)
     components.move.start(rpm, task.rounds)
-end)
+end
 
-
-vm.register("brake", function(context, task)
+function instructions.brake(context, task)
     components.turn_stepper.brake()
-end)
+end
 
-vm.register("turn_left", function(context, task)
+function instructions.turn_left(context, task)
     components.turn_stepper.start(task.rpm, task.rounds)
-end)
+end
 
-vm.register("turn_right", function(context, task)
+function instructions.turn_right(context, task)
     components.turn_stepper.start(task.rpm, -task.rounds)
 
-end)
+end
 
+-- 注册指令
+Executor.register(instructions)

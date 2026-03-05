@@ -7,9 +7,12 @@ local boots = {}
 
 -- 注册模块
 function boot.register(name, mod)
+
     if type(mod) ~= "table" then
         log.error("register", name, "is not a module")
+        return
     end
+
     modules[name] = {
         open = mod.open,
         close = mod.close,
