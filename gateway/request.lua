@@ -1,23 +1,23 @@
 --- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
--- @module agent
-local Agent = {}
-Agent.__index = Agent
+-- @module request
+local Request = {}
+Request.__index = Request
 
 --local binary = require("binary")
 
-local log = iot.logger("agent")
+local log = iot.logger("request")
 
 --- 创建询问器
 -- abc
 -- @param link Link 连接实例
 -- @param timeout integer 超时 ms
--- @return Agent
-function Agent:new(link, timeout)
-    local agent = setmetatable({}, self) -- 继承连接
-    agent.link = link
-    agent.timeout = timeout or 1000
-    agent.asking = false
-    return agent
+-- @return Request
+function Request:new(link, timeout)
+    local request = setmetatable({}, self) -- 继承连接
+    request.link = link
+    request.timeout = timeout or 1000
+    request.requesting = false
+    return request
 end
 
 --- 询问
@@ -25,22 +25,22 @@ end
 -- @param len integer 期望长度
 -- @return boolean 成功与否
 -- @return string 返回数据
-function Agent:ask(request, len)
+function Request:request(request, want_len)
     -- log.info("ask", binary.encodeHex(request), len)
 
     -- 重入锁，等待其他操作完成
-    while self.asking do
+    while self.requesting do
         log.info("waiting for unlock")
         iot.sleep(200)
     end
-    self.asking = true
+    self.requesting = true
 
     -- log.info("ask", request, len)
     if request ~= nil and #request > 0 then
         local ret, err = self.link:write(request)
         if not ret then
             log.error("write failed", err)
-            self.asking = false
+            self.requesting = false
             return false, "write failed "
         end
     end
@@ -52,22 +52,22 @@ function Agent:ask(request, len)
         -- 应该不是每次都要等待
         local ret = self.link:wait(self.timeout)
         if not ret then
-            self.asking = false
+            self.requesting = false
             return false, "wait timeout"
         end
 
         local r, d = self.link:read()
         if not r then
-            self.asking = false
+            self.requesting = false
             return false, d
         end
         buf = buf .. d
-    until #buf >= len
+    until #buf >= want_len
 
     -- log.info("ask got", #buf, binary.encodeHex(buf))
 
-    self.asking = false
+    self.requesting = false
     return true, buf
 end
 
-return Agent
+return Request

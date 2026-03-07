@@ -5,7 +5,7 @@ Cjt188Device.__index = Cjt188Device
 
 local log = iot.logger("cjt188")
 
-local Agent = require("agent")
+local Request = require("request")
 local Device = require("device")
 -- setmetatable(Cjt188Device, {__index = Device}) -- 继承Device
 setmetatable(Cjt188Device, Device) -- 继承Device
@@ -416,7 +416,7 @@ function Cjt188Master:new(link, opts)
     local master = setmetatable({}, self)
     master.link = link
     master.timeout = opts.timeout or 2000
-    master.agent = Agent:new(link, master.timeout)
+    master.request = Request:new(link, master.timeout)
     master.poller_interval = opts.poller_interval or 10
     master.increment = 0
 
@@ -431,7 +431,7 @@ end
 -- @param data string|nil 数据
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Cjt188Master:ask(addr, type, code, di, data)
+function Cjt188Master:request(addr, type, code, di, data)
 
     local dl = 3
     if data and #data > 0 then
@@ -453,7 +453,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     log.info("frame", binary.encodeHex(frame))
 
     frame = binary.decodeHex("FEFEFEFE") .. frame -- 前导码
-    local ret, buf = self.agent:ask(frame, 14) -- 先读12字节
+    local ret, buf = self.request:request(frame, 14) -- 先读12字节
     if not ret then
         return false, "no response"
     end
@@ -472,7 +472,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
 
     -- 指令长度不够，要拿到长度
     if #buf < 12 then
-        local ret2, buf2 = self.agent:ask(nil, 12 - #buf) -- 继续读
+        local ret2, buf2 = self.request:request(nil, 12 - #buf) -- 继续读
         if ret2 then
             buf = buf .. buf2
         else
@@ -483,7 +483,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     -- 数据长度不足，则继续读
     local len = string.byte(buf, 11) -- 数据段长度
     if #buf < len + 12 then
-        local ret2, buf2 = self.agent:ask(nil, len + 12 - #buf) -- 继续读
+        local ret2, buf2 = self.request:request(nil, len + 12 - #buf) -- 继续读
         if ret2 then
             buf = buf .. buf2
         else
@@ -504,7 +504,7 @@ end
 function Cjt188Master:read(addr, type, code, di)
     log.info("read", addr, type, code, di)
     self.link:read() -- 清空接收区数据
-    return self:ask(addr, type, code, di, nil)
+    return self:request(addr, type, code, di, nil)
 end
 
 -- 写入数据
@@ -518,7 +518,7 @@ end
 function Cjt188Master:write(addr, type, code, di, data)
     log.info("write", addr, type, code, di, data)
     self.link:read() -- 清空接收区数据
-    return self:ask(addr, type, code, di, data)
+    return self:request(addr, type, code, di, data)
 end
 
 ---打开主站
@@ -547,7 +547,7 @@ function Cjt188Master:open()
 
     -- 开启轮询
     local this = self
-    self.task = iot.start(function()
+    self.trequest = iot.start(function()
         -- 这个写法。。。
         this:_polling()
     end)

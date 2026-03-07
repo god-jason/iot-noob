@@ -5,7 +5,7 @@ ModbusDevice.__index = ModbusDevice
 
 local log = iot.logger("modbus")
 
-local Agent = require("agent")
+local Request = require("request")
 local Device = require("device")
 setmetatable(ModbusDevice, Device) -- 继承Device
 
@@ -445,7 +445,7 @@ function ModbusMaster:new(link, opts)
     local master = setmetatable({}, self)
     master.link = link
     master.timeout = opts.timeout or 1000 -- 1秒钟
-    master.agent = Agent:new(link, master.timeout)
+    master.request = Request:new(link, master.timeout)
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟
     master.tcp = opts.tcp or false -- modbus tcp
     master.increment = 1 -- modbus-tcp序号
@@ -461,7 +461,7 @@ function ModbusMaster:readTCP(slave, code, addr, len)
     local header = iot.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self.agent:ask(header .. data, 12)
+    local ret, buf = self.request:request(header .. data, 12)
     if not ret then
         return false
     end
@@ -482,7 +482,7 @@ function ModbusMaster:readTCP(slave, code, addr, len)
     -- 取剩余数据
     if #buf < len then
         log.info("wait more", len, #buf)
-        local r, d = self.agent:ask(nil, len - #buf)
+        local r, d = self.request:request(nil, len - #buf)
         if not r then
             return false
         end
@@ -509,7 +509,7 @@ function ModbusMaster:read(slave, code, addr, len)
     local data = iot.pack("b2>H2", slave, code, addr, len)
     local crc = iot.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self.agent:ask(data .. crc, 7)
+    local ret, buf = self.request:request(data .. crc, 7)
     if not ret then
         return false
     end
@@ -528,7 +528,7 @@ function ModbusMaster:read(slave, code, addr, len)
     local len2 = 5 + cnt
     if #buf < len2 then
         log.info("wait more", len2, #buf)
-        local r, d = self.agent:ask(nil, len2 - #buf)
+        local r, d = self.request:request(nil, len2 - #buf)
         if not r then
             return false
         end
@@ -547,7 +547,7 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
     local header = iot.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
 
-    local ret, buf = self.agent:ask(header .. data, 12)
+    local ret, buf = self.request:request(header .. data, 12)
     if not ret then
         return false
     end
@@ -568,7 +568,7 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
     -- 取剩余数据
     if #buf < len then
         log.info("wait more", len, #buf)
-        local r, d = self.agent:ask(nil, len - #buf)
+        local r, d = self.request:request(nil, len - #buf)
         if not r then
             return false
         end
@@ -609,7 +609,7 @@ function ModbusMaster:write(slave, code, addr, data)
     data = iot.pack("b2>H", slave, code, addr) .. data
     local crc = iot.pack('<H', crypto.crc16_modbus(data))
 
-    local ret, buf = self.agent:ask(data .. crc, 7)
+    local ret, buf = self.request:request(data .. crc, 7)
     if not ret then
         return false
     end
@@ -652,7 +652,7 @@ function ModbusMaster:open()
 
     -- 开启轮询
     local this = self
-    self.task = iot.start(function()
+    self.trequest = iot.start(function()
         -- 这个写法。。。
         this:_polling()
     end)

@@ -189,7 +189,7 @@ ssl为 {
 |关闭| spi:close() | 无 | 无 |  |
 |读取| spi:read(len) | 长度 | 成功与否，数据 |  |
 |写入| spi:write(data) | 数据 | 成功与否 |  |
-|询问| spi:ask(data) | 数据 | 成功与否，数据 |  |
+|询问| spi:request(data) | 数据 | 成功与否，数据 |  |
 
 ### ADC
 

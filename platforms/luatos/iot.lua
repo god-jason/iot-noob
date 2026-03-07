@@ -642,7 +642,7 @@ end
 -- @param data string 数据
 -- @return boolean 成功与否
 -- @return string 数据
-function SPI:ask(data)
+function SPI:request(data)
     local ret = self.dev:transfer(data)
     return ret ~= nil and #ret > 0, ret
 end
