@@ -22,35 +22,43 @@ function MqttClient:new(opts)
         children = {}, -- topic->sub_tree
         callbacks = {}
     } -- 订阅树
+
+    -- 发送和接收队列
+    client.pub_queue = {}
+    client.sub_queue = {}
     return client
 end
 
 --- 查询订阅树
-local function find_callback(node, topics, topic, payload)
+local function find_callback(node, topics, index, topic, payload)
     -- 叶子节点，执行回调
-    if #topics == 0 then
+    if #topics <= index then
         for _, cb in ipairs(node.callbacks) do
             cb(topic, payload)
         end
         return
     end
 
+    -- 全部
     local sub = node.children["#"]
     if sub ~= nil then
-        find_callback(sub, {}, topic, payload)
+        --find_callback(sub, {}, 1, topic, payload)
+        for _, cb in ipairs(sub.callbacks) do
+            cb(topic, payload)
+        end
     end
 
-    local t = topics[1]
-    table.remove(topics, 1)
-
+    -- 子级
     sub = node.children["+"]
     if sub ~= nil then
-        find_callback(sub, topics, topic, payload)
+        find_callback(sub, topics, index + 1, topic, payload)
     end
 
+    -- 通配子级
+    local t = topics[index]
     sub = node.children[t]
     if sub ~= nil then
-        find_callback(sub, topics, topic, payload)
+        find_callback(sub, topics, index + 1, topic, payload)
     end
 end
 
@@ -73,7 +81,7 @@ function MqttClient:open()
 
     self.client:keepalive(self.options.keepalive or 240) -- 默认值240s
 
-    self.client:autoreconn(true, self.reconnect_timeout or 5000) -- 自动重连机制 ms
+    self.client:autoreconn(true, self.options.reconnect_timeout or 5000) -- 自动重连机制 ms
 
     if self.options.will ~= nil then
         self.client:will(self.options.will.topic, self.options.will.payload)
@@ -83,7 +91,11 @@ function MqttClient:open()
     self.client:on(function(client, event, topic, payload)
         -- log.info("event", event, client, topic, payload)
         if event == "recv" then
-            iot.emit("MQTT_MESSAGE_" .. self.id, topic, payload)
+            table.insert(self.sub_queue, {
+                topic = topic,
+                payload = payload
+            })
+            iot.emit("MQTT_MESSAGE_" .. self.id)
         elseif event == "conack" then
             iot.emit("MQTT_CONNECT_" .. self.id)
             -- 恢复订阅
@@ -101,21 +113,39 @@ function MqttClient:open()
     -- 处理MQTT消息，主要是回调中可能有sys.wait，所以必须用task
     iot.start(function()
         while self.client do
-            local ret, topic, payload = iot.wait("MQTT_MESSAGE_" .. self.id, 30000)
-            if ret then
-                local ts = string.split(topic, "/")
+            iot.wait("MQTT_MESSAGE_" .. self.id, 30000)
+
+            -- 先从队列中取
+            while #self.sub_queue > 0 do
+                local m = table.remove(self.sub_queue, 1)
+                -- 处理消息
+                local ts = string.split(m.topic, "/")
                 if RELEASE then
                     -- 加入异常处理，避免异常崩溃
-                    local ret2, info = pcall(find_callback, self.sub_tree, ts, topic, payload)
+                    local ret2, info = pcall(find_callback, self.sub_tree, ts, 1, m.topic, m.payload)
                     if not ret2 then
                         iot.emit("error", info)
                     end
                 else
-                    find_callback(self.sub_tree, ts, topic, payload)
+                    -- 直接抛出异常，方便查问题
+                    find_callback(self.sub_tree, ts, 1, m.topic, m.payload)
                 end
             end
         end
         log.info("message handling task exit")
+    end)
+
+    -- 处理发送消息
+    iot.start(function()
+        while self.client do
+            iot.wait("MQTT_PUBLISH_" .. self.id, 30000)
+
+            -- 先从队列中取
+            while #self.pub_queue > 0 do
+                local m = table.remove(self.pub_queue, 1)
+                self.client:publish(m.topic, m.payload, m.qos)
+            end
+        end
     end)
 
     -- 连接
@@ -136,7 +166,6 @@ function MqttClient:close()
         self.client:close()
         self.client = nil
     end
-
 end
 
 --- 发布消息
@@ -148,6 +177,12 @@ function MqttClient:publish(topic, payload, qos)
     if self.client == nil then
         return false, "publish failed, client is nil"
     end
+
+    -- 太多消息，则不发送
+    if #self.pub_queue > 50 then
+        return false, "too many message"
+    end
+
     -- 转为json格式
     if type(payload) ~= "string" then
         local err
@@ -157,7 +192,20 @@ function MqttClient:publish(topic, payload, qos)
         end
     end
     log.info("publish", topic, payload, qos)
-    return true, self.client:publish(topic, payload, qos)
+
+    -- return true, self.client:publish(topic, payload, qos)
+    -- 异步发送消息，避免拥堵
+    table.insert(self.pub_queue, {
+        topic = topic,
+        payload = payload,
+        qos = qos
+    })
+
+    if self.client:ready() then
+        iot.emit("MQTT_PUBLISH_" .. self.id)
+    end
+
+    return true
 end
 
 --- 订阅（检查重复订阅，只添加回调）
@@ -192,6 +240,14 @@ function MqttClient:subscribe(filter, cb)
         sub = s
     end
 
+    -- 避免重复订阅
+    for _, c in ipairs(sub.callbacks) do
+        if c == cb then
+            self.subs[filter] = self.subs[filter] - 1
+            return
+        end
+    end
+
     -- 注册回调
     table.insert(sub.callbacks, cb)
 end
@@ -201,19 +257,6 @@ end
 -- @param cb function|nil 回调
 function MqttClient:unsubscribe(filter, cb)
     log.info("unsubscribe", filter)
-
-    -- 取消订阅
-    if self.subs[filter] ~= nil then
-        if cb == nil then
-            self.subs[filter] = 0
-            self.client:unsubscribe(filter)
-        else
-            self.subs[filter] = self.subs[filter] - 1
-            if self.subs[filter] <= 0 then
-                self.client:unsubscribe(filter)
-            end
-        end
-    end
 
     local fs = string.split(filter, "/")
 
@@ -227,6 +270,8 @@ function MqttClient:unsubscribe(filter, cb)
         sub = s
     end
 
+    local cnt = 0
+
     -- 删除回调
     if #sub.callbacks == 1 or cb == nil then
         sub.callbacks = {}
@@ -234,6 +279,24 @@ function MqttClient:unsubscribe(filter, cb)
         for i, c in ipairs(sub.callbacks) do
             if c == cb then
                 table.remove(sub.callbacks, i)
+                cnt = cnt + 1
+            end
+        end
+    end
+
+    -- 取消订阅
+    if self.subs[filter] ~= nil then
+        if cb == nil then
+            self.subs[filter] = 0
+            if self.client then
+                self.client:unsubscribe(filter)
+            end
+        elseif cnt > 0 then
+            self.subs[filter] = self.subs[filter] - cnt
+            if self.subs[filter] <= 0 then
+                if self.client then
+                    self.client:unsubscribe(filter)
+                end
             end
         end
     end
