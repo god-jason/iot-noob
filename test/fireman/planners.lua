@@ -1,6 +1,9 @@
 local planner = require("planner")
 local log = iot.logger("planner")
 
+local actions = require("actions")
+local robot = require("robot")
+
 local planners = {}
 
 -- 全部停止
@@ -113,4 +116,15 @@ function planners.extinguish_stop(data)
 end
 
 -- 注册
-planner.register(planners)
+for k, v in pairs(planners) do
+
+    -- 注册到计划
+    planner.register(k, v)
+
+    -- 注册actions，远程调用
+    actions.register(k, function(data)
+        log.info("plan", k, iot.json_encode(data))
+        return robot.plan(k, data)
+    end)
+end
+

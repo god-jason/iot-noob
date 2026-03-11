@@ -4,7 +4,9 @@ local log = iot.logger("program")
 local configs = require("configs")
 
 local vm = require("vm")
+local actions = require("actions")
 local planner = require("planner")
+local robot = require("robot")
 local boot = require("boot")
 
 -- 创建指令
@@ -21,14 +23,14 @@ local function create_instruction(name, script)
 
     local ret, info = load(script, "instruction_" .. name, "bt", _G)
     if not ret then
-        --log.info("compile instruction error", fn)
+        -- log.info("compile instruction error", fn)
         return false, info
     end
 
     -- 返回闭包
     ret, info = pcall(ret)
     if not ret then
-        --log.info("closure instruction error", fn)
+        -- log.info("closure instruction error", fn)
         return false, info
     end
 
@@ -51,22 +53,28 @@ local function create_planner(name, script)
 
     local ret, info = load(script, "planner_" .. name, "bt", _G)
     if not ret then
-        --log.info("compile planner error", fn)
+        -- log.info("compile planner error", fn)
         return false, info
     end
 
     -- 返回闭包
     ret, info = pcall(ret)
     if not ret then
-        --log.info("closure planner error", fn)
+        -- log.info("closure planner error", fn)
         return ret, info
     end
 
     -- 注册到计划器上
     planner.register(name, info)
+    
+    -- 注册actions，远程调用
+    actions.register(name, function(data)
+        log.info("plan", name, iot.json_encode(data))
+        return robot.plan(name, data)
+    end)
+
     return true
 end
-
 
 function program.open()
 

@@ -1,4 +1,4 @@
-local log = iot.logger("commands")
+local log = iot.logger("instructions")
 
 local vm = require("vm")
 

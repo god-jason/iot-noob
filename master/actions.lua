@@ -2,13 +2,30 @@ local actions = {}
 
 local log = iot.logger("actions")
 
-local settings = require "settings"
-local database = require "database"
+
+-- 注册指令
+function actions.register(name, fn)
+    actions[name] = fn
+
+    if type(name) == "string" and type(fn) == "function" then
+        actions[name] = fn
+    end
+
+    -- 批量注册
+    if type(name) == "table" then
+        for k, v in pairs(name) do
+            if type(v) == "function" then
+                actions[k] = v
+            end
+        end
+    end
+end
+
 
 actions.watching = false
-
 local watcher = 0
 
+-- 观察
 function actions.watch(data)
     log.info("查看")
     watcher = watcher + 1
@@ -46,6 +63,7 @@ function actions.reboot()
     return true
 end
 
+-- 升级
 function actions.upgrade(data)
     iot.emit("device_log", "升级设备" .. (data.version or ''))
     iot.upgrade(data.url)
