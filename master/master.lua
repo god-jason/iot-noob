@@ -6,7 +6,7 @@ local log = iot.logger("master")
 
 local boot = require("boot")
 
-local actions = require("actions")
+local agent = require("agent")
 local settings = require("settings")
 local configs = require("configs")
 local MqttClient = require("mqtt_client")
@@ -290,19 +290,11 @@ local function on_action(topic, data)
     local _, _, _, _, _, action = topic:find("(.+)/(.+)/(.+)/(.+)")
     log.info("action", action)
 
-    local handler = actions[action]
-    if type(handler) == "function" then
-        local ret, dat = handler(data)
-        cloud:publish(topic .. "/response", {
-            ok = ret,
-            data = dat
-        })
-    else
-        cloud:publish(topic .. "/response", {
-            ok = false,
-            error = "找不到响应"
-        })
-    end
+    local ret, err = agent.execute(action, data)
+    cloud:publish(topic .. "/response", {
+        ok = ret,
+        data = err
+    })
 end
 
 -- 处理子设备操作
@@ -313,7 +305,6 @@ local function on_sub_action(topic, data)
     -- TODO 子设备操作
 
 end
-
 
 local function master_task()
     -- 等待网络就绪
@@ -382,12 +373,12 @@ local function master_task()
         report_sub_devices()
 
         -- 正在查看时，1秒上传一次
-        if actions.watching then
+        if agent.watching then
             iot.sleep(1000)
         else
             -- 避免首次等60秒
             for i = 1, 60, 1 do
-                if not actions.watching then
+                if not agent.watching then
                     iot.sleep(1000)
                 end
             end

@@ -9,7 +9,7 @@ local boots = {}
 function boot.register(name, mod)
 
     if type(mod) ~= "table" then
-        log.error("register", name, "is not a module")
+        log.error(name, "不是模块")
         return
     end
 
@@ -26,7 +26,7 @@ end
 function boot.open(name)
     local mod = modules[name]
     if not mod then
-        return false, "cannot find module" .. name
+        return false, "找不到模块" .. name
     end
 
     if mod.opened then
@@ -34,7 +34,7 @@ function boot.open(name)
     end
 
     if mod.visiting then
-        return false, "circular dependency"
+        return false, "循环依赖"
     end
     mod.visiting = true
 
@@ -49,7 +49,7 @@ function boot.open(name)
 
     mod.visiting = false
 
-    log.info("open module", name)
+    log.info("open", name)
     local ret, res, info = pcall(mod.open)
     if not ret then
         return false, res
@@ -77,7 +77,7 @@ function boot.close(name)
         return
     end
 
-    log.info("close module", name)
+    log.info("close", name)
     local ret, res, info = pcall(mod.close)
     if not ret then
         log.error(res)

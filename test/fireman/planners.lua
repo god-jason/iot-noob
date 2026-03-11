@@ -1,7 +1,7 @@
 local planner = require("planner")
 local log = iot.logger("planner")
 
-local actions = require("actions")
+local agent = require("agent")
 local robot = require("robot")
 
 local planners = {}
@@ -121,8 +121,8 @@ for k, v in pairs(planners) do
     -- 注册到计划
     planner.register(k, v)
 
-    -- 注册actions，远程调用
-    actions.register(k, function(data)
+    -- 注册命令，远程调用
+    agent.register(k, function(data)
         log.info("plan", k, iot.json_encode(data))
         return robot.plan(k, data)
     end)

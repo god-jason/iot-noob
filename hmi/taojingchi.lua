@@ -38,7 +38,7 @@ local tjc = {}
 local log = iot.logger("taojingchi")
 
 local settings = require("settings")
-local actions = require("actions")
+local agent = require("agent")
 local boot = require("boot")
 
 local options = {}
@@ -97,12 +97,9 @@ local function on_data(id, len)
         end
 
         -- 处理命令（比如按钮）
-        local handler = actions[pkt.type]
-        if handler then
-            local ret, err = pcall(handler, pkt)
-            if not ret then
-                log.info("handle command error", err)
-            end
+        local ret, err = agent.execute(pkt.type, pkt)
+        if not ret then
+            log.info("handle command error", err)
         end
     end
 end

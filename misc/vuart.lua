@@ -1,10 +1,20 @@
---- 虚拟串口调试
+--- USB虚拟串口，调试工具用
 -- @module vuart
 local vuart = {}
 
 local log = iot.logger("vuart")
 
-local commands = require("commands")
+local agent = require("agent")
+
+local function reply_ok()
+
+end
+
+local function reply_error(err)
+    return {
+        error = err
+    }
+end
 
 local cache = ""
 local function on_data(id, len)
@@ -20,7 +30,7 @@ local function on_data(id, len)
     -- 防止命令过长
     if #cache > 4096 then
         cache = ""
-        local response = commands.error("command too long")
+        local response = reply_error("command too long")
         local data2 = json.encode(response)
         uart.write(uart.VUART_0, data2 .. "\r\n")
     end
@@ -37,25 +47,20 @@ local function on_data(id, len)
         cache = ""
 
         if ret == 1 then
-            local handler = commands[pkt.cmd]
-            if handler then
-                -- response = handler(pkt)
-                -- 加入异常处理
-                ret, response = pcall(handler, pkt)
-                if not ret then
-                    response = commands.error(response)
-                end
+            local ret, err = agent.execute(pkt.type, pkt)
+            if ret then
+                response = reply_error(err)
             else
-                response = commands.error("invalid command")
+                response = reply_ok(err)
             end
         else
-            response = commands.error(err)
+            response = reply_error(err)
         end
 
         if response ~= nil then
             local data2, err2 = json.encode(response)
             if data2 == nil then
-                response = commands.error("json encode failed" .. err2)
+                response = reply_error("json encode failed" .. err2)
                 data2 = json.encode(response)
             end
             uart.write(uart.VUART_0, data2 .. "\r\n")
