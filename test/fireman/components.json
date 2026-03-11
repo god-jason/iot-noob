@@ -1,0 +1,83 @@
+[
+    {
+        "type": "stepper",
+        "name": "move_stepper",
+        "reverse": true,
+        "pwm_id": 0,
+        "dir": 5,
+        "en": 4,
+        "freq": 1600
+    },
+    {
+        "type": "stepper",
+        "name": "arm_stepper",
+        "reverse": true,
+        "pwm_id": 0,
+        "dir": 8,
+        "en": 7,
+        "freq": 1600
+    },
+    {
+        "name": "turn_stepper",
+        "type": "stepper",
+        "reverse": true,
+        "pwm_id": 1,
+        "dir": 23,
+        "en": 22,
+        "freq": 1600
+    },
+    {
+        "name": "cam_stepper",
+        "type": "stepper",
+        "reverse": true,
+        "pwm_id": 1,
+        "dir": 27,
+        "en": 26,
+        "freq": 1600
+    },
+    {
+        "name": "move_pin",
+        "type": "relay",
+        "pin": 3
+    },
+    {
+        "name": "arm_pin",
+        "type": "relay",
+        "pin": 6
+    },
+    {
+        "name": "cam_pin",
+        "type": "relay",
+        "pin": 25
+    },
+    {
+        "name": "turn_pin",
+        "type": "relay",
+        "pin": 21
+    },
+    {
+        "name": "water_pin1",
+        "type": "relay",
+        "pin": 36
+    },
+    {
+        "name": "water_pin2",
+        "type": "relay",
+        "pin": 36
+    },
+    {
+        "name": "water_limit1",
+        "type": "switch",
+        "pin": 37,
+        "event": "water_limit1"
+    },
+    {
+        "name": "water_limit2",
+        "type": "switch",
+        "pin": 38,
+        "event": "water_limit2"
+    }
+
+
+
+]

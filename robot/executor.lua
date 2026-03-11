@@ -1,7 +1,6 @@
 local log = iot.logger("executor")
 
-local instructions = {}
-
+local vm = require("vm")
 local utils = require("utils")
 
 -- 自增ID
@@ -10,23 +9,6 @@ local inc = utils.increment()
 -- 定义实例
 local Executor = {}
 Executor.__index = Executor
-
--- 注册指令
-function Executor.register(name, handler)
-
-    if type(name) == "string" and type(handler) == "function" then
-        instructions[name] = handler
-    end
-
-    -- 批量注册
-    if type(name) == "table" then
-        for k, v in pairs(name) do
-            if type(v) == "function" then
-                instructions[k] = v
-            end
-        end
-    end
-end
 
 -- 创建实例
 function Executor:new(opts)
@@ -46,10 +28,10 @@ end
 function Executor:clone()
     return setmetatable({
         id = inc(),
-        job = Executor.job,
-        tasks = Executor.tasks,
-        on_finish = Executor.on_finish,
-        on_error = Executor.on_error,
+        job = self.job,
+        tasks = self.tasks,
+        on_finish = self.on_finish,
+        on_error = self.on_error,
         current = 1,
         context = {}
     }, Executor)
@@ -57,81 +39,134 @@ end
 
 -- 暂停
 function Executor:pause()
-    Executor.paused = true
-    iot.emit("executor_" .. Executor.id .. "_break")
+    self.paused = true
+    iot.emit("executor_" .. self.id .. "_break")
 end
 
 -- 停止
 function Executor:stop()
-    iot.emit("executor_" .. Executor.id .. "_break")
+    self.stoped = true
+    iot.emit("executor_" .. self.id .. "_break")
 end
 
 -- 执行（内部用）
 function Executor:execute(cursor)
     cursor = cursor or 1 -- 默认从头开始
-    log.info("execute", cursor, json.encode(Executor.tasks))
+    log.info("execute", cursor, iot.json_encode(self.tasks))
 
     -- 从起始任务执行
-    for i = cursor, #Executor.tasks, 1 do
-        local task = Executor.tasks[i]
-        log.info("task", i, iot.json_encode(task))
-        Executor.current = i
+    self.current = cursor
 
-        local fn = instructions[task.type]
-        if type(fn) == "function" then
-            -- fn(task)
-            local ret, info = pcall(fn, Executor.context, task)
+    while self.current <= #self.tasks and not self.paused and not self.stoped do
+        local task = self.tasks[self.current]
+        log.info("task", self.current, iot.json_encode(task))
+
+        -- 条件指令
+        if type(task.condition) == "function" then
+            local ret, info = pcall(task.condition)
             if not ret then
                 log.error(info)
                 -- 上报错误
-                if not Executor.on_error then
-                    Executor.on_error(info)
+                if self.on_error then
+                    self.on_error(info)
+                end
+                return
+            end
+
+            -- 条件不满足，跳过当前指令
+            if not info then
+                goto continue
+            end
+        end
+
+        local fn = vm[task.type]
+        if type(fn) == "function" then
+            -- fn(task)
+            local ret, info = pcall(fn, task, self.context, self)
+            if not ret then
+                log.error(info)
+                -- 上报错误
+                if self.on_error then
+                    self.on_error(info)
                 end
 
                 -- TODO 设备状态
                 return
             end
+
+            -- 任务等待
+            if type(info) == "number" and info > 0 then
+                ret = iot.wait("executor_" .. self.id .. "_break", info)
+                if ret then
+                    -- 被中断
+                    log.info("被中断")
+                    break
+                end
+            end
         else
             log.info("unkown command", task.type)
         end
 
-        -- 任务等待
-        if task.wait_timeout ~= nil and task.wait_timeout > 0 then
-            local ret, info = iot.wait("executor_" .. Executor.id .. "_break", task.wait_timeout)
-            if ret then
-                -- 被中断
-                log.info("被中断", info)
-                break
-            end
-        end
+        -- 下一条
+        ::continue::
+        self.current = self.current + 1
     end
 
     -- 任务暂停
-    if Executor.paused then
+    if self.paused then
         -- log.info("pause")
         return
     end
 
     -- 任务结束
-    Executor.job = "none"
-    Executor.stoped = true
+    self.job = "none"
+    self.stoped = true
 
     log.info("execute finished")
 
-    if Executor.on_finish ~= nil then
-        Executor.on_finish()
+    if self.on_finish ~= nil then
+        self.on_finish()
     end
 end
 
 -- 恢复
 function Executor:resume()
-    Executor.paused = false
-    iot.start(Executor.execute, Executor, Executor.current)
+    self.paused = false
+    iot.start(Executor.execute, self, self.current)
 end
 
 -- 启动
 function Executor:start()
-    iot.start(Executor.execute, Executor)
+
+    -- 编译条件
+    for i, task in ipairs(self.tasks) do
+        if type(task.condition) == "string" then
+            local script = "return " .. task.condition
+            -- 编译
+            local ret, info = load(script, "vm_if", "t", {
+                components = _G.components,
+                devices = _G.devices,
+                context = self.context
+            })
+            if not ret then
+                return false, info
+            end
+
+            --TODO 放到这里会污染指令，导致无法序列号
+            task.condition = ret
+            --self.conditions[i] = ret
+        end
+
+        -- 预查指令
+        local fn = vm[task.type]
+        if not fn or type(fn) ~= "function" then
+            return false, "cannot found command: " .. task.type
+        end
+    end
+
+    iot.start(Executor.execute, self)
+
+    return true
 end
 
 return Executor

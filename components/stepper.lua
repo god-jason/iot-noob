@@ -168,37 +168,36 @@ function Stepper:accelerate(start, finish, count)
 
     local pulse = 0
 
+    -- 至少1圈
     if count == 0 then
         count = self.freq
     end
 
-    local step = math.floor(self.freq / 100)
+    local step = math.floor(self.freq / 10)
 
     -- S加速曲线，缓起，缓停， t是0-1
     -- 速度公式 v = -2 * t^3 + 3 * t^2
     -- 加速度公式 a = -6 * t^2 + 6 * t
-    local tm = math.abs(finish - start) / step
-    -- log.info("accelerate tm", tm)
+    local steps = math.floor(math.abs(finish - start) / step)
+    log.info("accelerate step", step, "steps", steps)
+
     -- local speeds = {}
-    local i = acc_interval -- 跳过初始和结束速度
-    while i < tm and self.running do
-        -- .info("accelerate interval", i)
-
-        local t = i / tm
-        local v = -2 * t * t * t + 3 * t * t -- 速度
-        -- local a = -6 * t * t + 6 * t -- 加速度
-        local vv = (finish - start) * v + start
-        vv = math.floor(vv)
-
-        -- log.info("accelerate interval", i, vv)
-
-        -- 可能会出现0，导致死机
-        if vv == 0 then
+    for i = 1, steps, 1 do
+        if not self.running then
             break
         end
 
-        -- table.insert(speeds, vv)
-        i = i + acc_interval -- 10ms加速一次
+        local t = i / steps
+        local v = -2 * t * t * t + 3 * t * t -- 速度
+        -- local a = -6 * t * t + 6 * t -- 加速度
+        local vv = (finish - start) * v + start
+        --log.info("accelerate", i, v, vv)
+        vv = math.ceil(vv)
+
+        -- 可能会出现0，导致死机，实时不会出现
+        if vv == 0 then
+            vv = 1
+        end
 
         -- pwm.stop(self.pwm) -- PWM必须先停止再启动，否则无效
         -- pwm.setup(self.pwm, vv, 50, count)
@@ -223,9 +222,9 @@ function Stepper:accelerate(start, finish, count)
         pulse = pulse + vv * acc_interval / 1000
     end
 
-    log.info(self.pwm, "accelerate time", tm, "pulses", pulse)
+    log.info(tag, self.pul, "accelerate steps", steps, "pulses", pulse)
 
-    return math.floor(tm), math.floor(pulse)
+    return math.floor(steps * acc_interval), math.floor(pulse)
 end
 
 --- 计算 加速时间 和 圈数
@@ -233,21 +232,20 @@ function Stepper:calc_accelerate(start_rpm, finish_rpm)
     local start = math.floor(self.freq * start_rpm / 60)
     local finish = math.floor(self.freq * finish_rpm / 60)
 
-    local step = math.floor(self.freq / 100)
+    local step = math.floor(self.freq / 10)
 
     local pulse = 0
-    local tm = math.abs(finish - start) / step
-    local i = acc_interval -- 跳过初始和结束速度
-    while i < tm do
-        local t = i / tm
+    local steps = math.floor(math.abs(finish - start) / step)
+
+    for i = 1, steps, 1 do
+        local t = i / steps
         local v = -2 * t * t * t + 3 * t * t -- 速度
         -- local a = -6 * t * t + 6 * t -- 加速度
         local vv = (finish - start) * v + start
-        vv = math.floor(vv)
-        i = i + acc_interval
+        vv = math.ceil(vv)
         pulse = pulse + vv * acc_interval / 1000
     end
-    return math.floor(tm), pulse / self.freq
+    return math.floor(steps * acc_interval), pulse / self.freq
 end
 
 return Stepper

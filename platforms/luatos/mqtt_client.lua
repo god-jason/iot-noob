@@ -31,8 +31,8 @@ end
 
 --- 查询订阅树
 local function find_callback(node, topics, index, topic, payload)
-    -- 叶子节点，执行回调
-    if #topics <= index then
+    -- 叶子节点为空，执行回调
+    if #topics < index then
         for _, cb in ipairs(node.callbacks) do
             cb(topic, payload)
         end

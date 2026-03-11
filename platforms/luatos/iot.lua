@@ -37,7 +37,10 @@ end
 -- @param timeout integer 超时
 -- @return interger 定时器ID
 function iot.setTimeout(func, timeout, ...)
-    return sys.timerStart(func, timeout, ...)
+    if timeout < 1 then
+        timeout = 1
+    end
+    return sys.timerStart(func, math.ceil(timeout), ...)
 end
 
 --- 循环定时任务
@@ -45,7 +48,10 @@ end
 -- @param timeout integer 超时
 -- @return interger 定时器ID
 function iot.setInterval(func, timeout, ...)
-    return sys.timerLoopStart(func, timeout, ...)
+    if timeout < 1 then
+        timeout = 1
+    end
+    return sys.timerLoopStart(func, math.ceil(timeout), ...)
 end
 
 --- 清空定时任务
@@ -78,7 +84,10 @@ end
 --- 协程休眠
 -- @param timeout integer 超时
 function iot.sleep(timeout)
-    sys.wait(timeout)
+    if timeout < 1 then
+        timeout = 1
+    end
+    sys.wait(math.ceil(timeout))
 end
 
 --- 等待消息，协程休眠
@@ -87,7 +96,14 @@ end
 -- @return boolean 成功与否（超时false）
 -- @return any 传参
 function iot.wait(topic, timeout)
-    return sys.waitUntil(topic, timeout)
+    if timeout ~= nil then
+        if timeout < 1 then
+            timeout = 1
+        end
+        return sys.waitUntil(topic, math.ceil(timeout))
+    else
+        return sys.waitUntil(topic)
+    end
 end
 
 --- 消息订阅
@@ -351,12 +367,11 @@ function iot.reboot()
     rtos.reboot()
 end
 
-local Socket = require("socket_client")
-
 --- 创建SOCKET
 -- @param opts
 -- @return Socket
 function iot.socket(opts)
+    local Socket = require("socket_client")
     return Socket:new(opts)
 end
 
