@@ -9,8 +9,6 @@ local boot = require("boot")
 local actions = require("actions")
 local settings = require("settings")
 local configs = require("configs")
-local links = require("links")
-local devices = require("devices")
 local MqttClient = require("mqtt_client")
 local database = require("database")
 local gateway = require("gateway")
@@ -177,7 +175,7 @@ end
 local function report_sub_devices(all)
     log.info("report_sub_devices", all)
 
-    for id, dev in pairs(devices.devices()) do
+    for id, dev in pairs(devices) do
         if dev.values and not dev.inline then
             local values = all and dev:values() or dev:modified_values(true)
 
@@ -199,7 +197,7 @@ end
 local function report_sub_devices_status()
     local now = os.time()
 
-    for id, dev in pairs(devices.devices()) do
+    for id, dev in pairs(devices) do
         if dev._values then
             local st = ""
 

@@ -95,13 +95,14 @@ function boot.startup()
         local ret, info = boot.open(name)
         if not ret then
             log.error(info)
-            -- 非发布时，关闭程序
+
+            -- 非发布时，关闭程序，抛出异常
             if not RELEASE then
                 boot.shutdown()
                 error(info)
             end
 
-            -- return 不能返回，避免平台模块不正常
+            -- 发布时，要启动平台模块，至少实现重置和远程升级
         end
     end
 end

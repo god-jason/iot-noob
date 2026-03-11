@@ -17,9 +17,8 @@ function actions.watch(data)
 
     local w = watcher
 
-    local tm = data.value or 60000
+    local tm = (data.value or 60) * 1000
     iot.setTimeout(function()
-        -- log.info("watch timeout", w, watcher)
         -- 只在最后一个定时结束时，结束监听
         if w == watcher then
             actions.watching = false
@@ -30,11 +29,13 @@ end
 
 -- 清除数据
 function actions.reset()
-    log.info("清除数据")
-    database.clear("device")
-    database.clear("model")
-    settings.reset()
-    iot.setTimeout(iot.reboot, 2000)
+    iot.emit("device_log", "恢复出厂设置")
+    -- 删除所有文件，恢复出厂设置
+    iot.walk("/", function(fn)
+        log.info("remove", fn)
+        os.remove(fn)
+    end)
+    iot.setTimeout(iot.reboot, 1000)
     return true
 end
 
@@ -46,10 +47,9 @@ function actions.reboot()
 end
 
 function actions.upgrade(data)
-    iot.emit("device_log", "升级设备" .. data.version)
+    iot.emit("device_log", "升级设备" .. (data.version or ''))
     iot.upgrade(data.url)
     return true
 end
-
 
 return actions

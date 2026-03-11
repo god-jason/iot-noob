@@ -3,13 +3,14 @@ local log = iot.logger("program")
 
 local configs = require("configs")
 
-local Executor = require("executor")
+local vm = require("vm")
 local planner = require("planner")
+local boot = require("boot")
 
 -- 创建指令
 local function create_instruction(name, script)
     if type(script) == "function" then
-        Executor.register(name, script)
+        vm[name] = script
         return true
     end
 
@@ -32,7 +33,7 @@ local function create_instruction(name, script)
     end
 
     -- 注册到虚拟机上
-    Executor.register(name, info)
+    vm[name] = info
     return true
 end
 
@@ -67,7 +68,7 @@ local function create_planner(name, script)
 end
 
 
-function program.load()
+function program.open()
 
     -- 加载自定义指令集
     log.info("load instructions")
@@ -92,5 +93,9 @@ function program.load()
     return true
 end
 
+program.deps = {"settings"}
+
+-- 注册
+boot.register("program", program)
 
 return program
