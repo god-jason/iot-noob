@@ -40,7 +40,7 @@ function Buzzer:on()
         })
 
         if not ok then
-            return false, "open pwm failed"
+            return false, "PWM打开失败" .. self.pwm_id
         end
 
         self.pwm = pwm

@@ -35,7 +35,7 @@ function BreathLed:open()
     })
 
     if not ret then
-        log.error("PWM open failed ", self.pwm_id)
+        log.error("PWM打开失败 ", self.pwm_id)
         return false
     end
     

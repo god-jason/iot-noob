@@ -272,25 +272,25 @@ function ModbusDevice:get(key)
     log.info("get", key, self.id)
     local ret, point = self:find_point(key)
     if not ret then
-        return false
+        return false, "找不到点位"..key
     end
 
     local data
     if point.register == 1 or point.register == 2 then
         ret, data = self.master:read(self.slave, point.register, point.address, 1)
         if not ret then
-            return false
+            return false, data
         end
         -- 直接判断返回值就行了 FF00 0000
         ret, data = points.parseBit(point, data, point.address)
     elseif point.register == 3 or point.register == 4 then
         local feagure = points.feature(point.type)
         if not feagure then
-            return false
+            return false, "找不到类型"
         end
         ret, data = self.master:read(self.slave, point.register, point.address, feagure.word)
         if not ret then
-            return false
+            return false, data
         end
         ret, data = points.parseWord(point, data, point.address)
     end
@@ -310,7 +310,7 @@ function ModbusDevice:set(key, value)
     log.info("set", key, value, self.id)
     local ret, point = self:find_point(key)
     if not ret then
-        return false
+        return false, "找不到点位"..key
     end
 
     local data
@@ -327,7 +327,7 @@ function ModbusDevice:set(key, value)
     else
         ret, data = points.encode(point, value)
         if not ret then
-            return false
+            return false, data
         end
         code = 6
     end
@@ -342,8 +342,8 @@ function ModbusDevice:poll()
 
     -- 没有轮询器，直接返回
     if not self.mapper.pollers or #self.mapper.pollers == 0 then
-        log.info(self.id, self.product_id, "pollers empty")
-        return false
+        log.info(self.id, self.product_id, "没有轮询器")
+        return false, "没有轮询器"
     end
 
     local values = {}
@@ -422,7 +422,7 @@ function ModbusDevice:poll()
                 -- 暂不支持其他类型
             end
         else
-            log.error("poll read failed")
+            log.error("轮询失败", data)
         end
     end
 
@@ -463,15 +463,15 @@ function ModbusMaster:readTCP(slave, code, addr, len)
 
     local ret, buf = self.request:request(header .. data, 12)
     if not ret then
-        return false
+        return false, buf
     end
 
     -- 取错误码
     if #buf > 8 then
         local code2 = string.byte(buf, 8)
         if code2 > 0x80 then
-            log.error("error code", code2)
-            return false
+            log.error("错误码", code2)
+            return false, "错误码" .. code2
         end
     end
 
@@ -481,10 +481,10 @@ function ModbusMaster:readTCP(slave, code, addr, len)
 
     -- 取剩余数据
     if #buf < len then
-        log.info("wait more", len, #buf)
+        log.info("等待更多", len, #buf)
         local r, d = self.request:request(nil, len - #buf)
         if not r then
-            return false
+            return false, d
         end
         buf = buf .. d
     end
@@ -511,15 +511,15 @@ function ModbusMaster:read(slave, code, addr, len)
 
     local ret, buf = self.request:request(data .. crc, 7)
     if not ret then
-        return false
+        return false, buf
     end
 
     -- 取错误码
     if #buf > 3 then
         local code2 = string.byte(buf, 2)
         if code2 > 0x80 then
-            log.error("error code", code2)
-            return false
+            log.error("错误码", code2)
+            return false, "错误码" .. code2
         end
     end
 
@@ -527,10 +527,10 @@ function ModbusMaster:read(slave, code, addr, len)
     local cnt = string.byte(buf, 3)
     local len2 = 5 + cnt
     if #buf < len2 then
-        log.info("wait more", len2, #buf)
+        log.info("等待更多", len2, #buf)
         local r, d = self.request:request(nil, len2 - #buf)
         if not r then
-            return false
+            return false, d
         end
         buf = buf .. d
     end
@@ -549,15 +549,15 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
 
     local ret, buf = self.request:request(header .. data, 12)
     if not ret then
-        return false
+        return false, buf
     end
 
     -- 取错误码
     if #buf > 8 then
         local code2 = string.byte(buf, 8)
         if code2 > 0x80 then
-            log.error("error code", code2)
-            return false
+            log.error("错误码", code2)
+            return false, "错误码" .. code2
         end
     end
 
@@ -567,10 +567,10 @@ function ModbusMaster:writeTCP(slave, code, addr, data)
 
     -- 取剩余数据
     if #buf < len then
-        log.info("wait more", len, #buf)
+        log.info("等待更多", len, #buf)
         local r, d = self.request:request(nil, len - #buf)
         if not r then
-            return false
+            return false, d
         end
         buf = buf .. d
     end
@@ -611,15 +611,15 @@ function ModbusMaster:write(slave, code, addr, data)
 
     local ret, buf = self.request:request(data .. crc, 7)
     if not ret then
-        return false
+        return false, buf
     end
 
     -- 取错误码
     if #buf > 3 then
         local code2 = string.byte(buf, 2)
         if code2 > 0x80 then
-            log.error("error code", code2)
-            return false
+            log.error("错误码", code2)
+            return false, "错误码" .. code2
         end
     end
 
@@ -629,7 +629,7 @@ end
 ---打开主站
 function ModbusMaster:open()
     if self.opened then
-        log.error("already opened")
+        log.error("已经打开")
         return
     end
     self.opened = true
@@ -672,7 +672,7 @@ function ModbusMaster:_polling()
     interval = interval * 1000 -- 毫秒
 
     while self.opened do
-        log.info("polling start")
+        log.info("轮询开始")
         local start = mcu.ticks()
 
         -- 轮询连接下面的所有设备
@@ -685,7 +685,7 @@ function ModbusMaster:_polling()
                 if ret then
                     log.info("polling", dev.id, "succeed")
                 else
-                    log.error("polling", dev.id, "failed")
+                    log.error("polling", dev.id, "failed", values)
                 end
 
             end)

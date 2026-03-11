@@ -1,4 +1,3 @@
-
 local log = iot.logger("points")
 
 --- 点位相关
@@ -175,7 +174,7 @@ function points.parseBit(point, data, address)
     local cursor = math.floor(offset / 8) + 1
     if #data <= cursor then
         log.error("parseBit over index")
-        return false
+        return false, "索引溢出"
     end
     local byte = string.byte(data, cursor)
     local value = bit.isSet(byte, offset % 8 + 1)
@@ -193,13 +192,13 @@ function points.parseWord(point, data, address)
     local feagure = feagures[point.type]
     if not feagure then
         log.error("parseWord unkown type", point.type)
-        return false
+        return false, "未知数据类型" .. point.type
     end
 
     local cursor = (point.address - address) * 2 + 1 -- lua索引从1开始...
     if #data <= cursor then
         log.error("parseWord over index")
-        return false
+        return false, "未知数据类型" .. point.type
     end
 
     -- 解码数据
@@ -237,13 +236,13 @@ function points.parse(point, data, address)
     local feagure = feagures[point.type]
     if not feagure then
         log.error("parse unkown type", point.type)
-        return false
+        return false, "未知数据类型" .. point.type
     end
 
     local cursor = point.address - address + 1 -- lua索引从1开始...
     if #data <= cursor then
         log.error("parse over index")
-        return false
+        return false, "索引溢出"
     end
 
     -- 解码数据
@@ -281,7 +280,7 @@ function points.encode(point, value)
     local feagure = feagures[point.type]
     if not feagure then
         log.error("encode unkown type", point.type)
-        return false
+        return false, "未知类型" .. point.type
     end
 
     -- 枚举

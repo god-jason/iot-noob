@@ -16,19 +16,19 @@ end
 -- @return boolean
 -- @return string error
 function Protocol:open()
-    return false, "Protocol open() must be implemented!"
+    return false, "Protocol open() 未实现"
 end
 
 ---  关闭
 function Protocol:close()
-    return false, "Protocol close() must be implemented!"
+    return false, "Protocol close() 未实现"
 end
 
 ---  读取数据
 -- @return boolean 成功与否
 -- @return string|error
 function Protocol:read()
-    return false, "Protocol read() must be implemented!"
+    return false, "Protocol read() 未实现"
 end
 
 ---  写入数据
@@ -36,7 +36,7 @@ end
 -- @return boolean
 -- @return error
 function Protocol:write(data)
-    return false, "Protocol write(data) must be implemented!"
+    return false, "Protocol write(data) 未实现"
 end
 
 return Protocol

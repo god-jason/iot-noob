@@ -41,7 +41,7 @@ end
 ---@param rounds number 圈数
 ---@return integer 需要等待时间ms
 function Stepper:start(rpm, rounds)
-    log.info(self.pwm, "start rpm", rpm, "rounds", rounds)
+    log.info(self.pwm, "启动 rpm", rpm, "rounds", rounds)
     -- if self.running then
     --     -- 电机驱动必须先把PWM停下，再修改频率才有效
     --     --pwm.stop(self.pwm)
@@ -63,8 +63,6 @@ function Stepper:start(rpm, rounds)
 
     local freq = math.floor(self.freq * rpm / 60)
     local count = math.floor(self.freq * rounds)
-
-    log.info(self.pwm, "start freq", freq, "count", count)
 
     -- 加减速
     if self.smooth then
@@ -92,7 +90,7 @@ function Stepper:start(rpm, rounds)
         self:stop()
     end
 
-    log.info(self.pwm_id, "start", freq, "count", count)
+    log.info(self.pwm_id, "start freq", freq, "count", count)
     local time = math.floor(count / freq * 1000)
 
     -- 先停止再改速
@@ -164,7 +162,7 @@ local acc_interval = 10 -- 10ms加速一次
 ---@return integer 加减速消耗的时间ms
 ---@return integer 加减速消耗的脉冲数
 function Stepper:accelerate(start, finish, count)
-    log.info(self.pwm, "accelerate start", start, "finish", finish, "count", count)
+    log.info(self.pwm, "加速 start", start, "finish", finish, "count", count)
 
     local pulse = 0
 
@@ -179,7 +177,7 @@ function Stepper:accelerate(start, finish, count)
     -- 速度公式 v = -2 * t^3 + 3 * t^2
     -- 加速度公式 a = -6 * t^2 + 6 * t
     local steps = math.floor(math.abs(finish - start) / step)
-    log.info("accelerate step", step, "steps", steps)
+    log.info("步长 step", step, "steps", steps)
 
     -- local speeds = {}
     for i = 1, steps, 1 do
@@ -222,8 +220,7 @@ function Stepper:accelerate(start, finish, count)
         pulse = pulse + vv * acc_interval / 1000
     end
 
-    log.info(tag, self.pul, "accelerate steps", steps, "pulses", pulse)
-
+    --log.info(tag, self.pul, "accelerate steps", steps, "pulses", pulse)
     return math.floor(steps * acc_interval), math.floor(pulse)
 end
 

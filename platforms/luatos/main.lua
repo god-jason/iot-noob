@@ -5,7 +5,7 @@ VERSION = "1.0.0"
 -- 引入系统适配层
 require("iot")
 
-log.info("last power reson", pm.lastReson())
+log.info("开始原因", pm.lastReson())
 
 -- 看门狗守护
 if wdt then
@@ -37,7 +37,7 @@ sys.taskInit(function()
 
     while not RELEASE do
         sys.wait(5000)
-        log.info("mem", rtos.meminfo())
+        log.info("内存", rtos.meminfo())
     end
     
     log.info("exit")

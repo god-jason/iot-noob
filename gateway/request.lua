@@ -30,7 +30,7 @@ function Request:request(request, want_len)
 
     -- 重入锁，等待其他操作完成
     while self.requesting do
-        log.info("waiting for unlock")
+        log.info("等待解锁")
         iot.sleep(200)
     end
     self.requesting = true
@@ -41,7 +41,7 @@ function Request:request(request, want_len)
         if not ret then
             log.error("write failed", err)
             self.requesting = false
-            return false, "write failed "
+            return false, "写入失败"
         end
     end
 
@@ -53,7 +53,7 @@ function Request:request(request, want_len)
         local ret = self.link:wait(self.timeout)
         if not ret then
             self.requesting = false
-            return false, "wait timeout"
+            return false, "读取超时"
         end
 
         local r, d = self.link:read()

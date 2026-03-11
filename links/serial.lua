@@ -41,7 +41,7 @@ end
 function Serial:write(data)
     log.info("write", self.port, data:toHex())
     if self.peer then
-        return false, "cannot write when piping"
+        return false, "透传时不能写"
     end
     return self.uart:write(data)
 end
@@ -53,10 +53,10 @@ function Serial:wait(timeout)
     if self.peer then
         if timeout ~= nil and timeout > 0 then
             iot.sleep(timeout)
-            return false, "no data while piping"
+            return false, "透传中"
         end
         iot.sleep(1000)
-        return false, "no data while piping"
+        return false, "透传中"
     end
 
     return self.uart:wait(timeout)
@@ -67,7 +67,7 @@ end
 -- @return string|nil 数据
 function Serial:read()
     if self.peer then
-        return false, "cannot read when piping"
+        return false, "透传时不能读"
     end
 
     local ret, data = self.uart:read()

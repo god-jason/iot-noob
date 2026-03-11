@@ -19,19 +19,19 @@ end
 -- @return boolean
 -- @return string error
 function Link:open()
-    return false, "Link open() must be implemented!"
+    return false, "Link open() 未实现"
 end
 
 ---  关闭
 function Link:close()
-    return false, "Link close() must be implemented!"
+    return false, "Link close() 未实现"
 end
 
 ---  读取数据
 -- @return boolean 成功与否
 -- @return string|error
 function Link:read()
-    return false, "Link read() must be implemented!"
+    return false, "Link read() 未实现"
 end
 
 ---  写入数据
@@ -39,7 +39,7 @@ end
 -- @return boolean
 -- @return error
 function Link:write(data)
-    return false, "Link write(data) must be implemented!"
+    return false, "Link write(data) 未实现"
 end
 
 --- 等待数据
@@ -47,7 +47,7 @@ end
 -- @return boolean 成功与否
 -- @return intger 长度
 function Link:wait(timeout)
-    return false, "Link wait(timeout) must be implemented!"
+    return false, "Link wait(timeout) 未实现"
 end
 
 --- 注册监听回调

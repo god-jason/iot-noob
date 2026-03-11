@@ -128,6 +128,7 @@ end
 -- 上报设备信息
 local function register()
     log.info("register")
+
     local info = {
         id = mobile.imei(),
         product_id = options.product_id,
@@ -327,13 +328,15 @@ local function master_task()
 
     -- 连接云平台
     cloud = MqttClient:new(options)
-    local ret = cloud:open()
+    local ret, err = cloud:open()
 
     if not ret then
-        log.error("cloud open failed")
+        log.error("平台连接失败", err)
         return
     end
-    log.info("cloud connected")
+
+    log.info("平台连接成功")
+    
     iot.emit("MASTER_READY")
 
     -- 订阅网关消息

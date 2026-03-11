@@ -551,7 +551,7 @@ function iot.uart(id, opts)
     local ret = uart.setup(id, baud_rate, data_bits, stop_bits, partiy, bit_order, buff_size, rs485_gpio, rs485_level,
         rs485_delay)
     if ret ~= 0 then
-        return false, "打开失败"
+        return false, "UART打开失败"..id
     end
 
     local obj = setmetatable({
@@ -622,7 +622,7 @@ function iot.i2c(id, opts)
 
     local ret = i2c.setup(id, opts.slow and i2c.SLOW or i2c.FAST)
     if ret ~= 1 then
-        return false, "打开失败"
+        return false, "I2C打开失败"..id
     end
     -- 返回对象实例
     return true, setmetatable({
@@ -680,7 +680,7 @@ function iot.spi(id, opts)
 
     local dev = spi.deviceSetup(id, cs, CPHA, CPOL, dataw, bandrate, bitdict, ms, mode)
     if dev == nil then
-        return false, "打开失败"
+        return false, "SPI打开失败"..id
     end
     -- 返回对象实例
     return true, setmetatable({
@@ -711,7 +711,7 @@ function iot.adc(id, opts)
     opts = opts or {}
     local ret = adc.open(id)
     if not ret then
-        return false, "打开失败"
+        return false, "ADC打开失败"..id
     end
     return true, setmetatable({
         id = id
@@ -754,7 +754,7 @@ function iot.pwm(id, opts)
     opts = opts or {}
     local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 50, opts.count or 0)
     if not ret then
-        return false, "打开失败"
+        return false, "PWM打开失败" ..id
     end
     return true, setmetatable({
         id = id
@@ -819,7 +819,7 @@ function iot.can(id, opts)
     opts = opts or {}
     local ret = can.init(id, opts.buffer_size or 128)
     if not ret then
-        return false, "init failed"
+        return false, "CAN初始化失败"..id
     end
 
     can.on(id, function(id2, tp, param)

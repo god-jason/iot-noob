@@ -268,12 +268,12 @@ end
 function Cjt188Device:poll()
     log.info("poll", self.id)
     if not self.model then
-        log.error("poll", self.id, "no model")
-        return false, "no model"
+        log.error("poll", self.id, "没有物模型")
+        return false, "没有物模型"
     end
     if not self.model.properties then
-        log.error("poll", self.id, "no properties")
-        return false, "no properties"
+        log.error("poll", self.id, "没有属性表")
+        return false, "没有属性表"
     end
 
     local values = {}
@@ -450,15 +450,15 @@ function Cjt188Master:request(addr, type, code, di, data)
     frame = frame .. iot.pack("b1", crypto.checksum(frame, 1)) -- 和校验
     frame = frame .. iot.pack("b1", 0x16) -- 结束符
 
-    log.info("frame", binary.encodeHex(frame))
+    log.info("写入", binary.encodeHex(frame))
 
     frame = binary.decodeHex("FEFEFEFE") .. frame -- 前导码
     local ret, buf = self.request:request(frame, 14) -- 先读12字节
     if not ret then
-        return false, "no response"
+        return false, buf or "无响应"
     end
 
-    log.info("response", binary.encodeHex(buf))
+    log.info("读取", binary.encodeHex(buf))
 
     -- 解析返回
     -- 去掉前导码
@@ -467,7 +467,7 @@ function Cjt188Master:request(addr, type, code, di, data)
     end
 
     if string.byte(buf, 1) ~= 0x68 then
-        return false, "invalid start"
+        return false, "错误起始"
     end
 
     -- 指令长度不够，要拿到长度
@@ -476,7 +476,7 @@ function Cjt188Master:request(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "read more fail " .. buf2
+            return false, "读取更多失败 " .. buf2
         end
     end
 
@@ -487,7 +487,7 @@ function Cjt188Master:request(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "read all data fail " .. buf2
+            return false, "读取全部失败 " .. buf2
         end
     end
 

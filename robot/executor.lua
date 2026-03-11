@@ -106,7 +106,8 @@ function Executor:execute(cursor)
                 end
             end
         else
-            log.info("unkown command", task.type)
+            -- 不会发生
+            log.info("未知类型", task.type)
         end
 
         -- 下一条
@@ -155,15 +156,15 @@ function Executor:start()
                 return false, info
             end
 
-            --放到这里会污染指令，导致无法序列化
-            --task.condition = ret
+            -- 放到这里会污染指令，导致无法序列化
+            -- task.condition = ret
             self.conditions[i] = ret
         end
 
         -- 预查指令
         local fn = vm[task.type]
         if type(fn) ~= "function" then
-            return false, "cannot found command: " .. task.type
+            return false, "找不到指令" .. task.type
         end
     end
 

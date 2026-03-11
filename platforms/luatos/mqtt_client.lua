@@ -67,13 +67,13 @@ end
 function MqttClient:open()
     if mqtt == nil then
         log.error("bsp does not have mqtt lib")
-        return false
+        return false, "缺少MQTT"
     end
 
     self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
     if self.client == nil then
         log.error("create client failed")
-        return false
+        return false, "创建MQTT失败"
     end
 
     -- 鉴权
@@ -151,7 +151,7 @@ function MqttClient:open()
     -- 连接
     local ret = self.client:connect()
     if not ret then
-        return false
+        return false, "连接MQTT失败"
     end
 
     iot.wait("MQTT_CONNECT_" .. self.id)
@@ -175,12 +175,12 @@ end
 -- @return integer 消息id
 function MqttClient:publish(topic, payload, qos)
     if self.client == nil then
-        return false, "publish failed, client is nil"
+        return false, "客户端为空"
     end
 
     -- 太多消息，则不发送
     if #self.pub_queue > 50 then
-        return false, "too many message"
+        return false, "太多MQTT消息"
     end
 
     -- 转为json格式
@@ -188,7 +188,7 @@ function MqttClient:publish(topic, payload, qos)
         local err
         payload, err = iot.json_encode(payload, "2f")
         if payload == nil then
-            payload = "payload json encode error:" .. err
+            payload = "payload解析错误：" .. err
         end
     end
     log.info("publish", topic, payload, qos)

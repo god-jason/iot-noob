@@ -24,18 +24,18 @@ function Scene:open()
     -- 编译时间
     for k, range in ipairs(self.ranges) do
         if not range.start or not range.finish then
-            return false, "time range start and finish must be required"
+            return false, "需要起始和结束时间"
         end
 
         local h, m = range.start:match("(%d+):(%d+)")
         if h == nil or m == nil then
-            return false, "time range start must be HH:mm, example 06:00"
+            return false, "时间格式 HH:mm, ec 06:00"
         end
         range._start = tonumber(h) * 60 + tonumber(m)
 
         h, m = range.finish:match("(%d+):(%d+)")
         if h == nil or m == nil then
-            return false, "time range finish must be HH:mm, example 12:00"
+            return false, "时间格式 HH:mm, ec 12:00"
         end
         range._finish = tonumber(h) * 60 + tonumber(m)
     end
@@ -110,8 +110,8 @@ function Scene:open()
                     this:execute()
                 end)
             else
-                log.error("cannot find device", trigger.device)
-                return false, "cannot find device:" .. trigger.device
+                log.error("找不到设备", trigger.device)
+                return false, "找不到设备" .. trigger.device
             end
         end
     end
@@ -157,7 +157,7 @@ function Scene:check()
         if cond.type == "script" then
             local ok, ret = pcall(cond.script)
             if not ok then
-                log.error("condition execute error", ret)
+                log.error("条件计算错误", ret)
                 return false
             end
             if not ret then
@@ -246,7 +246,7 @@ function Scene:execute()
             -- 执行脚本
             local ok, err = pcall(action.script)
             if not ok then
-                log.error("action error:", err)
+                log.error("脚本错误", err)
             end
         elseif action.type == "device" then
             -- 修改变量
@@ -254,7 +254,7 @@ function Scene:execute()
             if device then
                 device:set(action.key, tonumber(action.value))
             else
-                log.error("not found device:", action.device)
+                log.error("找不到设备", action.device)
             end
         elseif action.type == "scene" then
             -- 执行场景

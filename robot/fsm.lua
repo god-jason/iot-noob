@@ -141,7 +141,7 @@ end
 -- 修改状态
 function FSM:set(name)
     if not name then
-        return false, "nil state name"
+        return false, "空状态"
     end
 
     -- 加载新状态

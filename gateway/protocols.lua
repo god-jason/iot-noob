@@ -20,7 +20,7 @@ function protocols.create(link, name, opts)
 
     local clazz = types[name]
     if not clazz then
-        return false, "unkown protocol" .. name
+        return false, "未知协议类型" .. name
     end
 
     return true, clazz:new(link, opts)

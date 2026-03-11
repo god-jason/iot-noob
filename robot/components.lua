@@ -33,7 +33,7 @@ function components.create(cmp)
 
     local fn = types[cmp.type]
     if not fn then
-        return false, "unkown type" .. cmp.type
+        return false, "未知组件类型" .. cmp.type
     end
 
     local comp = fn:new(cmp)

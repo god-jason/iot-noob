@@ -26,20 +26,20 @@ end
 ---  打开
 -- @return boolean, error
 function Device:open()
-    return false, "Device open() must be implemented"
+    return false, "Device open() 未实现"
 end
 
 ---  关闭
 -- @return boolean, error
 function Device:close()
-    return false, "Device close() must be implemented"
+    return false, "Device close() 未实现"
 end
 ---  读值
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
     self.__index = key -- 避免self未使用错误提醒
-    return false, "Device get(key) must be implemented"
+    return false, "Device get(key) 未实现"
 end
 
 ---  写值
@@ -47,13 +47,13 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
-    return false, "Device set(key, value) must be implemented"
+    return false, "Device set(key, value) 未实现"
 end
 
 ---  轮询
 -- @return boolean, error
 function Device:poll()
-    return false, "Device poll() must be implemented"
+    return false, "Device poll() 未实现"
 end
 
 function Device:set_threshold(key, threshold)

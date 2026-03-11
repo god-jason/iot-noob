@@ -22,7 +22,7 @@ function links.create(opts)
 
     local clazz = types[opts.type]
     if not clazz then
-        return false, "unkown type" .. opts.type
+        return false, "未知链接类型" .. opts.type
     end
 
     local link = clazz:new(opts)

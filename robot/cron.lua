@@ -265,7 +265,7 @@ function cron.start(crontab, callback)
     ret, job = parse(crontab)
     if not ret then
         log.error("parse failed", crontab)
-        return false
+        return false, "解析错误" .. crontab
     end
     jobs[crontab] = job
 
@@ -291,7 +291,7 @@ function cron.stop(id)
                 jobs[k] = nil
                 break
             end
-            --table.remove(job.callbacks, id)
+            -- table.remove(job.callbacks, id)
             job.callbacks[id] = nil
             job.count = job.count - 1
             break
@@ -308,7 +308,7 @@ function cron.clock(time, callback)
     local crontab = ""
     local h, m = time:match("(%d+):(%d+)")
     if h == nil or m == nil then
-        return false, "错误格式"
+        return false, "错误格式" .. time
     end
     crontab = "0 " .. tonumber(m) .. " " .. tonumber(h) .. " * * *"
     return cron.start(crontab, callback)
