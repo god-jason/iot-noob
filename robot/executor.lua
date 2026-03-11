@@ -20,7 +20,8 @@ function Executor:new(opts)
         on_finish = opts.on_finish,
         on_error = opts.on_error,
         current = 1,
-        context = {}
+        context = {},
+        conditions = {}
     }, Executor)
 end
 
@@ -33,7 +34,8 @@ function Executor:clone()
         on_finish = self.on_finish,
         on_error = self.on_error,
         current = 1,
-        context = {}
+        context = {},
+        conditions = {}
     }, Executor)
 end
 
@@ -62,8 +64,9 @@ function Executor:execute(cursor)
         log.info("task", self.current, iot.json_encode(task))
 
         -- 条件指令
-        if type(task.condition) == "function" then
-            local ret, info = pcall(task.condition)
+        local cond = self.conditions[self.current]
+        if type(cond) == "function" then
+            local ret, info = pcall(cond)
             if not ret then
                 log.error(info)
                 -- 上报错误
@@ -79,24 +82,23 @@ function Executor:execute(cursor)
             end
         end
 
+        -- 执行任务
         local fn = vm[task.type]
         if type(fn) == "function" then
             -- fn(task)
-            local ret, info = pcall(fn, task, self.context, self)
+            local ret, info, wait = pcall(fn, task, self.context, self)
             if not ret then
                 log.error(info)
                 -- 上报错误
                 if self.on_error then
                     self.on_error(info)
                 end
-
-                -- TODO 设备状态
                 return
             end
 
             -- 任务等待
-            if type(info) == "number" and info > 0 then
-                ret = iot.wait("executor_" .. self.id .. "_break", info)
+            if info then
+                ret = iot.wait("executor_" .. self.id .. "_break", wait)
                 if ret then
                     -- 被中断
                     log.info("被中断")
@@ -140,10 +142,11 @@ function Executor:start()
 
     -- 编译条件
     for i, task in ipairs(self.tasks) do
+
         if type(task.condition) == "string" then
             local script = "return " .. task.condition
             -- 编译
-            local ret, info = load(script, "vm_if", "t", {
+            local ret, info = load(script, "vm_condition", "t", {
                 components = _G.components,
                 devices = _G.devices,
                 context = self.context
@@ -152,14 +155,14 @@ function Executor:start()
                 return false, info
             end
 
-            --TODO 放到这里会污染指令，导致无法序列号
-            task.condition = ret
-            --self.conditions[i] = ret
+            --放到这里会污染指令，导致无法序列化
+            --task.condition = ret
+            self.conditions[i] = ret
         end
 
         -- 预查指令
         local fn = vm[task.type]
-        if not fn or type(fn) ~= "function" then
+        if type(fn) ~= "function" then
             return false, "cannot found command: " .. task.type
         end
     end

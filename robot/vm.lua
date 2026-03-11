@@ -1,12 +1,33 @@
 local vm = {}
 
 -- 等待指令
-vm['wait'] = function(task)
-    return task.timeout
+function vm.wait(task)
+    return true, task.timeout or task.wait
+end
+
+-- 跳转指令
+function vm.jump(task, ctx, executor)
+    if task.label then
+        -- 名称跳转
+        for i, t in ipairs(executor.tasks) do
+            if t.name == task.label then
+                executor.current = i - 1
+                return
+            end
+        end
+        -- 找不到任务
+        error("cannot found task named:" .. task.label)
+    elseif task.index then
+        if task.index < 1 or task.index > #executor.tasks then
+            error("jump overflow " .. task.index)
+        end
+        -- 执行器中会自增，需要抵消
+        executor.current = task.index - 1
+    end
 end
 
 -- 重复指令，向上推进数量
-vm['rollback'] = function(task, ctx, executor)
+function vm.rollback(task, ctx, executor)
     -- 默认1条
     local count = task.count or 1
 
@@ -15,23 +36,12 @@ vm['rollback'] = function(task, ctx, executor)
 
     -- 避免向上溢出
     if executor.current < 0 then
-        executor.current = 0
-    end
-end
-
--- 跳转指令
-vm['goto'] = function(task, ctx, executor)
-    -- 执行器中会自增，需要抵消
-    executor.current = task.index - 1
-
-    -- 避免向上溢出
-    if executor.current < 0 then
-        executor.current = 0
+        error("rollback to many tasks" .. count)
     end
 end
 
 -- 跳过指令
-vm['skip'] = function(task, ctx, executor)
+function vm.skip(task, ctx, executor)
     -- 默认1条
     local count = task.count or 1
     executor.current = executor.current + count
