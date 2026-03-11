@@ -25,9 +25,7 @@ function robot.plan(name, data)
 
     -- 创建一个虚拟机并执行
     robot.executor = Executor:new(plan)
-    robot.executor:start()
-
-    return true
+    return robot.executor:start()
 end
 
 function robot.open()

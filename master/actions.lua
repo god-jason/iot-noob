@@ -5,11 +5,6 @@ local log = iot.logger("actions")
 local settings = require "settings"
 local database = require "database"
 
--- 注册响应
-function actions.register(name, fn)
-    actions[name] = fn
-end
-
 actions.watching = false
 
 local watcher = 0
@@ -30,6 +25,7 @@ function actions.watch(data)
             actions.watching = false
         end
     end, tm)
+    return true
 end
 
 -- 清除数据
@@ -52,6 +48,8 @@ end
 function actions.upgrade(data)
     iot.emit("device_log", "升级设备" .. data.version)
     iot.upgrade(data.url)
+    return true
 end
+
 
 return actions
