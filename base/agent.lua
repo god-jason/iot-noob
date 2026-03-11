@@ -31,12 +31,12 @@ function agent.execute(name, data)
         return false, "找不到命令：" .. name
     end
 
-    local ret, res, err = pcall(cmd)
+    local ret, res, info = pcall(cmd)
     if not ret then
         return false, res
     end
 
-    return res, err
+    return res, info
 end
 
 agent.watching = false

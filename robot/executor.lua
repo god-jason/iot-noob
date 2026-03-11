@@ -60,6 +60,8 @@ function Executor:execute(cursor)
     self.current = cursor
 
     while self.current <= #self.tasks and not self.paused and not self.stoped do
+        ::continue::
+
         local task = self.tasks[self.current]
         log.info("task", self.current, iot.json_encode(task))
 
@@ -78,6 +80,7 @@ function Executor:execute(cursor)
 
             -- 条件不满足，跳过当前指令
             if not info then
+                self.current = self.current + 1
                 goto continue
             end
         end
@@ -111,7 +114,6 @@ function Executor:execute(cursor)
         end
 
         -- 下一条
-        ::continue::
         self.current = self.current + 1
     end
 
