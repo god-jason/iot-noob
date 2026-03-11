@@ -5,6 +5,7 @@ local states = {}
 
 -- 待机状态
 states.standby = {
+    name = "待机",
     enter = function()
     end,
     leave = function()
@@ -15,6 +16,7 @@ states.standby = {
 
 -- 充电状态
 states.charge = {
+    name = "充电",
     enter = function()
         -- 打开充电继电器
     end,
@@ -28,6 +30,7 @@ states.charge = {
 
 -- 巡逻状态
 states.patrol = {
+    name = "巡逻",
     enter = function()
         -- 启动行走电机
     end,
@@ -41,6 +44,7 @@ states.patrol = {
 
 -- 灭火状态
 states.extinguish = {
+    name = "灭火",
     enter = function()
         -- 停止行走电机
 
