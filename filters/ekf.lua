@@ -1,12 +1,6 @@
---------------------------------------------------
--- ekf.lua  单文件扩展卡尔曼滤波实现
---------------------------------------------------
+
 local EKF = {}
 EKF.__index = EKF
-
---------------------------------------------------
--- 矩阵工具
---------------------------------------------------
 
 local function zeros(r, c)
     local m = {}
@@ -92,10 +86,7 @@ local function matmul(A, B)
     return C
 end
 
---------------------------------------------------
 -- 矩阵求逆 (高斯消元)
---------------------------------------------------
-
 local function inv(A)
 
     local n = #A
@@ -142,10 +133,7 @@ local function inv(A)
     return res
 end
 
---------------------------------------------------
 -- EKF 初始化
---------------------------------------------------
-
 function EKF:new(state_dim, meas_dim)
 
     local obj = {}
@@ -166,10 +154,7 @@ function EKF:new(state_dim, meas_dim)
     return obj
 end
 
---------------------------------------------------
 -- 预测
---------------------------------------------------
-
 function EKF:predict(f_func, F_jacobian, u)
 
     local F = F_jacobian(self.x, u)
@@ -181,10 +166,7 @@ function EKF:predict(f_func, F_jacobian, u)
     self.P = matadd(matmul(matmul(F, self.P), Ft), self.Q)
 end
 
---------------------------------------------------
 -- 更新
---------------------------------------------------
-
 function EKF:update(z, h_func, H_jacobian)
 
     local H = H_jacobian(self.x)
@@ -204,10 +186,7 @@ function EKF:update(z, h_func, H_jacobian)
     self.P = matmul(matsub(self.I, KH), self.P)
 end
 
---------------------------------------------------
 -- 示例
---------------------------------------------------
-
 local function example()
 
     local ekf = EKF:new(2, 1)
@@ -257,7 +236,5 @@ local function example()
     end
 
 end
-
---------------------------------------------------
 
 return EKF

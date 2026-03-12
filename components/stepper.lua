@@ -8,12 +8,13 @@ require("components").register("stepper", Stepper)
 local log = iot.logger("stepper")
 
 --- 创建步进电机
--- @param opts.id integer PWM号
--- @param opts.dir integer 方向引脚
--- @param opts.reverse boolean 电机反转（适用于接线装反的场景）
--- @param opts.en integer 使能引脚
--- @param opts.freq integer  基础频率(一周的脉冲数)
--- @param opts.smooth boolean 平滑过渡
+-- @param opts 参数
+--  opts.id integer PWM号
+--  opts.dir integer 方向引脚
+--  opts.reverse boolean 电机反转（适用于接线装反的场景）
+--  opts.en integer 使能引脚
+--  opts.freq integer  基础频率(一周的脉冲数)
+--  opts.smooth boolean 平滑过渡
 function Stepper:new(opts)
     opts = opts or {}
     local stepper = setmetatable({
@@ -194,7 +195,7 @@ function Stepper:accelerate(start, finish, count)
         local v = -2 * t * t * t + 3 * t * t -- 速度
         -- local a = -6 * t * t + 6 * t -- 加速度
         local vv = (finish - start) * v + start
-        --log.info("accelerate", i, v, vv)
+        -- log.info("accelerate", i, v, vv)
         vv = math.ceil(vv)
 
         -- 可能会出现0，导致死机，实时不会出现
@@ -218,14 +219,13 @@ function Stepper:accelerate(start, finish, count)
             pwm:start()
         end
 
-
         iot.sleep(acc_interval)
 
         -- 累加脉冲数
         pulse = pulse + vv * acc_interval / 1000
     end
 
-    --log.info(tag, self.pul, "accelerate steps", steps, "pulses", pulse)
+    -- log.info(tag, self.pul, "accelerate steps", steps, "pulses", pulse)
     return math.floor(steps * acc_interval), math.floor(pulse)
 end
 
