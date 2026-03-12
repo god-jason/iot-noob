@@ -217,7 +217,7 @@ end
 
 --- 编码BCD
 -- @param num integer 数值
--- @param str string 字符串
+-- @param len integer 长度
 -- @return integer
 function binary.encodeBCD(num, len)
     local str = ""

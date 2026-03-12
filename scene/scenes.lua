@@ -1,8 +1,8 @@
-local log = iot.logger("scenes")
-
 --- 场景管理器
 -- @module scenes
 local scenes = {}
+
+local log = iot.logger("scenes")
 
 local _scenes = {}
 

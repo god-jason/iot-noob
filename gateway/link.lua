@@ -1,10 +1,10 @@
-local Watcher = require("watcher")
-
 --- 连接类定义
 -- 所有连接必须继承Link，并实现标准接口
 -- @module link
 local Link = {}
 Link.__index = Link
+
+local Watcher = require("watcher")
 
 ---  创建实例，子类定义可参考
 -- @param obj table 连接对象

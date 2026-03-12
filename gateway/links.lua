@@ -1,4 +1,4 @@
-local log = iot.logger("links")
+
 
 --- 所有连接
 -- @module links
@@ -10,6 +10,7 @@ _G.links = _links
 
 local settings = require("settings")
 local boot = require("boot")
+local log = iot.logger("links")
 
 local types = {}
 

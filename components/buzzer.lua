@@ -1,11 +1,11 @@
-local log = iot.logger("buzzer")
-
 --- 组件 蜂鸣器
 -- @module Buzzer
 local Buzzer = {}
 Buzzer.__index = Buzzer
 
 require("components").register("buzzer", Buzzer)
+
+local log = iot.logger("buzzer")
 
 --- 实例化
 function Buzzer:new(opts)

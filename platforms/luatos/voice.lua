@@ -1,3 +1,5 @@
+--- 语音封装
+-- @module voice
 local voice = {}
 
 local log = iot.logger("voice")
@@ -33,6 +35,7 @@ local function play_next()
     end
 end
 
+--- 打开
 function voice.open(opts)
     log.info("open")
     opts = opts or {}
@@ -71,6 +74,9 @@ function voice.open(opts)
     end)
 end
 
+--- 讲话
+-- @param text 文本
+-- @param high 高优先级
 function voice.speak(text, high)
     log.info("speak", text)
 
@@ -96,6 +102,8 @@ function voice.speak(text, high)
     end
 end
 
+--- 紧急讲话
+-- @param text 文本
 function voice.emergency(text)
     audio.playStop(0)
     queue = {}
@@ -103,6 +111,9 @@ function voice.emergency(text)
     voice.speak(text)
 end
 
+-- 播放音频
+-- @param path 文件
+-- @param high 高优先级
 function voice.play(path, high)
     log.info("play", path)
 
@@ -128,6 +139,7 @@ function voice.play(path, high)
     end
 end
 
+--- 停止
 function voice.stop()
     log.info("stop")
     queue = {}
@@ -135,20 +147,24 @@ function voice.stop()
     return audio.playStop(0)
 end
 
+--- 暂停
 function voice.pause()
     log.info("pause")
     return audio.pause(0, true)
 end
 
+--- 恢复
 function voice.resume()
     log.info("resume")
     return audio.pause(0, false)
 end
 
+--- 结束
 function voice.is_end()
     return audio.isEnd(0)
 end
 
+--- 关闭
 function voice.close()
     log.info("close")
 

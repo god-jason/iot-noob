@@ -1,4 +1,3 @@
-
 --- 启动器
 -- @module boot
 local boot = {}

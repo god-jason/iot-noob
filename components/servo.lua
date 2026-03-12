@@ -1,11 +1,11 @@
-local log = iot.logger("servo")
-
 --- 组件 舵机
 -- @module Servo
 local Servo = {}
 Servo.__index = Servo
 
 require("components").register("servo", Servo)
+
+local log = iot.logger("servo")
 
 --- 创建舵机
 function Servo:new(opts)

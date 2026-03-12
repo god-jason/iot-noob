@@ -1,15 +1,14 @@
-local log = iot.logger("executor")
+--- 执行器
+-- @module Executor
+local Executor = {}
+Executor.__index = Executor
 
+local log = iot.logger("executor")
 local vm = require("vm")
 local utils = require("utils")
 
 -- 自增ID
 local inc = utils.increment()
-
---- 执行器
--- @module Executor
-local Executor = {}
-Executor.__index = Executor
 
 --- 创建实例
 function Executor:new(opts)

@@ -1,9 +1,9 @@
-local planner = {}
-local log = iot.logger("planner")
-
 --- 计划管理器
 -- @module planners
 local planners = {}
+
+local planner = {}
+local log = iot.logger("planner")
 
 --[[
 计划器参考

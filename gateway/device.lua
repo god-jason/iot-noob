@@ -1,14 +1,11 @@
-local log = iot.logger("device")
-
-local Watcher = require("watcher")
-
 --- 设备类定义
 -- 所有协议实现的子设备必须继承Device，并实现标准接口
 -- @module device
 local Device = {}
 Device.__index = Device
 
--- _G.Device = Device -- 注册到全局变量
+local log = iot.logger("device")
+local Watcher = require("watcher")
 
 --- 创建设备实例
 -- @param obj table 设备

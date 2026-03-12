@@ -1,11 +1,11 @@
-local log = iot.logger("relay")
-
 --- 组件 继电器
 -- @module Relay
 local Relay = {}
 Relay.__index = Relay
 
 require("components").register("relay", Relay)
+
+local log = iot.logger("relay")
 
 --- 初始化
 function Relay:new(opts)

@@ -1,11 +1,11 @@
-local log = iot.logger("button")
-
 --- 组件 按钮
 -- @module Button
 local Button = {}
 Button.__index = Button
 
 require("components").register("button", Button)
+
+local log = iot.logger("button")
 
 --- 构造函数
 function Button:new(opts)

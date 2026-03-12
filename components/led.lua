@@ -1,11 +1,11 @@
-local log = iot.logger("led")
-
 --- 组件 指示灯
 -- @module Led
 local Led = {}
 Led.__index = Led
 
 require("components").register("led", Led)
+
+local log = iot.logger("led")
 
 --- 初始化
 function Led:new(opts)

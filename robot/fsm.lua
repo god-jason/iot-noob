@@ -1,14 +1,13 @@
-local log = iot.logger("fsm")
-
-local utils = require("utils")
-
--- 自增ID
-local inc = utils.increment()
-
 --- 状态机
 -- @module FSM
 local FSM = {}
 FSM.__index = FSM
+
+local log = iot.logger("fsm")
+local utils = require("utils")
+
+-- 自增ID
+local inc = utils.increment()
 
 --- 创建状态机
 function FSM:new(opts)

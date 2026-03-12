@@ -1,3 +1,18 @@
+--- 陶晶驰串品屏
+-- @module tjc
+local tjc = {}
+local log = iot.logger("taojingchi")
+
+local settings = require("settings")
+local agent = require("agent")
+local boot = require("boot")
+
+local options = {}
+
+local pages = {}
+local page = {}
+
+
 --[[
 淘晶驰串口屏操作库，淘宝卖的最多，开发简单
 
@@ -34,20 +49,6 @@ tjc.set_bool，修改布尔值
 
 
 ]] --
-
---- 陶晶驰串品屏
--- @module tjc
-local tjc = {}
-local log = iot.logger("taojingchi")
-
-local settings = require("settings")
-local agent = require("agent")
-local boot = require("boot")
-
-local options = {}
-
-local pages = {}
-local page = {}
 
 --- 注册页面
 function tjc.register(name, page)

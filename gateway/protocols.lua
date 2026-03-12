@@ -1,10 +1,10 @@
-local log = iot.logger("protocols")
-
 --- 所有协议
 -- @module protocols
 local protocols = {}
 
 _G.protocols = protocols
+
+local log = iot.logger("protocols")
 
 local links = require("links")
 local boot = require("boot")

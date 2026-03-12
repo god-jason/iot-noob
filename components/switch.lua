@@ -1,11 +1,11 @@
-local log = iot.logger("switch")
-
 --- 组件 开关
 -- @module Switch
 local Switch = {}
 Switch.__index = Switch
 
 require("components").register("switch", Switch)
+
+local log = iot.logger("switch")
 
 --- 初始化
 function Switch:new(opts)

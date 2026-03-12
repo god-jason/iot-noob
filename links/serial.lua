@@ -1,9 +1,9 @@
-local log = iot.logger("serial")
-
 --- 串口连接，继承Link
 -- @module serial
 local Serial = {}
 Serial.__index = Serial
+
+local log = iot.logger("serial")
 
 -- 继承Link
 local Link = require("link")

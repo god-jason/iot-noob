@@ -1,11 +1,11 @@
-local log = iot.logger("stepper")
-
 --- 组件 步进电机
 -- @module Stepper
 local Stepper = {}
 Stepper.__index = Stepper
 
 require("components").register("stepper", Stepper)
+
+local log = iot.logger("stepper")
 
 --- 创建步进电机
 -- @param id integer PWM号

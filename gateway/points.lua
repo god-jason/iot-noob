@@ -1,10 +1,8 @@
-local log = iot.logger("points")
-
 --- 点位相关处理
 -- @module points
 local points = {}
 
-local tag = "points"
+local log = iot.logger("points")
 
 -- 数据点类型
 local feagures = {

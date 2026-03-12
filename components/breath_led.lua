@@ -1,11 +1,11 @@
-local log = iot.logger("BreathLed")
-
 --- 组件 呼吸灯
 -- @module BreathLed
 local BreathLed = {}
 BreathLed.__index = BreathLed
 
 require("components").register("breath_led", BreathLed)
+
+local log = iot.logger("BreathLed")
 
 --- 初始化
 function BreathLed:new(opts)

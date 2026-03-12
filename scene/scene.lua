@@ -1,12 +1,11 @@
-local log = iot.logger("scene")
-
-local devices = require("devices")
-local cron = require("cron")
-
 --- 智能场景
 -- @module Scene
 local Scene = {}
 Scene.__index = Scene
+
+local log = iot.logger("scene")
+local devices = require("devices")
+local cron = require("cron")
 
 --- 场景实例化
 function Scene:new(opts)

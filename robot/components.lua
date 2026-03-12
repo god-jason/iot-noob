@@ -1,5 +1,3 @@
-local log = iot.logger("components")
-
 --- 组件管理器
 -- @module components
 local components = {}
@@ -7,6 +5,8 @@ local components = {}
 local _components = {
     -- fan = Fan:new({})
 }
+
+local log = iot.logger("components")
 
 -- 注册到全局
 _G.components = _components

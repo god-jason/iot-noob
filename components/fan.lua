@@ -1,12 +1,12 @@
-local Speeder = require("speeder")
-local log = iot.logger("fan")
-
 --- 组件 风机
 -- @module Fan
 local Fan = {}
 Fan.__index = Fan
 
 require("components").register("fan", Fan)
+
+local Speeder = require("speeder")
+local log = iot.logger("fan")
 
 --- 初始化
 function Fan:new(opts)

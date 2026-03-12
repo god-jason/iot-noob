@@ -1,10 +1,10 @@
-local utils = require("utils")
-local log = iot.logger("watcher")
-
 --- 观察器
 -- @module Watcher
 local Watcher = {}
 Watcher.__index = Watcher
+
+local utils = require("utils")
+local log = iot.logger("watcher")
 
 --- 实例化
 function Watcher:new()
