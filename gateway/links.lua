@@ -1,5 +1,7 @@
 local log = iot.logger("links")
 
+--- 所有连接
+-- @module links
 local links = {}
 
 local _links = {}
@@ -11,12 +13,12 @@ local boot = require("boot")
 
 local types = {}
 
--- 注册链接
+--- 注册链接
 function links.register(name, clazz)
     types[name] = clazz
 end
 
--- 创建链接
+--- 创建链接
 function links.create(opts)
     log.info("create", iot.json_encode(opts))
 
@@ -42,7 +44,7 @@ function links.create(opts)
     return true, link
 end
 
--- 加载链接
+--- 加载链接
 function links.open()
     log.info("load")
     local lnks = {}
@@ -60,7 +62,7 @@ function links.open()
     return true, lnks
 end
 
--- 关闭连接
+--- 关闭连接
 function links.close()
     for i, s in pairs(_links) do
         if type(s) == "table" then
@@ -69,10 +71,12 @@ function links.close()
     end
 end
 
+--- 所有连接
 function links.links()
     return _links
 end
 
+--- 获取连接
 function links.get(id)
     return _links[id]
 end

@@ -1,5 +1,7 @@
 local log = iot.logger("protocols")
 
+--- 所有协议
+-- @module protocols
 local protocols = {}
 
 _G.protocols = protocols
@@ -9,12 +11,12 @@ local boot = require("boot")
 
 local types = {}
 
--- 注册链接
+--- 注册协议
 function protocols.register(name, clazz)
     types[name] = clazz
 end
 
--- 创建链接
+--- 创建协议
 function protocols.create(link, name, opts)
     log.info("create", iot.json_encode(opts))
 
@@ -48,7 +50,7 @@ local function create_protocol(link)
     return true
 end
 
--- 创建所有协议
+--- 创建所有协议
 function protocols.open()
     for i, link in pairs(links.links()) do
         if link.protocol and #link.protocol > 0 then
@@ -60,7 +62,7 @@ function protocols.open()
     end
 end
 
--- 关闭所有协议
+--- 关闭所有协议
 function protocols.close()
     for k, instanse in pairs(protocol_instanses) do
         pcall(instanse.close, instanse)
@@ -70,7 +72,7 @@ end
 
 protocols.deps = {"links", "settings"}
 
--- 注册
+-- 注册启动
 boot.register("protocols", protocols)
 
 return protocols

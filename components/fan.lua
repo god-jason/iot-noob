@@ -1,11 +1,14 @@
 local Speeder = require("speeder")
 local log = iot.logger("fan")
 
+--- 组件 风机
+-- @module Fan
 local Fan = {}
 Fan.__index = Fan
 
 require("components").register("fan", Fan)
 
+--- 初始化
 function Fan:new(opts)
     opts = opts or {}
     local fan = setmetatable({
@@ -30,7 +33,8 @@ function Fan:new(opts)
     return fan
 end
 
-
+--- 打开
+-- @param level 风级
 function Fan:open(level)
     local ret, pwm = iot.pwm(self.pwm_id, {
         freq = self.freq,
@@ -51,6 +55,7 @@ function Fan:open(level)
     return ret
 end
 
+--- 加速
 function Fan:accelerate(start)
     self.accelerating = true
 
@@ -65,6 +70,10 @@ function Fan:accelerate(start)
     self.accelerating = false
 end
 
+
+--- 设置风速
+-- @param level 风级
+-- @param immediate 立即，不加速
 function Fan:speed(level, immediate)
     if not self.pwm then
         self:open()
@@ -95,6 +104,7 @@ function Fan:speed(level, immediate)
     return true
 end
 
+--- 关闭
 function Fan:close()
     self.last_duty = 0
     self.target_duty = 0

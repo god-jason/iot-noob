@@ -1,8 +1,9 @@
--- 地图类
+--- 地图
+-- @module Map
 local Map = {}
 Map.__index = Map
 
--- 创建一个新的地图实例
+--- 创建一个新的地图实例
 function Map:new(width, height)
     local map = {}
     setmetatable(map, Map)
@@ -26,7 +27,7 @@ function Map:new(width, height)
     return map
 end
 
--- 设置障碍物（标记位置为1）
+--- 设置障碍物（标记位置为1）
 function Map:set_obstacle(x, y)
     if x >= 1 and x <= self.width and y >= 1 and y <= self.height then
         self.grid[x][y] = 1
@@ -34,17 +35,17 @@ function Map:set_obstacle(x, y)
     end
 end
 
--- 检查某个位置是否为障碍物
+--- 检查某个位置是否为障碍物
 function Map:is_obstacle(x, y)
     return self.grid[x] and self.grid[x][y] == 1
 end
 
--- 计算两点之间的曼哈顿距离（用于路径规划）
+--- 计算两点之间的曼哈顿距离（用于路径规划）
 function Map:manhattan_distance(x1, y1, x2, y2)
     return math.abs(x2 - x1) + math.abs(y2 - y1)
 end
 
--- 获取某个点的邻居（上下左右）
+--- 获取某个点的邻居（上下左右）
 function Map:get_neighbors(x, y)
     local neighbors = {}
     if x > 1 then table.insert(neighbors, {x = x - 1, y = y}) end
@@ -54,7 +55,7 @@ function Map:get_neighbors(x, y)
     return neighbors
 end
 
--- 打印地图（可视化）
+--- 打印地图（可视化）
 function Map:print_map()
     for y = 1, self.height do
         local row = ""
@@ -69,7 +70,7 @@ function Map:print_map()
     end
 end
 
--- 将地图转化为文本
+--- 将地图转化为文本
 function Map:map_to_text()
     local text = ""
     for y = 1, self.height do
@@ -86,7 +87,7 @@ function Map:map_to_text()
     return text
 end
 
--- 从文本恢复地图
+--- 从文本恢复地图
 function Map:text_to_map(text)
     local lines = {}
     for line in text:gmatch("[^\r\n]+") do

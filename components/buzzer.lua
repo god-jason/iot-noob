@@ -1,10 +1,13 @@
 local log = iot.logger("buzzer")
 
+--- 组件 蜂鸣器
+-- @module Buzzer
 local Buzzer = {}
 Buzzer.__index = Buzzer
 
 require("components").register("buzzer", Buzzer)
 
+--- 实例化
 function Buzzer:new(opts)
     opts = opts or {}
     local buzzer = setmetatable({
@@ -23,7 +26,7 @@ function Buzzer:new(opts)
     return buzzer
 end
 
--- 打开蜂鸣器
+--- 打开蜂鸣器
 function Buzzer:on()
     self:stop() -- 停止任何协程
 
@@ -50,7 +53,7 @@ function Buzzer:on()
     return true
 end
 
--- 关闭蜂鸣器
+--- 关闭蜂鸣器
 function Buzzer:off()
     self:stop()
     
@@ -64,8 +67,10 @@ function Buzzer:off()
     end
 end
 
--- 异步响铃，支持间隔
--- times: 响铃次数，interval: 每次间隔ms
+--- 异步响铃，支持间隔
+-- @param times 响铃次数
+-- @param on_ms
+-- @param off_ms
 function Buzzer:ring(times, on_ms, off_ms)
     times = times or 1
     on_ms = on_ms or 500
@@ -96,13 +101,13 @@ function Buzzer:ring(times, on_ms, off_ms)
     end)
 end
 
--- 停止任何鸣叫或闪烁
+--- 停止
 function Buzzer:stop()
     self:off()
     self.ringing = false
 end
 
--- 设置 PWM 音量（占空比）
+--- 设置 PWM 音量（占空比）
 function Buzzer:setDuty(duty)
     self.duty = math.max(0, math.min(100, duty))
     if self.pwm then
@@ -110,7 +115,7 @@ function Buzzer:setDuty(duty)
     end
 end
 
--- 设置频率
+--- 设置频率
 function Buzzer:setFreq(freq)
     self.freq = freq
     if self.pwm then

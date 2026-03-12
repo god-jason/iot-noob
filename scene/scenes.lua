@@ -1,5 +1,7 @@
 local log = iot.logger("scenes")
 
+--- 场景管理器
+-- @module scenes
 local scenes = {}
 
 local _scenes = {}
@@ -12,7 +14,7 @@ local database = require("database")
 
 local Scene = require("scene")
 
--- 创建场景
+--- 创建场景
 function scenes.create(scene)
     log.info("create", iot.json_encode(scene))
 
@@ -27,7 +29,7 @@ function scenes.create(scene)
     return true, s
 end
 
--- 加载场景
+--- 加载场景
 function scenes.open()
     local ss = database.find("scene")
     for i, s in ipairs(ss) do
@@ -40,7 +42,7 @@ function scenes.open()
     return true
 end
 
--- 关闭场景
+--- 关闭场景
 function scenes.close()
     for i, s in pairs(_scenes) do
         s:close()

@@ -1,3 +1,5 @@
+--- 编程
+-- @module program
 local program = {}
 local log = iot.logger("program")
 
@@ -103,7 +105,7 @@ end
 
 program.deps = {"settings"}
 
--- 注册
+-- 注册启动
 boot.register("program", program)
 
 return program

@@ -1,4 +1,4 @@
---- 消息代理，封装Link，阻塞执行，一问一答，方便主从模式编程
+--- 消息交互器，封装Link，阻塞执行，一问一答，方便主从模式编程
 -- @module request
 local Request = {}
 Request.__index = Request

@@ -34,6 +34,9 @@ tjc.set_bool，修改布尔值
 
 
 ]] --
+
+--- 陶晶驰串品屏
+-- @module tjc
 local tjc = {}
 local log = iot.logger("taojingchi")
 
@@ -46,7 +49,7 @@ local options = {}
 local pages = {}
 local page = {}
 
--- 注册页面
+--- 注册页面
 function tjc.register(name, page)
     pages[name] = page
 end
@@ -104,6 +107,7 @@ local function on_data(id, len)
     end
 end
 
+--- 打开
 function tjc.open()
     options = settings.taojingchi
 
@@ -129,14 +133,14 @@ function tjc.open()
     return true
 end
 
--- 设置文本
+--- 设置文本
 function tjc.set_text(name, value)
     local str = name .. ".txt=" .. "\"" .. value .. "\""
     uart.write(options.uart_id, str .. "\xff\xff\xff")
     -- log.info("set_text", str)
 end
 
--- 设置值
+--- 设置值
 function tjc.set_value(name, value)
     if type(value) == "boolean" then
         value = value and 1 or 0
@@ -148,7 +152,7 @@ function tjc.set_value(name, value)
     -- log.info("set_value", str)
 end
 
--- 设置布尔值
+--- 设置布尔值
 function tjc.set_bool(name, value)
     value = value and 1 or 0
     local str = name .. ".val=" .. math.floor(value)
@@ -156,7 +160,7 @@ function tjc.set_bool(name, value)
     -- log.info("set_bool", str)
 end
 
--- 修改页面
+--- 切换页面
 function tjc.set_page(name)
     local str = "page=" .. name
     uart.write(options.uart_id, str .. "\xff\xff\xff")

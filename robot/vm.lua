@@ -1,11 +1,13 @@
+--- 虚拟机（由Planner生成，Executor最终执行）
+-- @module vm
 local vm = {}
 
--- 等待指令
+--- 等待指令
 function vm.wait(task)
     return true, task.timeout or task.wait
 end
 
--- 跳转指令
+--- 跳转指令
 function vm.jump(task, ctx, executor)
     if task.label then
         -- 名称跳转
@@ -26,7 +28,7 @@ function vm.jump(task, ctx, executor)
     end
 end
 
--- 重复指令，向上推进数量
+--- 回滚指令，向上推进数量
 function vm.rollback(task, ctx, executor)
     -- 默认1条
     local count = task.count or 1
@@ -40,7 +42,7 @@ function vm.rollback(task, ctx, executor)
     end
 end
 
--- 跳过指令
+--- 跳过指令
 function vm.skip(task, ctx, executor)
     -- 默认1条
     local count = task.count or 1

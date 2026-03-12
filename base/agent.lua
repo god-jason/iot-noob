@@ -1,17 +1,5 @@
---[[
-@module agent
-@summary 远程控制命令
-@version 1.0
-@date    2026.03.11
-@author  杰神
-@demo    agent
-@usage
---用法实例
-local agent = require("agent")
-agent.register("move", function(data)
-    return robot.plan("move", data)
-end)
-]]--
+--- 远程控制器
+-- @module agent
 local agent = {}
 
 local log = iot.logger("agent")

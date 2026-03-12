@@ -1,10 +1,13 @@
 local log = iot.logger("switch")
 
+--- 组件 开关
+-- @module Switch
 local Switch = {}
 Switch.__index = Switch
 
 require("components").register("switch", Switch)
 
+--- 初始化
 function Switch:new(opts)
     opts = opts or {}
     local switch = setmetatable({
@@ -17,6 +20,7 @@ function Switch:new(opts)
         state = false,
         callback = opts.callback
     }, Switch)
+    switch:init()
     return switch
 end
 
@@ -62,15 +66,18 @@ function Switch:init()
     })
 end
 
+--- 状态
 function Switch:status()
     return self.state
 end
 
+--- 启用
 function Switch:enable()
     log.info("enable", self.pin, self.name)
     self.disabled = false
 end
 
+--- 禁用
 function Switch:disable()
     log.info("disable", self.pin, self.name)
     self.disabled = true

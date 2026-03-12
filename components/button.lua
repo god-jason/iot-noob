@@ -1,11 +1,13 @@
 local log = iot.logger("button")
 
+--- 组件 按钮
+-- @module Button
 local Button = {}
 Button.__index = Button
 
 require("components").register("button", Button)
 
--- 构造函数
+--- 构造函数
 function Button:new(opts)
     opts = opts or {}
     local button = setmetatable({
@@ -19,10 +21,11 @@ function Button:new(opts)
         press_start_time = nil, -- 按下开始时间
         long_press_threshold = opts.long_press_threshold or 3000 -- 长按时间阈值（默认3秒）        
     }, Button)
+    button:init()
     return button
 end
 
--- 初始化按钮
+--- 初始化按钮
 function Button:init()
     local this = self
 
@@ -78,18 +81,18 @@ function Button:init()
     })
 end
 
--- 获取当前按钮状态（按下或松开）
+--- 获取当前按钮状态（按下或松开）
 function Button:status()
     return self.state
 end
 
--- 启用按钮
+--- 启用按钮
 function Button:enable()
     log.info("enable", self.pin, self.name)
     self.disabled = false
 end
 
--- 禁用按钮
+--- 禁用按钮
 function Button:disable()
     log.info("disable", self.pin, self.name)
     self.disabled = true

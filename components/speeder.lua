@@ -1,9 +1,11 @@
+--- 组件 变速器
+-- @module Speeder
 local Speeder = {}
 Speeder.__index = Speeder
 
 require("components").register("speeder", Speeder)
 
--- 创建变速器
+--- 创建变速器
 function Speeder:new(opts)
     opts = opts or {}
     return setmetatable({
@@ -14,7 +16,8 @@ function Speeder:new(opts)
     }, Speeder)
 end
 
--- 计算变速值（脉冲频率，占空比等）
+--- 计算变速值（脉冲频率，占空比等）
+-- @param level 等级
 function Speeder:calc(level)
     if level < 0 then
         level = 0

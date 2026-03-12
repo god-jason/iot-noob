@@ -1,4 +1,4 @@
---- 小白主程序
+--- 物联大师平台连接
 -- @module master
 local master = {}
 
@@ -13,7 +13,6 @@ local MqttClient = require("mqtt_client")
 local database = require("database")
 local gateway = require("gateway")
 
---- @type MqttClient
 local cloud = nil -- MqttClient:new()
 
 local options = {}

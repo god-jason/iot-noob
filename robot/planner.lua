@@ -1,6 +1,8 @@
 local planner = {}
 local log = iot.logger("planner")
 
+--- 计划管理器
+-- @module planners
 local planners = {}
 
 --[[
@@ -13,7 +15,7 @@ function(params)
 end
 ]] --
 
--- 注册计划器
+--- 注册计划器
 function planner.register(name, fn)
     planners[name] = fn
 
@@ -32,10 +34,10 @@ function planner.register(name, fn)
 end
 
 --- 生成计划
----@param name string 计算名称
----@param data any 参数
----@return boolean 成功与否
----@return string|table 任务 VM格式
+-- @param name string 计算名称
+-- @param data any 参数
+-- @return boolean 成功与否
+-- @return string|table 任务 VM格式
 function planner.plan(name, data)
     local fn = planners[name]
     if not fn then

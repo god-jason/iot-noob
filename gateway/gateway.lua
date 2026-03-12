@@ -1,3 +1,5 @@
+--- 网关
+-- @module gateway
 local gateway = {}
 
 local log = iot.logger("gateway")
@@ -116,7 +118,8 @@ end
 local device = GatewayDevice:new({})
 gateway.device = device
 --devices.register("$gateway$", device)
-    
+
+--- 更新数据
 function gateway.update()
     -- 信号强度
     device:set("csq", mobile.csq())
@@ -127,6 +130,8 @@ function gateway.update()
 
 end
 
+
+--- 打开网关
 function gateway.open()
     device:set("bsp", rtos.bsp())
     device:set("project", PROJECT)
@@ -139,6 +144,7 @@ function gateway.open()
     iot.setInterval(gateway.update, 1000)
 end
 
+--- 关闭网关
 function gateway.close()
     -- iot.clearInterval()
 end

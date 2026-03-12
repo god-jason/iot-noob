@@ -1,3 +1,5 @@
+--- 机器人
+-- @module robot
 local robot = {}
 _G.robot = robot --注册到全局
 
@@ -15,6 +17,11 @@ local boot = require("boot")
 
 robot.fsm = fsm:new()
 
+--- 创建计划，并执行
+-- @param name string 计划名称
+-- @param data any 参数
+-- @return boolean 成功与否
+-- @return string 错误信息 或 结果
 function robot.plan(name, data)
     local ret, plan = planner.plan(name, data)
     if not ret then
@@ -26,6 +33,7 @@ function robot.plan(name, data)
     return robot.executor:start()
 end
 
+--- 打开
 function robot.open()
     log.info("open")
 
@@ -39,6 +47,8 @@ function robot.open()
     return true
 end
 
+
+--- 关闭
 function robot.close()
     return true
 end

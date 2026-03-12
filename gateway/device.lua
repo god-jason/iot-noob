@@ -122,7 +122,7 @@ function Device:put_value(key, value)
 
     -- 监听变化
     if has then
-        self.watcher:execute(key, value)
+        self.watcher:dispatch(key, value)
     end
 end
 
@@ -159,7 +159,7 @@ function Device:put_values(values)
 
     -- 监听变化
     if has then
-        self.watcher:execute()
+        self.watcher:dispatch()
     end
 end
 

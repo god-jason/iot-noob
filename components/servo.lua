@@ -1,11 +1,13 @@
 local log = iot.logger("servo")
 
+--- 组件 舵机
+-- @module Servo
 local Servo = {}
 Servo.__index = Servo
 
 require("components").register("servo", Servo)
 
--- 创建舵机
+--- 创建舵机
 function Servo:new(opts)
     opts = opts or {}
     local servo = setmetatable({
@@ -20,7 +22,7 @@ function Servo:new(opts)
     return servo
 end
 
--- 初始化
+--- 初始化
 function Servo:init()
     -- pwm.setup(self.pwm, self.freq, Servo:angle_to_duty(90)) -- 默认90° 7.5
     -- pwm.start(self.pwm)
@@ -43,6 +45,8 @@ function Servo:angle_to_duty(angle)
     return duty
 end
 
+--- 设置角度
+-- @param angle 角度
 function Servo:set(angle)
     angle = math.max(self.min_angle, math.min(self.max_angle, angle))
 
@@ -53,6 +57,7 @@ function Servo:set(angle)
     self.current_angle = angle
 end
 
+--- 停止
 function Servo:stop()
     -- pwm.stop(self.pwm)
     self.pwm:stop()

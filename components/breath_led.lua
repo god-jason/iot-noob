@@ -1,10 +1,13 @@
 local log = iot.logger("BreathLed")
 
+--- 组件 呼吸灯
+-- @module BreathLed
 local BreathLed = {}
 BreathLed.__index = BreathLed
 
 require("components").register("breath_led", BreathLed)
 
+--- 初始化
 function BreathLed:new(opts)
     opts = opts or {}
     local led = setmetatable({
@@ -23,7 +26,7 @@ function BreathLed:new(opts)
     return led
 end
 
--- 打开PWM
+--- 打开PWM
 function BreathLed:open()
     if self.pwm then
         return true
@@ -46,7 +49,7 @@ function BreathLed:open()
     return true
 end
 
--- 关闭PWM
+--- 关闭PWM
 function BreathLed:close()
     self.running = false
     if self.pwm then
@@ -55,7 +58,7 @@ function BreathLed:close()
     end
 end
 
--- 启动呼吸灯
+--- 启动呼吸灯
 function BreathLed:start()
     if not self:open() then
         return false
@@ -86,12 +89,12 @@ function BreathLed:start()
     end)
 end
 
--- 停止呼吸灯
+--- 停止呼吸灯
 function BreathLed:stop()
     self.running = false
 end
 
--- 设置亮度区间
+--- 设置亮度区间
 function BreathLed:setRange(minDuty, maxDuty)
     self.duty_min = minDuty or self.duty_min
     self.duty_max = maxDuty or self.duty_max

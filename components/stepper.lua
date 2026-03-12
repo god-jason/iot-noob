@@ -1,17 +1,19 @@
 local log = iot.logger("stepper")
 
+--- 组件 步进电机
+-- @module Stepper
 local Stepper = {}
 Stepper.__index = Stepper
 
 require("components").register("stepper", Stepper)
 
 --- 创建步进电机
----@param id integer PWM号
----@param dir integer 方向引脚
----@param reverse boolean 电机反转（适用于接线装反的场景）
----@param en integer 使能引脚
----@param freq integer  基础频率(一周的脉冲数)
----@param smooth boolean 平滑过渡
+-- @param id integer PWM号
+-- @param dir integer 方向引脚
+-- @param reverse boolean 电机反转（适用于接线装反的场景）
+-- @param en integer 使能引脚
+-- @param freq integer  基础频率(一周的脉冲数)
+-- @param smooth boolean 平滑过渡
 function Stepper:new(opts)
     opts = opts or {}
     local stepper = setmetatable({
@@ -26,7 +28,7 @@ function Stepper:new(opts)
     return stepper
 end
 
--- 初始化
+--- 初始化
 function Stepper:init()
     self.running = false
     self.dir_pin = iot.gpio(self.dir)
@@ -37,9 +39,9 @@ function Stepper:init()
 end
 
 --- 运行（转速，圈数）
----@param rpm number 转速
----@param rounds number 圈数
----@return integer 需要等待时间ms
+-- @param rpm number 转速
+-- @param rounds number 圈数
+-- @return integer 需要等待时间ms
 function Stepper:start(rpm, rounds)
     log.info(self.pwm, "启动 rpm", rpm, "rounds", rounds)
     -- if self.running then
@@ -116,7 +118,7 @@ function Stepper:start(rpm, rounds)
     return time
 end
 
--- 刹车（至零）
+--- 刹车（至零）
 function Stepper:brake()
     if self.last ~= nil and self.last > 0 then
         self:accelerate(self.last, 0)
@@ -124,14 +126,14 @@ function Stepper:brake()
     end
 end
 
--- 动态调整转速（无效）
+--- 动态调整转速（无效，驱动器不支持直接改变频率）
 function Stepper:speed(rpm)
     local freq = math.floor(self.freq * rpm / 60)
     -- pwm.setFreq(self.pwm, freq)
     self.pwm:setFreq(freq)
 end
 
--- 停止
+--- 停止
 function Stepper:stop()
     log.info("stop")
     if self.running then
@@ -145,22 +147,25 @@ function Stepper:stop()
     end
 end
 
+--- 锁机
 function Stepper:lock()
     self.en_pin:set(0)
 end
 
+--- 解锁
 function Stepper:unlock()
     self.en_pin:set(1)
 end
 
+-- TODO 放参数里
 local acc_interval = 10 -- 10ms加速一次
 
 ---执行加减速
----@param start integer 起始速度
----@param finish integer 结束速度
----@param count integer 脉冲数
----@return integer 加减速消耗的时间ms
----@return integer 加减速消耗的脉冲数
+-- @param start integer 起始速度
+-- @param finish integer 结束速度
+-- @param count integer 脉冲数
+-- @return integer 加减速消耗的时间ms
+-- @return integer 加减速消耗的脉冲数
 function Stepper:accelerate(start, finish, count)
     log.info(self.pwm, "加速 start", start, "finish", finish, "count", count)
 

@@ -75,7 +75,7 @@ function Serial:read()
 
     if ret then
         -- 转发到监听器
-        self.watcher:execute(data)
+        self.watcher:dispatch(data)
     end
     return ret, data
 end

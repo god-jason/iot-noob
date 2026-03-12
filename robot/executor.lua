@@ -6,11 +6,12 @@ local utils = require("utils")
 -- 自增ID
 local inc = utils.increment()
 
--- 定义实例
+--- 执行器
+-- @module Executor
 local Executor = {}
 Executor.__index = Executor
 
--- 创建实例
+--- 创建实例
 function Executor:new(opts)
     opts = opts or {}
     return setmetatable({
@@ -25,7 +26,7 @@ function Executor:new(opts)
     }, Executor)
 end
 
--- 复制实例
+--- 复制实例（无用）
 function Executor:clone()
     return setmetatable({
         id = inc(),
@@ -39,19 +40,19 @@ function Executor:clone()
     }, Executor)
 end
 
--- 暂停
+--- 暂停
 function Executor:pause()
     self.paused = true
     iot.emit("executor_" .. self.id .. "_break")
 end
 
--- 停止
+--- 停止
 function Executor:stop()
     self.stoped = true
     iot.emit("executor_" .. self.id .. "_break")
 end
 
--- 执行（内部用）
+--- 执行（内部用）
 function Executor:execute(cursor)
     cursor = cursor or 1 -- 默认从头开始
     log.info("execute", cursor, iot.json_encode(self.tasks))
@@ -134,13 +135,13 @@ function Executor:execute(cursor)
     end
 end
 
--- 恢复
+--- 恢复
 function Executor:resume()
     self.paused = false
     iot.start(Executor.execute, self, self.current)
 end
 
--- 启动
+--- 启动
 function Executor:start()
 
     -- 编译条件

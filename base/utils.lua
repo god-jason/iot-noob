@@ -1,5 +1,10 @@
+--- 工具集
+-- @module utils
 local utils = {}
 
+--- 深度克隆
+-- @param obj table
+-- @return table
 function utils.deep_clone(obj)
     if type(obj) ~= "table" then
         return obj
@@ -11,6 +16,10 @@ function utils.deep_clone(obj)
     return new
 end
 
+--- 合并
+-- @param t1 table
+-- @param t2 table
+-- @return table
 function utils.merge(t1, t2)
   for k,v in pairs(t2) do
       t1[k] = v
@@ -18,6 +27,8 @@ function utils.merge(t1, t2)
   return t1
 end
 
+--- 自动
+-- @return function 自增闭包
 function utils.increment()
     local id = 0
     return function()

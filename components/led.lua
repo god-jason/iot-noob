@@ -1,10 +1,13 @@
 local log = iot.logger("led")
 
+--- 组件 指示灯
+-- @module Led
 local Led = {}
 Led.__index = Led
 
 require("components").register("led", Led)
 
+--- 初始化
 function Led:new(opts)
     opts = opts or {}
     local led = setmetatable({
@@ -15,24 +18,25 @@ function Led:new(opts)
     return led
 end
 
--- 亮
+--- 亮
 function Led:on()
     self.gpio:set(1)
     self.blinking = false
 end
 
--- 灭
+--- 灭
 function Led:off()
     self.gpio:set(0)
     self.blinking = false
 end
 
+--- 开关
 function Led:set(onOff)    
     self.gpio:set(onOff and 1 or 0)
     self.blinking = false
 end
 
--- 闪烁
+--- 闪烁
 function Led:blink(on, off)
     self.blinkOn = on or 500
     self.blinkOff = off or self.blinkOn -- 默认亮灭同样时间

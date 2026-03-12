@@ -1,5 +1,7 @@
 local log = iot.logger("components")
 
+--- 组件管理器
+-- @module components
 local components = {}
 
 local _components = {
@@ -22,12 +24,12 @@ function components.get(name)
     return _components[name]
 end
 
--- 注册组件
+--- 注册组件类型
 function components.register(name, clazz)
     types[name] = clazz
 end
 
--- 创建组件
+--- 创建组件
 function components.create(cmp)
     log.info("create", iot.json_encode(cmp))
 
@@ -42,7 +44,7 @@ function components.create(cmp)
     return true, comp
 end
 
--- 加载组件
+--- 加载组件
 function components.open()
     log.info("load")
 

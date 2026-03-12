@@ -5,10 +5,12 @@ local utils = require("utils")
 -- 自增ID
 local inc = utils.increment()
 
+--- 状态机
+-- @module FSM
 local FSM = {}
 FSM.__index = FSM
 
--- 创建状态机
+--- 创建状态机
 function FSM:new(opts)
     opts = opts or {}
     return setmetatable({
@@ -21,7 +23,7 @@ function FSM:new(opts)
     }, FSM)
 end
 
--- 注册状态
+--- 注册状态
 -- @param string name 名称
 -- @param table state 状态 (需要有三个回调函数 enter, tick, leave)
 function FSM:register(name, state)
@@ -40,7 +42,7 @@ function FSM:register(name, state)
     end
 end
 
--- 克隆状态机
+--- 克隆状态机
 function FSM:clone()
     return setmetatable({
         id = inc(),
@@ -52,7 +54,7 @@ function FSM:clone()
     }, FSM)
 end
 
--- 执行（内部用）
+--- 执行（内部用）
 function FSM:execute()
     self.running = true
 
@@ -119,7 +121,7 @@ function FSM:execute()
     self.running = false
 end
 
--- 启动状态机
+--- 启动状态机
 function FSM:start(name)
     if self.running then
         log.error(self.name, self.state_name, "已经在执行")
@@ -138,7 +140,7 @@ function FSM:start(name)
     return true
 end
 
--- 修改状态
+--- 切换状态
 function FSM:set(name)
     if not name then
         return false, "空状态"
@@ -156,7 +158,7 @@ function FSM:set(name)
     return true
 end
 
--- 停止状态机
+--- 停止状态机
 function FSM:stop()
     self.running = false
     iot.emit("fsm_" .. self.id .. "_break")

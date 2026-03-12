@@ -3,9 +3,12 @@ local log = iot.logger("scene")
 local devices = require("devices")
 local cron = require("cron")
 
+--- 智能场景
+-- @module Scene
 local Scene = {}
 Scene.__index = Scene
 
+--- 场景实例化
 function Scene:new(opts)
     local scene = setmetatable({
         name = opts.name or "-",
@@ -19,6 +22,7 @@ function Scene:new(opts)
     return scene
 end
 
+--- 场景打开
 function Scene:open()
 
     -- 编译时间
@@ -119,6 +123,7 @@ function Scene:open()
     return true
 end
 
+--- 场景关闭
 function Scene:close()
     -- 从计划任务注销
     for i, trigger in ipairs(self.triggers) do
@@ -130,6 +135,7 @@ function Scene:close()
     end
 end
 
+--- 场景检查（内部用）
 function Scene:check()
     -- 检查时间范围
     if self.ranges and #self.ranges > 0 then
@@ -212,6 +218,7 @@ function Scene:check()
     return true
 end
 
+--- 场景执行（先检查条件，满足则执行响应）
 function Scene:execute()
     local this = self
 

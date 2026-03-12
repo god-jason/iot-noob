@@ -1,6 +1,6 @@
 local log = iot.logger("points")
 
---- 点位相关
+--- 点位相关处理
 -- @module points
 local points = {}
 

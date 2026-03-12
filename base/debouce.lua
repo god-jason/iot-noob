@@ -1,6 +1,9 @@
+--- 防抖延迟
+-- @module Debounce
 local Debounce = {}
 Debounce.__index = Debounce
 
+--- 初始化
 function Debounce:new(opts)
     opts = opts or {}
     local obj = setmetatable({
@@ -21,10 +24,12 @@ function Debounce:on_timeout()
         iot.emit(self.event, self.last)
     end
     if self.on_change then
-        self.on_change(self.last, self.last)
+        self.on_change(self.last)
     end
 end
 
+--- 更新值
+-- @param value integer 电平
 function Debounce:update(value)
     if self.last == value then
         if self.id then
@@ -37,6 +42,8 @@ function Debounce:update(value)
     end
 end
 
+--- 获取值
+-- @return integer 电平
 function Debounce:value()
     return self.last
 end

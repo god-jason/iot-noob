@@ -13,18 +13,18 @@ local options = {
 
 local defaults = {}
 
--- 注册默认配置
+--- 注册默认配置
 function settings.register(name, default)
     table.insert(options.names, name)
     defaults[name] = default
 end
 
--- 加载配置
+--- 加载配置
 function settings.load(name)
     settings[name] = configs.load_default(name, defaults[name] or {})
 end
 
--- 更新配置
+--- 更新配置
 function settings.update(name, content, version)
     -- 保存配置
     settings[name] = content
@@ -39,14 +39,14 @@ function settings.update(name, content, version)
     configs.save("settings", options)
 end
 
--- 保存配置
+--- 保存配置
 function settings.save(name)
     if settings[name] ~= nil then
         configs.save(name, settings[name])
     end
 end
 
--- 清空配置
+--- 清空配置
 function settings.reset(name)
     if name then
         configs.delete(name)
@@ -57,7 +57,7 @@ function settings.reset(name)
     end
 end
 
--- 加载配置
+--- 加载配置
 function settings.open()
     -- 加载配置
     options = configs.load_default("settings", options)
@@ -67,7 +67,7 @@ function settings.open()
     end
 end
 
--- 关闭配置
+--- 关闭配置
 function settings.close()
     -- 保存
 end

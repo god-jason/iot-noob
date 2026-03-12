@@ -1,11 +1,16 @@
-local log = iot.logger("boot")
 
+--- 启动器
+-- @module boot
 local boot = {}
+
+local log = iot.logger("boot")
 
 local modules = {}
 local boots = {}
 
--- 注册模块
+--- 注册模块
+-- @param name string
+-- @param mod table 
 function boot.register(name, mod)
 
     if type(mod) ~= "table" then
@@ -22,7 +27,10 @@ function boot.register(name, mod)
     }
 end
 
--- 启动模块
+--- 启动模块
+-- @param name string
+-- @return boolean 成功与否
+-- @return string 错误信息
 function boot.open(name)
     local mod = modules[name]
     if not mod then
@@ -66,7 +74,8 @@ function boot.open(name)
     return true
 end
 
--- 关闭模块
+--- 关闭模块
+-- @param name string
 function boot.close(name)
     local mod = modules[name]
     if not mod then
@@ -89,7 +98,9 @@ function boot.close(name)
     mod.opened = false
 end
 
--- 启动
+--- 启动
+-- @return boolean 成功与否
+-- @return string 错误信息
 function boot.startup()
     for name, mod in pairs(modules) do
         local ret, info = boot.open(name)
@@ -107,7 +118,7 @@ function boot.startup()
     end
 end
 
--- 停止
+--- 停止
 function boot.shutdown()
     -- 逆序关闭
     for i = #boots, 1, -1 do
