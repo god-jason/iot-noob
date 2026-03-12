@@ -9,7 +9,7 @@ local boots = {}
 
 --- 注册模块
 -- @param name string
--- @param mod table 
+-- @param mod table
 function boot.register(name, mod)
 
     if type(mod) ~= "table" then

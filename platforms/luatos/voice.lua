@@ -24,8 +24,6 @@ local function play_next()
         ret = audio.tts(0, item.data)
     elseif item.type == "file" then
         ret = audio.play(0, item.data)
-    else
-        -- 未知类型，不会出现
     end
 
     if not ret then

@@ -42,8 +42,7 @@ libfota2.request(libfota_cb, opts)
 sys.timerLoopStart(libfota2.request, 4*3600*1000, libfota_cb)
 -- 自建平台
 sys.timerLoopStart(libfota2.request, 4*3600*1000, libfota_cb, opts)
-]]
-
+]] --
 local sys = require "sys"
 require "sysplus"
 
@@ -88,29 +87,23 @@ local function fota_task(cbFnc, opts)
                 code = 1111111111111
             end
             if code == 43 then
-                log.info("请等待",
-                    ",云平台生成差分升级包需要等待,一到三分钟后云平台生成完成差分包便可以请求成功")
+                log.info("请等待")
             elseif code == 3 then
-                log.info("无效的设备", "检查请求键名(imei小写)正确性")
+                log.info("无效的设备")
             elseif code == 17 then
-                log.info("无权限",
-                    "设备会上报imei、固件名、项目key,服务器会以此查出设备、固件、项目三 条记录，如果 这三者不在同一个用户名下，就会认为无权限。设备不在项目key对应的账户下，可寻找合宙技术支持查询该设备在哪个账户下，核实情况后可修改设备归属")
+                log.info("无权限")
             elseif code == 21 then
                 log.info("不允许升级", "请检查IOT平台,是否对应imei被禁止了升级")
             elseif code == 25 then
-                log.info("无效的项目",
-                    "productkey不一致,检查是否存在拼写错误,检查模块是否在本人账户下,若不在本人账户下,请联系合宙工作人员处理")
+                log.info("无效的项目", "productkey不一致")
             elseif code == 26 then
-                log.info("无效的固件",
-                    "固件名称错误,项目中没有对应的固件,也有可能是用户自己修改了固件名称,可对照升级日志中设备当前固件名与升级配置中固件名是否相同(固件名称,固件功能要完全一致,只是版本号不同)")
+                log.info("无效的固件", "固件名称错误")
             elseif code == 27 then
-                log.info("已是最新版本",
-                    "1.设备的固件/脚本版本高于或等于云平台上的版本号 2.用户项目升级配置中未添加该设备 3.云平台升级配置中，是否升级配置为否")
+                log.info("已是最新版本")
             elseif code == 40 then
-                log.info("循环升级",
-                    "云平台进入设备列表搜索被禁止的imei,解除禁止升级即可. 云平台防止模块在升级失败后,反复请求升级导致流量卡流量耗尽,在模块一天请求升级六次后会禁止模块升级. 可在平台解除")
+                log.info("循环升级", "云平台进入设备列表搜索被禁止的imei,解除禁止升级即可")
             elseif code == 1111111111111 then
-                log.info("云平台下发的不是json", "我看看body是个什么东西", type(body), body)
+                log.info("云平台下发的不是json", type(body), body)
             else
                 log.info("不是上面的那些错误code", code)
             end
@@ -194,12 +187,14 @@ function libfota2.request(cbFnc, opts)
 
         -- 然后拼接到最终的url里
         if not opts.imei then
-            opts.url = string.format("%s%s&project_key=%s&firmware_name=%s&version=%s", opts.url, query, opts.project_key, opts.firmware_name, opts.version)
+            opts.url = string.format("%s%s&project_key=%s&firmware_name=%s&version=%s", opts.url, query,
+                opts.project_key, opts.firmware_name, opts.version)
         else
-            opts.url = string.format("%simei=%s&project_key=%s&firmware_name=%s&version=%s", opts.url, opts.imei, opts.project_key, opts.firmware_name, opts.version)
+            opts.url = string.format("%simei=%s&project_key=%s&firmware_name=%s&version=%s", opts.url, opts.imei,
+                opts.project_key, opts.firmware_name, opts.version)
         end
     else
-        if opts.url:sub(1,3)=="###" then
+        if opts.url:sub(1, 3) == "###" then
             opts.url = opts.url:sub(4)
         end
     end

@@ -2,10 +2,10 @@ local MA = {}
 MA.__index = MA
 
 function MA:new(size)
-    local self = setmetatable({}, MA)
-    self.size = size or 5
-    self.buffer = {}
-    return self
+    local obj = setmetatable({}, MA)
+    obj.size = size or 5
+    obj.buffer = {}
+    return obj
 end
 
 function MA:update(val)
@@ -14,7 +14,9 @@ function MA:update(val)
         table.remove(self.buffer, 1)
     end
     local sum = 0
-    for i=1,#self.buffer do sum = sum + self.buffer[i] end
+    for i = 1, #self.buffer do
+        sum = sum + self.buffer[i]
+    end
     return sum / #self.buffer
 end
 

@@ -56,7 +56,7 @@ end
 --- 关闭蜂鸣器
 function Buzzer:off()
     self:stop()
-    
+
     if self.gpio then
         self.gpio:set(0)
     end
@@ -89,14 +89,14 @@ function Buzzer:ring(times, on_ms, off_ms)
             end
             self:on()
             iot.sleep(on_ms)
-            
+
             if not self.ringing then
                 break
             end
             self:off()
             iot.sleep(off_ms)
         end
-        
+
         self.ringing = false
     end)
 end

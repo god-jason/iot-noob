@@ -82,7 +82,7 @@ function Scene:open()
                 local tm = os.date("*t")
                 if trigger.weekdays and #trigger.weekdays > 0 then
                     local has = false
-                    for i, v in ipairs(trigger.weekdays) do
+                    for _, v in ipairs(trigger.weekdays) do
                         if v == tm.wday then
                             has = true
                             break

@@ -51,6 +51,8 @@ tjc.set_bool，修改布尔值
 ]] --
 
 --- 注册页面
+-- @param name
+-- @param page
 function tjc.register(name, page)
     pages[name] = page
 end
@@ -135,6 +137,8 @@ function tjc.open()
 end
 
 --- 设置文本
+-- @param name 控件ID
+-- @param value 值
 function tjc.set_text(name, value)
     local str = name .. ".txt=" .. "\"" .. value .. "\""
     uart.write(options.uart_id, str .. "\xff\xff\xff")
@@ -142,6 +146,8 @@ function tjc.set_text(name, value)
 end
 
 --- 设置值
+-- @param name 控件ID
+-- @param value 值
 function tjc.set_value(name, value)
     if type(value) == "boolean" then
         value = value and 1 or 0
@@ -154,6 +160,8 @@ function tjc.set_value(name, value)
 end
 
 --- 设置布尔值
+-- @param name 控件ID
+-- @param value 值
 function tjc.set_bool(name, value)
     value = value and 1 or 0
     local str = name .. ".val=" .. math.floor(value)
@@ -162,6 +170,7 @@ function tjc.set_bool(name, value)
 end
 
 --- 切换页面
+-- @param name 页面名称
 function tjc.set_page(name)
     local str = "page=" .. name
     uart.write(options.uart_id, str .. "\xff\xff\xff")

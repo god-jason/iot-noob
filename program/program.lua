@@ -68,7 +68,7 @@ local function create_planner(name, script)
 
     -- 注册到计划器上
     planner.register(name, info)
-    
+
     -- 注册命令，远程调用
     agent.register(name, function(data)
         log.info("plan", name, iot.json_encode(data))

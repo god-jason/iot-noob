@@ -41,7 +41,7 @@ function BreathLed:open()
         log.error("PWM打开失败 ", self.pwm_id)
         return false
     end
-    
+
     self.pwm = pwm
     pwm:start()
     self.duty = self.duty_min

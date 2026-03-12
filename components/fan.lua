@@ -70,7 +70,6 @@ function Fan:accelerate(start)
     self.accelerating = false
 end
 
-
 --- 设置风速
 -- @param level 风级
 -- @param immediate 立即，不加速

@@ -14,7 +14,7 @@ if wdt then
 end
 
 -- 日志等级改为info
---log.setLevel(2)
+-- log.setLevel(2)
 
 -- 自动识别SIM2
 mobile.simid(2, true)
@@ -23,9 +23,7 @@ mobile.simid(2, true)
 sys.taskInit(function()
     log.info("task")
 
-    if not RELEASE then
-        --sys.wait(1000) -- 等待USB初始化完成，否则日志丢失    
-    end    
+    -- sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
 
     -- fskv.init() -- KV 数据库
 
@@ -39,7 +37,7 @@ sys.taskInit(function()
         sys.wait(5000)
         log.info("内存", rtos.meminfo())
     end
-    
+
     log.info("exit")
 end)
 

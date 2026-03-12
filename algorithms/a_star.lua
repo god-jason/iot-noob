@@ -1,5 +1,4 @@
 -- A* Algorithm in Lua
-
 -- 曼哈顿距离 (Heuristic)
 local function manhattan(a, b)
     return math.abs(a.x - b.x) + math.abs(a.y - b.y)
@@ -7,10 +6,12 @@ end
 
 -- A*算法实现
 function a_star(graph, start, goal)
-    local open_set = { [start] = true }  -- 待搜索的节点
-    local came_from = {}  -- 存储路径的前驱节点
-    local g_score = {}  -- 从起点到当前节点的实际代价
-    local f_score = {}  -- 当前节点的估算代价
+    local open_set = {
+        [start] = true
+    } -- 待搜索的节点
+    local came_from = {} -- 存储路径的前驱节点
+    local g_score = {} -- 从起点到当前节点的实际代价
+    local f_score = {} -- 当前节点的估算代价
 
     -- 初始化
     g_score[start] = 0
@@ -44,7 +45,7 @@ function a_star(graph, start, goal)
 
         -- 遍历相邻节点
         for _, neighbor in ipairs(graph[current]) do
-            local tentative_g_score = g_score[current] + 1  -- 假设每个边的代价是 1
+            local tentative_g_score = g_score[current] + 1 -- 假设每个边的代价是 1
             if not g_score[neighbor] or tentative_g_score < g_score[neighbor] then
                 -- 更新前驱节点和评分
                 came_from[neighbor] = current
@@ -60,15 +61,44 @@ function a_star(graph, start, goal)
 end
 
 -- 示例图 (网格，节点位置用坐标表示)
-local graph = {
-    { {x=1, y=1}, {x=2, y=1}, {x=3, y=1} },
-    { {x=1, y=2}, {x=2, y=2}, {x=3, y=2} },
-    { {x=1, y=3}, {x=2, y=3}, {x=3, y=3} },
-}
+local graph = {{{
+    x = 1,
+    y = 1
+}, {
+    x = 2,
+    y = 1
+}, {
+    x = 3,
+    y = 1
+}}, {{
+    x = 1,
+    y = 2
+}, {
+    x = 2,
+    y = 2
+}, {
+    x = 3,
+    y = 2
+}}, {{
+    x = 1,
+    y = 3
+}, {
+    x = 2,
+    y = 3
+}, {
+    x = 3,
+    y = 3
+}}}
 
 -- 测试 A* 算法
-local start = {x=1, y=1}
-local goal = {x=3, y=3}
+local start = {
+    x = 1,
+    y = 1
+}
+local goal = {
+    x = 3,
+    y = 3
+}
 
 -- A* 算法执行
 local path = a_star(graph, start, goal)

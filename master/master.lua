@@ -335,7 +335,7 @@ local function master_task()
     end
 
     log.info("平台连接成功")
-    
+
     iot.emit("MASTER_READY")
 
     -- 订阅网关消息
@@ -393,7 +393,7 @@ function master.open()
 end
 
 function master.close()
-    -- 关闭连接 
+    -- 关闭连接
 end
 
 master.deps = {"settings"}

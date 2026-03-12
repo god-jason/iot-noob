@@ -105,6 +105,7 @@ function Device:put_value(key, value)
             if self._thresholds[key] and type(v.value) == "number" and type(value) == "number" and
                 math.abs(v.value - value) < self._thresholds[key] then
                 -- 有变化阈值，且在范围之内，不变化
+                log.info(key, v.value, value, "change under thresold")
             else
                 self._modified_values[key] = val
                 has = true
@@ -141,6 +142,7 @@ function Device:put_values(values)
                 if self._thresholds[key] and type(v.value) == "number" and type(value) == "number" and
                     math.abs(v.value - value) < self._thresholds[key] then
                     -- 有变化阈值，且在范围之内，不变化
+                    log.info(key, v.value, value, "change under thresold")
                 else
                     self._modified_values[key] = val
                     has = true

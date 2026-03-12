@@ -40,8 +40,8 @@ local function create_protocol(link)
     protocol_instanses[link.id] = instanse
 
     -- 打开协议
-    local ret, res, info = pcall(instanse.open, instanse)
-    if not ret then
+    local ret2, res, info = pcall(instanse.open, instanse)
+    if not ret2 then
         return false, res
     end
     if not res then

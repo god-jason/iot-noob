@@ -2,10 +2,10 @@ local Median = {}
 Median.__index = Median
 
 function Median:new(size)
-    local self = setmetatable({}, Median)
-    self.size = size or 3
-    self.buffer = {}
-    return self
+    local obj = setmetatable({}, Median)
+    obj.size = size or 3
+    obj.buffer = {}
+    return obj
 end
 
 function Median:update(val)
@@ -15,7 +15,7 @@ function Median:update(val)
     end
     local tmp = {table.unpack(self.buffer)}
     table.sort(tmp)
-    local mid = math.floor(#tmp/2) + 1
+    local mid = math.floor(#tmp / 2) + 1
     return tmp[mid]
 end
 

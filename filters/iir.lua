@@ -2,10 +2,10 @@ local IIR = {}
 IIR.__index = IIR
 
 function IIR:new(alpha, init)
-    local self = setmetatable({}, IIR)
-    self.alpha = alpha or 0.1
-    self.y = init or 0
-    return self
+    local obj = setmetatable({}, IIR)
+    obj.alpha = alpha or 0.1
+    obj.y = init or 0
+    return obj
 end
 
 function IIR:update(x)

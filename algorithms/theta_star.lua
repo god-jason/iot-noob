@@ -1,18 +1,9 @@
 -- 网格地图 (0 = 可行走区域, 1 = 障碍物)
-local grid = {
-    {0, 0, 0, 0, 0, 0},
-    {0, 1, 1, 0, 0, 0},
-    {0, 0, 0, 1, 1, 0},
-    {0, 1, 0, 0, 0, 0},
-    {0, 0, 0, 1, 0, 0},
-    {0, 0, 0, 0, 0, 0}
-}
+local grid = {{0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 0}, {0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0},
+              {0, 0, 0, 0, 0, 0}}
 
 -- 八个方向的移动 (上, 下, 左, 右, 四个对角线)
-local directions = {
-    {-1, 0}, {1, 0}, {0, -1}, {0, 1}, 
-    {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
-}
+local directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}}
 
 -- 判断一个点是否在网格范围内
 local function in_bounds(x, y)
@@ -31,7 +22,7 @@ end
 
 -- 计算欧几里得距离
 local function euclidean_distance(x1, y1, x2, y2)
-    return math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
+    return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
 end
 
 -- 判断从 start 到 end 之间的路径是否没有障碍物
@@ -64,12 +55,19 @@ local function theta_star(start, goal)
     end
 
     -- 启动节点
-    table.insert(open_list, {x = start[1], y = start[2], g = 0, h = euclidean_distance(start[1], start[2], goal[1], goal[2])})
+    table.insert(open_list, {
+        x = start[1],
+        y = start[2],
+        g = 0,
+        h = euclidean_distance(start[1], start[2], goal[1], goal[2])
+    })
 
     -- 循环直到找到路径或没有更多节点
     while #open_list > 0 do
         -- 按 f 值排序并取出最小 f 值的节点
-        table.sort(open_list, function(a, b) return f_cost(a) < f_cost(b) end)
+        table.sort(open_list, function(a, b)
+            return f_cost(a) < f_cost(b)
+        end)
         local current = table.remove(open_list, 1)
 
         -- 如果目标节点已被找到
@@ -93,7 +91,12 @@ local function theta_star(start, goal)
                 -- 检查从当前节点到邻居节点的直线是否可行
                 if line_of_sight(current.x, current.y, nx, ny) then
                     local tentative_g = current.g + euclidean_distance(current.x, current.y, nx, ny)
-                    local neighbor = {x = nx, y = ny, g = tentative_g, h = euclidean_distance(nx, ny, goal[1], goal[2])}
+                    local neighbor = {
+                        x = nx,
+                        y = ny,
+                        g = tentative_g,
+                        h = euclidean_distance(nx, ny, goal[1], goal[2])
+                    }
 
                     -- 如果该邻居节点未被探索或发现了更优路径
                     local add_to_open = true

@@ -1,13 +1,15 @@
 -- RRT Algorithm in Lua (for 2D space)
-
 -- 随机生成一个点
 local function random_point()
-    return {x = math.random(1, 100), y = math.random(1, 100)}
+    return {
+        x = math.random(1, 100),
+        y = math.random(1, 100)
+    }
 end
 
 -- 计算两个点之间的欧氏距离
 local function distance(p1, p2)
-    return math.sqrt((p1.x - p2.x)^2 + (p1.y - p2.y)^2)
+    return math.sqrt((p1.x - p2.x) ^ 2 + (p1.y - p2.y) ^ 2)
 end
 
 -- 从点 A 向点 B 移动，并确保不会超出最大步长
@@ -17,7 +19,10 @@ local function move_toward(A, B, max_step)
         return B
     else
         local ratio = max_step / dist
-        return {x = A.x + ratio * (B.x - A.x), y = A.y + ratio * (B.y - A.y)}
+        return {
+            x = A.x + ratio * (B.x - A.x),
+            y = A.y + ratio * (B.y - A.y)
+        }
     end
 end
 
@@ -30,13 +35,15 @@ end
 
 -- RRT 算法实现
 function rrt(start, goal, max_steps, max_step_length, obstacles)
-    local tree = {start}  -- 初始化树，从起点开始
-    local parents = {[start] = nil}  -- 保存树中的父节点
-    
+    local tree = {start} -- 初始化树，从起点开始
+    local parents = {
+        [start] = nil
+    } -- 保存树中的父节点
+
     for i = 1, max_steps do
         -- 随机生成一个目标点
         local rand_point = random_point()
-        
+
         -- 找到树中离随机点最近的节点
         local nearest_node = nil
         local min_dist = math.huge
@@ -47,10 +54,10 @@ function rrt(start, goal, max_steps, max_step_length, obstacles)
                 nearest_node = node
             end
         end
-        
+
         -- 将树扩展到随机点
         local new_node = move_toward(nearest_node, rand_point, max_step_length)
-        
+
         -- 检查从 nearest_node 到 new_node 是否发生碰撞
         if not check_collision(nearest_node, new_node, obstacles) then
             table.insert(tree, new_node)
@@ -72,7 +79,7 @@ function rrt(start, goal, max_steps, max_step_length, obstacles)
         end
     end
 
-    return nil  -- 未找到路径
+    return nil -- 未找到路径
 end
 
 -- 可视化路径（简单打印路径）
@@ -87,8 +94,14 @@ function print_path(path)
 end
 
 -- 示例起点和目标点
-local start = {x = 1, y = 1}
-local goal = {x = 90, y = 90}
+local start = {
+    x = 1,
+    y = 1
+}
+local goal = {
+    x = 90,
+    y = 90
+}
 
 -- 运行 RRT 算法
 local path = rrt(start, goal, 1000, 5)

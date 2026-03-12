@@ -47,7 +47,7 @@ local function on_data(id, len)
         cache = ""
 
         if ret == 1 then
-            local ret, err = agent.execute(pkt.type, pkt)
+            ret, err = agent.execute(pkt.type, pkt)
             if ret then
                 response = reply_error(err)
             else

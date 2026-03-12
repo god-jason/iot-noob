@@ -13,7 +13,7 @@ function Led:new(opts)
     local led = setmetatable({
         pin = opts.pin,
         gpio = iot.gpio(opts.pin),
-        blinking = false,
+        blinking = false
     }, Led)
     return led
 end
@@ -31,7 +31,7 @@ function Led:off()
 end
 
 --- 开关
-function Led:set(onOff)    
+function Led:set(onOff)
     self.gpio:set(onOff and 1 or 0)
     self.blinking = false
 end

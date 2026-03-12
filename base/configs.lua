@@ -22,7 +22,7 @@ function configs.load(name)
     -- 1、找原始JSON文件hen
     local path = "/" .. name .. ".json"
     -- 2、从luadb中找，（编译时添加）文件名长度限制在31字节。。。
-    local path2 = luadb_config(name) 
+    local path2 = luadb_config(name)
 
     -- 降低启动速度，避免日志输出太快，从而导致丢失
     -- iot.sleep(100)

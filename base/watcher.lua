@@ -33,7 +33,7 @@ function Watcher:clear()
     self.watchers = {}
 end
 
---- 派发 
+--- 派发
 function Watcher:dispatch(...)
     for i, cb in pairs(self.watchers) do
         if cb then

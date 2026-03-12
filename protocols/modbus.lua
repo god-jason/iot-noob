@@ -45,10 +45,10 @@ local function load_mapper(product_id)
         return mapper_cache[product_id]
     end
 
+    -- TODO 此处重复了
     log.info("load mapper", product_id)
-
-    local model = database.get("model", product_id)
-    if not model then
+    local mod = model.get(product_id)
+    if not mod then
         return nil
     end
 
@@ -63,7 +63,7 @@ local function load_mapper(product_id)
     log.info("load 2")
 
     -- 分类
-    for _, prop in ipairs(model.properties or {}) do
+    for _, prop in ipairs(mod.properties or {}) do
         for _, pt in ipairs(prop.points) do
             if pt.register == 1 then
                 table.insert(mapper.coils, pt)

@@ -47,6 +47,7 @@ function settings.save(name)
 end
 
 --- 清空配置
+-- @param name
 function settings.reset(name)
     if name then
         configs.delete(name)

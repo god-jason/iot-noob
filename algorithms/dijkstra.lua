@@ -1,5 +1,4 @@
 -- Dijkstra Algorithm in Lua
-
 -- 计算最短路径
 function dijkstra(graph, start)
     local dist = {}
@@ -8,12 +7,12 @@ function dijkstra(graph, start)
 
     -- 初始化距离
     for node in pairs(graph) do
-        dist[node] = math.huge  -- 设置所有节点的距离为无穷大
-        prev[node] = nil       -- 前驱节点为 nil
-        Q[node] = true          -- 设为未访问
+        dist[node] = math.huge -- 设置所有节点的距离为无穷大
+        prev[node] = nil -- 前驱节点为 nil
+        Q[node] = true -- 设为未访问
     end
 
-    dist[start] = 0  -- 起点到自己的距离为 0
+    dist[start] = 0 -- 起点到自己的距离为 0
 
     while next(Q) do
         -- 选择未访问的节点中距离起点最近的节点
@@ -27,7 +26,9 @@ function dijkstra(graph, start)
             end
         end
 
-        if u == nil then break end  -- 如果所有节点都被访问过，则结束
+        if u == nil then
+            break
+        end -- 如果所有节点都被访问过，则结束
 
         -- 删除节点 u
         Q[u] = nil
@@ -62,10 +63,24 @@ end
 
 -- 示例图 (邻接表形式)
 local graph = {
-    A = {B = 1, C = 4},
-    B = {A = 1, C = 2, D = 5},
-    C = {A = 4, B = 2, D = 1},
-    D = {B = 5, C = 1}
+    A = {
+        B = 1,
+        C = 4
+    },
+    B = {
+        A = 1,
+        C = 2,
+        D = 5
+    },
+    C = {
+        A = 4,
+        B = 2,
+        D = 1
+    },
+    D = {
+        B = 5,
+        C = 1
+    }
 }
 
 -- 运行 Dijkstra 算法
