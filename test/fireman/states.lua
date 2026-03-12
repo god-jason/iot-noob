@@ -1,5 +1,5 @@
 local robot = require("robot")
-local components = require("components")
+local log = iot.logger("states")
 
 local states = {}
 

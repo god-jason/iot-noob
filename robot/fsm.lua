@@ -62,6 +62,8 @@ function FSM:execute()
         if self.next_state then
             -- 执行离开
             if self.state and self.state.leave then
+                log.info(self.name, "leave state", self.state_name, self.state.name)
+
                 -- self.state.leave(self)
                 local ret, info = pcall(self.state.leave, self.context)
                 if not ret then
@@ -76,6 +78,8 @@ function FSM:execute()
 
             -- 执行进入
             if self.state.enter then
+                log.info(self.name, "enter state", self.state_name, self.state.name)
+
                 -- state.enter(self)
                 local ret, info = pcall(self.state.enter, self.context)
                 if not ret then
@@ -108,6 +112,8 @@ function FSM:execute()
 
     -- 执行离开
     if self.state and self.state.leave then
+        log.info(self.name, "leave state", self.state_name, self.state.name)
+
         -- self.state.leave(self)
         local ret, info = pcall(self.state.leave, self.context)
         if not ret then
@@ -120,6 +126,7 @@ function FSM:execute()
 end
 
 --- 启动状态机
+-- @param name 状态名
 function FSM:start(name)
     if self.running then
         log.error(self.name, self.state_name, "已经在执行")
@@ -127,7 +134,7 @@ function FSM:start(name)
     end
 
     -- 修改状态
-    local ret, info = self:set(name)
+    local ret, info = self:switch(name)
     if not ret then
         return ret, info
     end
@@ -139,7 +146,8 @@ function FSM:start(name)
 end
 
 --- 切换状态
-function FSM:set(name)
+-- @param name 状态名
+function FSM:switch(name)
     if not name then
         return false, "空状态"
     end

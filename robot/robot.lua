@@ -1,7 +1,7 @@
 --- 机器人
 -- @module robot
 local robot = {}
-_G.robot = robot --注册到全局
+_G.robot = robot -- 注册到全局
 
 local log = iot.logger("robot")
 
@@ -12,10 +12,20 @@ local fsm = require("fsm")
 local cron = require("cron")
 local planner = require("planner")
 
-local components = require("components")
 local boot = require("boot")
 
-robot.fsm = fsm:new()
+-- 状态机
+robot.fsm = fsm:new({
+    name = "robot"
+})
+
+-- 空状态，避免无法启动，实际项目需要覆盖
+robot.fsm:register("idle", {
+    name = "空闲",
+    tick = function()
+        log.info("robot state idle", os.date("%Y-%m-%d %H:%M:%S"))
+    end
+})
 
 --- 创建计划，并执行
 -- @param name string 计划名称
@@ -33,6 +43,10 @@ function robot.plan(name, data)
     return robot.executor:start()
 end
 
+function robot.state(name)
+    robot.fsm:switch(name)
+end
+
 --- 打开
 function robot.open()
     log.info("open")
@@ -42,11 +56,13 @@ function robot.open()
     -- 启动计划任务
 
     -- 启动状态机
-    robot.fsm:start()
+    local ret, info = robot.fsm:start("idle")
+    if not ret then
+        log.error("状态机启动失败", info)
+    end
 
     return true
 end
-
 
 --- 关闭
 function robot.close()
