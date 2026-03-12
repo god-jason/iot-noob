@@ -41,7 +41,7 @@ function boot.open(name)
     end
 
     if mod.visiting then
-        return false, "循环依赖"
+        return false, "启动" .. name .. "循环依赖"
     end
     mod.visiting = true
 
@@ -50,13 +50,13 @@ function boot.open(name)
         local ret, info = boot.open(v)
         if not ret then
             mod.visiting = false
-            return false, info
+            return false, "启动" .. name .. "失败：" .. info
         end
     end
 
     mod.visiting = false
 
-    log.info("open", name)
+    log.info("启动", name)
     local ret, res, info = pcall(mod.open)
     if not ret then
         return false, res
@@ -101,24 +101,26 @@ end
 -- @return boolean 成功与否
 -- @return string 错误信息
 function boot.startup()
+    log.info("startup")
     for name, mod in pairs(modules) do
         local ret, info = boot.open(name)
         if not ret then
-            log.error(info)
+            log.error("启动失败", info)
 
             -- 非发布时，关闭程序，抛出异常
             if not RELEASE then
                 boot.shutdown()
-                error(info)
             end
 
             -- 发布时，要启动平台模块，至少实现重置和远程升级
         end
     end
+    log.info("startup finish")
 end
 
 --- 停止
 function boot.shutdown()
+    log.info("shutdown")
     -- 逆序关闭
     for i = #boots, 1, -1 do
         boot.close(boots[i])

@@ -66,6 +66,9 @@ end
 
 --- 关闭
 function robot.close()
+    
+    robot.fsm:stop()
+
     return true
 end
 

@@ -34,7 +34,9 @@ function schedule.open()
     log.info("open")
 
     -- 读取RTC时钟
-    components.rtc:read()
+    if components.rtc then
+        components.rtc:read()
+    end
 
     -- TODO 加载定时任务
 
@@ -43,7 +45,7 @@ end
 
 --- 关闭
 function schedule.close()
-    
+
     return true
 end
 

@@ -159,7 +159,7 @@ function FSM:switch(name)
     end
 
     self.next_state = name
-    iot.emit("fsm_" .. self.id .. "_break")
+    iot.emit("fsm_" .. self.id .. "_break", "切换状态")
 
     return true
 end
@@ -167,7 +167,7 @@ end
 --- 停止状态机
 function FSM:stop()
     self.running = false
-    iot.emit("fsm_" .. self.id .. "_break")
+    iot.emit("fsm_" .. self.id .. "_break", "停止")
 end
 
 return FSM

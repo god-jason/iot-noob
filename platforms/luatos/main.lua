@@ -23,7 +23,8 @@ mobile.simid(2, true)
 sys.taskInit(function()
     log.info("task")
 
-    sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
+    -- 等待USB初始化完成，否则日志丢失
+    sys.wait(200) -- sys.wait(1000)
 
     -- fskv.init() -- KV 数据库
 
@@ -33,6 +34,7 @@ sys.taskInit(function()
     -- 自动启动模块
     require("boot").startup()
 
+    -- 打印内存占用
     while not RELEASE do
         sys.wait(5000)
         log.info("内存", rtos.meminfo())
