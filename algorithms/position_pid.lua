@@ -7,7 +7,7 @@ function PositionPid:realize(actual_val)
     -- 计算目标值与实际值的误差
     self.err = self.target_val - actual_val;
 
-    -- 设定闭环死区 
+    -- 设定闭环死区
     if self.err >= -20 and self.err <= 20 then
         self.err = 0
         self.integral = 0
