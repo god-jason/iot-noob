@@ -1,14 +1,32 @@
+--[[
+@module agent
+@summary 远程控制命令
+@version 1.0
+@date    2026.03.11
+@author  杰神
+@demo    agent
+@usage
+--用法实例
+local agent = require("agent")
+agent.register("move", function(data)
+    return robot.plan("move", data)
+end)
+]]--
 local agent = {}
 
 local log = iot.logger("agent")
 
 local commands = {}
 
+--- 所有命令
+-- @return table
 function agent.commands()
     return commands
 end
 
--- 注册指令
+--- 注册命令
+-- @param name string|table 命令
+-- @param fn function 回凋
 function agent.register(name, fn)
     if type(name) == "string" and type(fn) == "function" then
         commands[name] = fn
@@ -24,7 +42,11 @@ function agent.register(name, fn)
     end
 end
 
--- 执行指令
+--- 执行命令
+-- @param name string 命令
+-- @param data table 参数
+-- @return boolean 成功与否
+-- @return string 错误信息 或 结果
 function agent.execute(name, data)
     local cmd = commands[name]
     if type(cmd) ~= "function" then
