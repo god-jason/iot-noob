@@ -1,6 +1,11 @@
--- Dijkstra Algorithm in Lua
+--- Dijkstra Algorithm in Lua
+-- @module dijkstra
+local dijkstra= {}
+
 -- 计算最短路径
-function dijkstra(graph, start)
+-- @param graph 路径网络
+-- @param start 起点
+function dijkstra.calculate(graph, start)
     local dist = {}
     local prev = {}
     local Q = {}
@@ -46,45 +51,4 @@ function dijkstra(graph, start)
     return dist, prev
 end
 
--- 打印路径
-function printPath(prev, start, target)
-    local path = {}
-    local node = target
-    while node do
-        table.insert(path, 1, node)
-        node = prev[node]
-    end
-    if path[1] == start then
-        print("Path from " .. start .. " to " .. target .. ": " .. table.concat(path, " -> "))
-    else
-        print("No path found.")
-    end
-end
-
--- 示例图 (邻接表形式)
-local graph = {
-    A = {
-        B = 1,
-        C = 4
-    },
-    B = {
-        A = 1,
-        C = 2,
-        D = 5
-    },
-    C = {
-        A = 4,
-        B = 2,
-        D = 1
-    },
-    D = {
-        B = 5,
-        C = 1
-    }
-}
-
--- 运行 Dijkstra 算法
-local dist, prev = dijkstra(graph, 'A')
-
--- 打印从 A 到 D 的最短路径
-printPath(prev, 'A', 'D')
+return dijkstra

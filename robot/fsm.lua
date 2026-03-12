@@ -26,7 +26,6 @@ end
 -- @param string name 名称
 -- @param table state 状态 (需要有三个回调函数 enter, tick, leave)
 function FSM:register(name, state)
-    -- self.states[name] = state    
     if type(name) == "string" and type(state) == "table" then
         self.states[name] = state
     end

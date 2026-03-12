@@ -1,3 +1,5 @@
+--- 位置式
+-- @module PositionPid
 local PositionPid = {}
 PositionPid.__index = PositionPid
 

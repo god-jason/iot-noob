@@ -80,7 +80,7 @@ end
 
 function GatewayDevice:values()
     local values = {}
-    for k, dev in pairs(devices.devices()) do
+    for id, dev in pairs(devices.devices()) do
         if dev._values and dev.inline then
             for k, v in pairs(dev._values) do
                 values[k] = v
@@ -97,7 +97,7 @@ end
 
 function GatewayDevice:modified_values(clear)
     local values = {}
-    for k, dev in pairs(devices.devices()) do
+    for id, dev in pairs(devices.devices()) do
         if dev.modified_values and dev.inline then
             for k, v in pairs(dev:modified_values(clear)) do
                 values[k] = v

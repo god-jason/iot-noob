@@ -1,11 +1,17 @@
--- A* Algorithm in Lua
+--- A* Algorithm in Lua
+-- @module a_star
+local a_star = {}
+
 -- 曼哈顿距离 (Heuristic)
 local function manhattan(a, b)
     return math.abs(a.x - b.x) + math.abs(a.y - b.y)
 end
 
--- A*算法实现
-function a_star(graph, start, goal)
+--- A*算法
+-- @param graph 路径网络
+-- @param start 起点
+-- @param goal 终点
+function a_star.calculate(graph, start, goal)
     local open_set = {
         [start] = true
     } -- 待搜索的节点
@@ -60,54 +66,49 @@ function a_star(graph, start, goal)
     return nil
 end
 
--- 示例图 (网格，节点位置用坐标表示)
-local graph = {{{
-    x = 1,
-    y = 1
-}, {
-    x = 2,
-    y = 1
-}, {
-    x = 3,
-    y = 1
-}}, {{
-    x = 1,
-    y = 2
-}, {
-    x = 2,
-    y = 2
-}, {
-    x = 3,
-    y = 2
-}}, {{
-    x = 1,
-    y = 3
-}, {
-    x = 2,
-    y = 3
-}, {
-    x = 3,
-    y = 3
-}}}
+local function test()
+    -- 示例图 (网格，节点位置用坐标表示)
+    local graph = {{{
+        x = 1,
+        y = 1
+    }, {
+        x = 2,
+        y = 1
+    }, {
+        x = 3,
+        y = 1
+    }}, {{
+        x = 1,
+        y = 2
+    }, {
+        x = 2,
+        y = 2
+    }, {
+        x = 3,
+        y = 2
+    }}, {{
+        x = 1,
+        y = 3
+    }, {
+        x = 2,
+        y = 3
+    }, {
+        x = 3,
+        y = 3
+    }}}
 
--- 测试 A* 算法
-local start = {
-    x = 1,
-    y = 1
-}
-local goal = {
-    x = 3,
-    y = 3
-}
+    -- 测试 A* 算法
+    local start = {
+        x = 1,
+        y = 1
+    }
+    local goal = {
+        x = 3,
+        y = 3
+    }
 
--- A* 算法执行
-local path = a_star(graph, start, goal)
-
-if path then
-    print("Path found:")
-    for _, node in ipairs(path) do
-        print("(", node.x, ",", node.y, ")")
-    end
-else
-    print("No path found.")
+    -- A* 算法执行
+    local path = a_star.calculate(graph, start, goal)
 end
+
+return a_star

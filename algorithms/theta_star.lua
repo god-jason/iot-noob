@@ -1,3 +1,8 @@
+--- Theta* Algorithm in Lua (for 2D space)
+-- @module rrt
+local theta_star = {}
+
+
 -- 网格地图 (0 = 可行走区域, 1 = 障碍物)
 local grid = {{0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 0}, {0, 1, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0},
               {0, 0, 0, 0, 0, 0}}
@@ -44,7 +49,7 @@ local function line_of_sight(x1, y1, x2, y2)
 end
 
 -- 主体函数：执行Theta*算法
-local function theta_star(start, goal)
+function theta_star.calculate(start, goal)
     local open_list = {}
     local closed_list = {}
     local came_from = {}
@@ -122,15 +127,5 @@ local function theta_star(start, goal)
     return nil -- 没有路径
 end
 
--- 测试Theta*算法
-local start = {1, 1}
-local goal = {6, 6}
-local path = theta_star(start, goal)
 
-if path then
-    for _, p in ipairs(path) do
-        print(string.format("(%d, %d)", p[1], p[2]))
-    end
-else
-    print("No path found.")
-end
+return theta_star

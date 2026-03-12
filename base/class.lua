@@ -1,23 +1,22 @@
 --- 类接口
 -- @module class
-
 --- 定义类
-function class(object)
+_G.class = function(object)
     local clazz = {}
     clazz.__index = clazz
     return clazz
 end
 
 --- 继承类
-function extend(parent)
+_G.extend = function(parent)
     local children = setmetatable({}, parent)
     children.__index = children
     return children
 end
 
 --- 实例类
-function new(clazz, object)
-    --return setmetatable(object or {}, class)
+_G.new = function(clazz, object)
+    -- return setmetatable(object or {}, class)
     object = object or {}
     setmetatable(object, clazz)
     return object

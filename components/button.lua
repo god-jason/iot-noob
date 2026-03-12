@@ -19,7 +19,7 @@ function Button:new(opts)
         debounce = opts.debounce or 50, -- 防抖时间（毫秒）
         state = false, -- 按钮当前状态（true=按下，false=松开）
         press_start_time = nil, -- 按下开始时间
-        long_press_threshold = opts.long_press_threshold or 3000 -- 长按时间阈值（默认3秒）        
+        long_press_threshold = opts.long_press_threshold or 3000 -- 长按时间阈值（默认3秒）
     }, Button)
     button:init()
     return button

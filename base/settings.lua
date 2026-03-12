@@ -52,8 +52,8 @@ function settings.reset(name)
     if name then
         configs.delete(name)
     else
-        for i, name in ipairs(options.names) do
-            configs.delete(name)
+        for i, n in ipairs(options.names) do
+            configs.delete(n)
         end
     end
 end

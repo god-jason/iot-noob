@@ -1,4 +1,5 @@
--- 增量式PID算法
+--- 增量式PID算法
+-- @module IncrementPid
 local IncrementPid = {}
 IncrementPid.__index = IncrementPid
 

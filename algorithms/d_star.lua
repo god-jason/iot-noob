@@ -1,11 +1,17 @@
--- D* Lite Algorithm Implementation in Lua
+--- D* Lite Algorithm Implementation in Lua
+-- @module d_star
+local d_star = {}
+
 -- 计算曼哈顿距离（启发式函数）
 local function manhattan(a, b)
     return math.abs(a.x - b.x) + math.abs(a.y - b.y)
 end
 
 -- D* Lite 主算法
-function d_star_lite(graph, start, goal)
+-- @param graph 路径网络
+-- @param start 起点
+-- @param goal 终点
+function d_star.calculate(graph, start, goal)
     local open_set = {} -- 待探索的节点集合（开放集合）
     local g_score = {} -- 从起点到某节点的代价
     local rhs = {} -- 从目标到某节点的代价（反向估算）
@@ -69,54 +75,4 @@ function d_star_lite(graph, start, goal)
     return nil
 end
 
--- 示例图（邻接表表示法）
-local graph = {{{
-    x = 1,
-    y = 1
-}, {
-    x = 2,
-    y = 1
-}, {
-    x = 3,
-    y = 1
-}}, {{
-    x = 1,
-    y = 2
-}, {
-    x = 2,
-    y = 2
-}, {
-    x = 3,
-    y = 2
-}}, {{
-    x = 1,
-    y = 3
-}, {
-    x = 2,
-    y = 3
-}, {
-    x = 3,
-    y = 3
-}}}
-
--- 测试 D* 算法
-local start = {
-    x = 1,
-    y = 1
-}
-local goal = {
-    x = 3,
-    y = 3
-}
-
--- D* 算法执行
-local path = d_star_lite(graph, start, goal)
-
-if path then
-    print("Path found:")
-    for _, node in ipairs(path) do
-        print("(", node.x, ",", node.y, ")")
-    end
-else
-    print("No path found.")
-end
+return d_star

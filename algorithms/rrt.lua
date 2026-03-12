@@ -1,4 +1,7 @@
--- RRT Algorithm in Lua (for 2D space)
+--- RRT Algorithm in Lua (for 2D space)
+-- @module rrt
+local rrt = {}
+
 -- 随机生成一个点
 local function random_point()
     return {
@@ -33,8 +36,13 @@ local function check_collision(p1, p2, obstacles)
     return false
 end
 
--- RRT 算法实现
-function rrt(start, goal, max_steps, max_step_length, obstacles)
+--- RRT 算法实现
+-- @param start 起点
+-- @param goal 目标
+-- @param max_steps
+-- @param max_step_length
+-- @param obstacles
+function rrt.calculate(start, goal, max_steps, max_step_length, obstacles)
     local tree = {start} -- 初始化树，从起点开始
     local parents = {
         [start] = nil
@@ -82,29 +90,4 @@ function rrt(start, goal, max_steps, max_step_length, obstacles)
     return nil -- 未找到路径
 end
 
--- 可视化路径（简单打印路径）
-function print_path(path)
-    if path then
-        for _, point in ipairs(path) do
-            print("(", point.x, ",", point.y, ")")
-        end
-    else
-        print("No path found.")
-    end
-end
-
--- 示例起点和目标点
-local start = {
-    x = 1,
-    y = 1
-}
-local goal = {
-    x = 90,
-    y = 90
-}
-
--- 运行 RRT 算法
-local path = rrt(start, goal, 1000, 5)
-
--- 打印路径
-print_path(path)
+return rrt

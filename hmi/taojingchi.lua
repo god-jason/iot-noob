@@ -10,8 +10,7 @@ local boot = require("boot")
 local options = {}
 
 local pages = {}
-local page = {}
-
+local current_page = {}
 
 --[[
 淘晶驰串口屏操作库，淘宝卖的最多，开发简单
@@ -74,27 +73,27 @@ local function on_data(id, len)
             log.info("page", pkt.page)
 
             -- 卸载旧页面
-            if type(page.leave) == "function" then
-                local ret, err = pcall(page.leave)
+            if type(current_page.leave) == "function" then
+                ret, err = pcall(current_page.leave)
                 if not ret then
                     log.info("handle page leave error", err)
                 end
             end
 
             -- 更新页面
-            page = pages[pkt.page] or {}
+            current_page = pages[pkt.page] or {}
 
             -- 挂载新页面
-            if type(page.enter) == "function" then
-                local ret, err = pcall(page.enter)
+            if type(current_page.enter) == "function" then
+                ret, err = pcall(current_page.enter)
                 if not ret then
                     log.info("handle page enter error", err)
                 end
             end
 
             -- 刷新新页面
-            if type(page.tick) == "function" then
-                local ret, err = pcall(page.tick)
+            if type(current_page.tick) == "function" then
+                ret, err = pcall(current_page.tick)
                 if not ret then
                     log.info("handle page tick error", err)
                 end
@@ -103,7 +102,7 @@ local function on_data(id, len)
         end
 
         -- 处理命令（比如按钮）
-        local ret, err = agent.execute(pkt.type, pkt)
+        ret, err = agent.execute(pkt.type, pkt)
         if not ret then
             log.info("handle command error", err)
         end
@@ -124,8 +123,8 @@ function tjc.open()
             iot.sleep(1000)
 
             -- 刷新新页面
-            if type(page.tick) == "function" then
-                local ret, err = pcall(page.tick)
+            if type(current_page.tick) == "function" then
+                local ret, err = pcall(current_page.tick)
                 if not ret then
                     log.info("handle page tick error", err)
                 end
