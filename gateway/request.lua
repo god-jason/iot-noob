@@ -22,7 +22,7 @@ end
 
 --- 询问
 -- @param request string 发送数据
--- @param len integer 期望长度
+-- @param want_len integer 期望长度
 -- @return boolean 成功与否
 -- @return string 返回数据
 function Request:request(request, want_len)

@@ -8,12 +8,12 @@ require("components").register("stepper", Stepper)
 local log = iot.logger("stepper")
 
 --- 创建步进电机
--- @param id integer PWM号
--- @param dir integer 方向引脚
--- @param reverse boolean 电机反转（适用于接线装反的场景）
--- @param en integer 使能引脚
--- @param freq integer  基础频率(一周的脉冲数)
--- @param smooth boolean 平滑过渡
+-- @param opts.id integer PWM号
+-- @param opts.dir integer 方向引脚
+-- @param opts.reverse boolean 电机反转（适用于接线装反的场景）
+-- @param opts.en integer 使能引脚
+-- @param opts.freq integer  基础频率(一周的脉冲数)
+-- @param opts.smooth boolean 平滑过渡
 function Stepper:new(opts)
     opts = opts or {}
     local stepper = setmetatable({

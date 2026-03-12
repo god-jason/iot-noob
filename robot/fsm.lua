@@ -23,8 +23,8 @@ function FSM:new(opts)
 end
 
 --- 注册状态
--- @param string name 名称
--- @param table state 状态 (需要有三个回调函数 enter, tick, leave)
+-- @param name 名称
+-- @param state 状态 (需要有三个回调函数 enter, tick, leave)
 function FSM:register(name, state)
     if type(name) == "string" and type(state) == "table" then
         self.states[name] = state

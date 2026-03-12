@@ -3,8 +3,9 @@
 local Protocol = {}
 Protocol.__index = Protocol
 
----  创建实例，子类定义可参考
--- @param obj table 协议对象
+--- 创建实例，子类定义可参考
+-- @param link table 连接对象
+-- @param obj table 协议参数
 -- @return Protocol 对象
 function Protocol:new(link, obj)
     local ins = setmetatable(obj or {}, self)

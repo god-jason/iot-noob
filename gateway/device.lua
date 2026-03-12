@@ -125,8 +125,7 @@ function Device:put_value(key, value)
 end
 
 ---  修改多值（用于采集）
--- @param key string
--- @param value any
+-- @param values any
 function Device:put_values(values)
     local has = false
     for key, value in pairs(values) do
