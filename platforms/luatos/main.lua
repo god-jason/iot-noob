@@ -5,7 +5,7 @@ VERSION = "1.0.0"
 -- 引入系统适配层
 require("iot")
 
-log.info("开始原因", pm.lastReson())
+log.info("上次关机原因", pm.lastReson())
 
 -- 看门狗守护
 if wdt then
@@ -23,7 +23,7 @@ mobile.simid(2, true)
 sys.taskInit(function()
     log.info("task")
 
-    -- sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
+    sys.wait(1000) -- 等待USB初始化完成，否则日志丢失
 
     -- fskv.init() -- KV 数据库
 

@@ -106,5 +106,9 @@
         "pin": 38,
         "falling": true,
         "event": "arm_limit2"
+    },
+    {
+        "name": "rtc",
+        "type": "rtc"
     }
 ]

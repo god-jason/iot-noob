@@ -1,5 +1,5 @@
 --- Theta* Algorithm in Lua (for 2D space)
--- @module rrt
+-- @module theta_star
 local theta_star = {}
 
 

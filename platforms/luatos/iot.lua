@@ -590,7 +590,7 @@ end
 -- @return boolean 成功与否
 -- @return string 数据
 function I2C:read(addr, len)
-    local data = i2c.read(self.id, addr, len)
+    local data = i2c.recv(self.id, addr, len)
     return data ~= nil and #data > 0, data
 end
 --- 写入寄存器
@@ -614,13 +614,13 @@ end
 
 --- 创建I2C对象
 -- @param id integer
--- @param opts table 参数 {slow=false}
+-- @param opts table 参数 {fast=false}
 -- @return boolean 成功与否
 -- @return I2C
 function iot.i2c(id, opts)
     opts = opts or {}
 
-    local ret = i2c.setup(id, opts.slow and i2c.SLOW or i2c.FAST)
+    local ret = i2c.setup(id, opts.fast and i2c.FAST or i2c.SLOW)
     if ret ~= 1 then
         return false, "I2C打开失败"..id
     end
