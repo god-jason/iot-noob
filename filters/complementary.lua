@@ -1,3 +1,5 @@
+--- 互补滤波器
+-- @module Complementary
 local Complementary = {}
 Complementary.__index = Complementary
 
@@ -8,6 +10,11 @@ function Complementary:new(alpha, init)
     return obj
 end
 
+--- 更新数据
+-- @param gyro
+-- @param acc
+-- @param dt
+-- @return 角度
 function Complementary:update(gyro, acc, dt)
     self.angle = self.alpha * (self.angle + gyro * dt) + (1 - self.alpha) * acc
     return self.angle

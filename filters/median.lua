@@ -1,3 +1,5 @@
+--- 中值滤波器
+-- @module Median
 local Median = {}
 Median.__index = Median
 
@@ -8,6 +10,8 @@ function Median:new(size)
     return obj
 end
 
+--- 更新数据
+-- @param val
 function Median:update(val)
     table.insert(self.buffer, val)
     if #self.buffer > self.size then

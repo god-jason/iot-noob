@@ -1,3 +1,5 @@
+--- IIR滤波器
+-- @module IIR
 local IIR = {}
 IIR.__index = IIR
 
@@ -8,6 +10,8 @@ function IIR:new(alpha, init)
     return obj
 end
 
+--- 更新数据
+-- @param x
 function IIR:update(x)
     self.y = self.alpha * x + (1 - self.alpha) * self.y
     return self.y

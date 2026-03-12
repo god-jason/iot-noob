@@ -1,3 +1,5 @@
+--- 移动平均滤波器
+-- @module MA
 local MA = {}
 MA.__index = MA
 
@@ -8,6 +10,8 @@ function MA:new(size)
     return obj
 end
 
+--- 更新数据
+-- @param val
 function MA:update(val)
     table.insert(self.buffer, val)
     if #self.buffer > self.size then

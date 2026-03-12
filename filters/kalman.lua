@@ -1,3 +1,5 @@
+--- 卡尔曼滤波器
+-- @module Kalman
 local Kalman = {}
 Kalman.__index = Kalman
 
@@ -12,7 +14,8 @@ function Kalman:new(opts)
     }, Kalman)
 end
 
--- 更新滤波
+--- 更新数据
+-- @param z
 function Kalman:update(z)
     -- 预测
     self.P = self.P + self.Q
