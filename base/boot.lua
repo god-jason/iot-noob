@@ -48,7 +48,7 @@ function boot.open(name)
     -- 启动依赖项
     for i, v in ipairs(mod.deps) do
         local ret, info = boot.open(v)
-        if not ret then
+        if ret == false then
             mod.visiting = false
             return false, "启动" .. name .. "失败：" .. info
         end

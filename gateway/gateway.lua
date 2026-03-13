@@ -141,7 +141,7 @@ function gateway.open()
     device:set("imsi", mobile.imsi())
     device:set("iccid", mobile.iccid())
 
-    iot.setInterval(gateway.update, 1000)
+    iot.setInterval(gateway.update, 10000)
 end
 
 --- 关闭网关

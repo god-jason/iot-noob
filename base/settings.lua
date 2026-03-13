@@ -22,6 +22,7 @@ end
 --- 加载配置
 function settings.load(name)
     settings[name] = configs.load_default(name, defaults[name] or {})
+    return true, settings[name]
 end
 
 --- 更新配置
@@ -36,14 +37,16 @@ function settings.update(name, content, version)
     elseif options.versions[name] ~= nil then
         options.versions[name] = options.versions[name] + 1 -- 自增版本号
     end
-    configs.save("settings", options)
+
+    return configs.save("settings", options)
 end
 
 --- 保存配置
 function settings.save(name)
     if settings[name] ~= nil then
-        configs.save(name, settings[name])
+        return configs.save(name, settings[name])
     end
+    return false, "缺少名称"
 end
 
 --- 清空配置
@@ -56,6 +59,7 @@ function settings.reset(name)
             configs.delete(n)
         end
     end
+    return true
 end
 
 --- 加载配置

@@ -119,6 +119,7 @@ function configs.delete(name)
 
     -- 删除目录
     -- utils.remove_all(name)
+    return true
 end
 
 return configs
