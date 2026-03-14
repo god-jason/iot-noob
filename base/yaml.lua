@@ -81,7 +81,7 @@ end
 -- @param tbl 表
 -- @return 文本
 function yaml.encode(tbl)
-    -- assert(type(tbl) == "table", "yaml.dump expects a table")    
+    -- assert(type(tbl) == "table", "yaml.dump expects a table")
     local lines = encode_table(tbl)
     return table.concat(lines, "\n")
 end
@@ -116,7 +116,7 @@ function yaml.decode(text)
         if not line:match("^%s*#") and not line:match("^%s*$") then
             local indent, content = line:match("^(%s*)(.*)$")
             local level = #indent / 2
-            
+
             -- 调整栈
             while level < #stack - 1 do
                 table.remove(stack)

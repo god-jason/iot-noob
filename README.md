@@ -11,7 +11,7 @@
 
 # 在线文档
 
-[god-jason.github.io/iot-os](https://god-jason.github.io/iot-os)
+[god-jason.github.io/iot-noob](https://god-jason.github.io/iot-noob)
 
 ## 定时器
 
