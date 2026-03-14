@@ -18,7 +18,7 @@ local log = iot.logger("stepper")
 function Stepper:new(opts)
     opts = opts or {}
     local stepper = setmetatable({
-        pwm_id = opts.idpwm_id,
+        pwm_id = opts.pwm_id,
         dir = opts.dir,
         en = opts.en,
         reverse = opts.reverse or false,
@@ -44,7 +44,7 @@ end
 -- @param rounds number 圈数
 -- @return integer 需要等待时间ms
 function Stepper:start(rpm, rounds)
-    log.info(self.pwm, "启动 rpm", rpm, "rounds", rounds)
+    log.info(self.pwm_id, "启动 rpm", rpm, "rounds", rounds)
     -- if self.running then
     --     -- 电机驱动必须先把PWM停下，再修改频率才有效
     --     --pwm.stop(self.pwm)
@@ -122,6 +122,7 @@ end
 --- 刹车（至零）
 function Stepper:brake()
     if self.last ~= nil and self.last > 0 then
+        log.info(self.pwm_id, "brake")
         self:accelerate(self.last, 0)
         self:stop()
     end
@@ -136,7 +137,7 @@ end
 
 --- 停止
 function Stepper:stop()
-    log.info("stop")
+    log.info(self.pwm_id, "stop")
     if self.running then
         -- pwm.stop(self.pwm)
         if self.pwm then
@@ -150,11 +151,13 @@ end
 
 --- 锁机
 function Stepper:lock()
+    log.info(self.pwm_id, "lock")
     self.en_pin:set(0)
 end
 
 --- 解锁
 function Stepper:unlock()
+    log.info(self.pwm_id, "unlock")
     self.en_pin:set(1)
 end
 
@@ -168,7 +171,7 @@ local acc_interval = 10 -- 10ms加速一次
 -- @return integer 加减速消耗的时间ms
 -- @return integer 加减速消耗的脉冲数
 function Stepper:accelerate(start, finish, count)
-    log.info(self.pwm, "加速 start", start, "finish", finish, "count", count)
+    log.info(self.pwm_id, "加速 start", start, "finish", finish, "count", count)
 
     local pulse = 0
 

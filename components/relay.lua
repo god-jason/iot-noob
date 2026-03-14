@@ -20,19 +20,19 @@ end
 
 --- 通
 function Relay:on()
-    log.info("on")
+    log.info(self.pin, "on")
     self.gpio:set(self.reverse and 0 or 1)
 end
 
 --- 断
 function Relay:off()
-    log.info("off")
+    log.info(self.pin, "off")
     self.gpio:set(self.reverse and 1 or 0)
 end
 
 --- 设置
 function Relay:set(onOff)
-    log.info("set", onOff)
+    log.info(self.pin, "set", onOff)
     if self.reverse then
         self.gpio:set(onOff and 0 or 1)
     else
@@ -42,7 +42,7 @@ end
 
 --- 翻转
 function Relay:toggle()
-    log.info("toggle")
+    log.info(self.pin, "toggle")
     self.gpio:toggle()
 end
 

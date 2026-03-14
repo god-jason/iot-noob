@@ -6,6 +6,7 @@ Executor.__index = Executor
 local log = iot.logger("executor")
 local vm = require("vm")
 local utils = require("utils")
+local yaml = require("yaml")
 
 -- 自增ID
 local inc = utils.increment()
@@ -64,8 +65,9 @@ function Executor:execute(cursor)
         log.info("task", self.current, iot.json_encode(task))
 
         -- 条件指令
-        if type(task._condition) == "function" then
-            local ret, info = pcall(task._condition)
+        local cond = task._condition or task.condition
+        if type(cond) == "function" then
+            local ret, info = pcall(cond, self.context)
             if not ret then
                 log.error(info)
                 -- 上报错误
@@ -121,10 +123,9 @@ function Executor:execute(cursor)
     end
 
     -- 任务结束
-    self.job = "none"
     self.stoped = true
 
-    log.info("execute finished")
+    log.info("execute finished", yaml.encode(self))
 
     if self.on_finish ~= nil then
         self.on_finish()
@@ -149,15 +150,15 @@ function Executor:start()
             local ret, info = load(script, "vm_condition", "t", {
                 components = _G.components,
                 devices = _G.devices,
+                robot = _G.robot,
                 context = self.context
             })
             if not ret then
                 return false, info
             end
 
+            -- 保留原表达式
             task._condition = ret
-        elseif type(task.condition) == "function" then
-            task._condition = task.condition
         end
 
         -- 预查指令
