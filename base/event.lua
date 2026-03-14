@@ -16,10 +16,10 @@ end
 -- @param name 名称
 -- @param fn 回调
 function Event:on(name, fn)
-    if not Event.handlers[name] then
-        Event.handlers[name] = {}
+    if not self.handlers[name] then
+        self.handlers[name] = {}
     end
-    table.insert(Event.handlers[name], {
+    table.insert(self.handlers[name], {
         callback = fn
     })
     return function()
@@ -31,10 +31,10 @@ end
 -- @param name 名称
 -- @param fn 回调
 function Event:once(name, fn)
-    if not Event.handlers[name] then
-        Event.handlers[name] = {}
+    if not self.handlers[name] then
+        self.handlers[name] = {}
     end
-    table.insert(Event.handlers[name], {
+    table.insert(self.handlers[name], {
         once = true,
         callback = fn
     })
@@ -48,11 +48,11 @@ end
 -- @param fn 回调，如果为空，则取消其全部订阅
 function Event:off(name, fn)
     if not fn then
-        Event.handlers[name] = nil
+        self.handlers[name] = nil
         return
     end
 
-    local list = Event.handlers[name]
+    local list = self.handlers[name]
     if list then
         for i = #list, 1, -1 do
             if list[i].callback == fn then
@@ -65,7 +65,7 @@ end
 --- 发送消息
 -- @param name 名称
 function Event:emit(name, ...)
-    local list = Event.handlers[name]
+    local list = self.handlers[name]
     if not list then
         return
     end
