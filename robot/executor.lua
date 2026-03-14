@@ -20,8 +20,7 @@ function Executor:new(opts)
         on_finish = opts.on_finish,
         on_error = opts.on_error,
         current = 1,
-        context = {},
-        conditions = {}
+        context = {}
     }, Executor)
 end
 
@@ -34,8 +33,7 @@ function Executor:clone()
         on_finish = self.on_finish,
         on_error = self.on_error,
         current = 1,
-        context = {},
-        conditions = {}
+        context = {}
     }, Executor)
 end
 
@@ -66,9 +64,8 @@ function Executor:execute(cursor)
         log.info("task", self.current, iot.json_encode(task))
 
         -- 条件指令
-        local cond = self.conditions[self.current]
-        if type(cond) == "function" then
-            local ret, info = pcall(cond)
+        if type(task._condition) == "function" then
+            local ret, info = pcall(task._condition)
             if not ret then
                 log.error(info)
                 -- 上报错误
@@ -158,9 +155,9 @@ function Executor:start()
                 return false, info
             end
 
-            -- 放到这里会污染指令，导致无法序列化
-            -- task.condition = ret
-            self.conditions[i] = ret
+            task._condition = ret
+        elseif type(task.condition) == "function" then
+            task._condition = task.condition
         end
 
         -- 预查指令
