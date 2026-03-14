@@ -4,26 +4,24 @@ local Event = {}
 Event.__index = Event
 
 --- 初始化
-function Event:new(opts)
-    opts = opts or {}
-    local obj = setmetatable({
-        handlers = {}
-    }, Event)
-    return obj
+function Event:new(obj)
+    local event = setmetatable(obj or {}, Event)
+    event._handlers = {}
+    return event
 end
 
 --- 订阅消息
 -- @param name 名称
 -- @param fn 回调
 function Event:on(name, fn)
-    if not self.handlers[name] then
-        self.handlers[name] = {}
+    if not self._handlers[name] then
+        self._handlers[name] = {}
     end
-    table.insert(self.handlers[name], {
+    table.insert(self._handlers[name], {
         callback = fn
     })
     return function()
-        Event:off(name, fn)
+        self:off(name, fn)
     end
 end
 
@@ -31,15 +29,15 @@ end
 -- @param name 名称
 -- @param fn 回调
 function Event:once(name, fn)
-    if not self.handlers[name] then
-        self.handlers[name] = {}
+    if not self._handlers[name] then
+        self._handlers[name] = {}
     end
-    table.insert(self.handlers[name], {
+    table.insert(self._handlers[name], {
         once = true,
         callback = fn
     })
     return function()
-        Event:off(name, fn)
+        self:off(name, fn)
     end
 end
 
@@ -48,11 +46,11 @@ end
 -- @param fn 回调，如果为空，则取消其全部订阅
 function Event:off(name, fn)
     if not fn then
-        self.handlers[name] = nil
+        self._handlers[name] = nil
         return
     end
 
-    local list = self.handlers[name]
+    local list = self._handlers[name]
     if list then
         for i = #list, 1, -1 do
             if list[i].callback == fn then
@@ -65,7 +63,7 @@ end
 --- 发送消息
 -- @param name 名称
 function Event:emit(name, ...)
-    local list = self.handlers[name]
+    local list = self._handlers[name]
     if not list then
         return
     end

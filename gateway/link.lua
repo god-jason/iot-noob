@@ -4,15 +4,13 @@
 local Link = {}
 Link.__index = Link
 
-local Watcher = require("watcher")
+local Event = require("event")
 
 ---  创建实例，子类定义可参考
 -- @param obj table 连接对象
 -- @return Link 对象
 function Link:new(obj)
-    local link = setmetatable(obj or {}, self)
-    link.watcher = Watcher:new()
-    return link
+    return setmetatable(Event:new(obj), self)
 end
 
 ---  打开
@@ -48,17 +46,6 @@ end
 -- @return intger 长度
 function Link:wait(timeout)
     return false, "Link wait(timeout) 未实现"
-end
-
---- 注册监听回调
--- @param cb function(data)
-function Link:watch(cb)
-    return self.watcher:watch(cb)
-end
-
--- 取消监听
-function Link:unwatch(id)
-    self.watcher:unwatch(id)
 end
 
 --- 开启透传

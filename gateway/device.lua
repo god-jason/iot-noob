@@ -5,18 +5,17 @@ local Device = {}
 Device.__index = Device
 
 local log = iot.logger("device")
-local Watcher = require("watcher")
+local Event = require("event")
 
 --- 创建设备实例
 -- @param obj table 设备
 -- @return Device 设备实例
 function Device:new(obj)
-    local dev = setmetatable(obj or {}, self)
+    local dev = setmetatable(Event:new(obj), self)
     dev._values = {}
     dev._modified_values = {}
     dev._thresholds = {} -- 变化阈值
     dev._updated = 0 -- 数据更新时间
-    dev._watcher = Watcher:new()
     return dev
 end
 
@@ -118,9 +117,15 @@ function Device:put_value(key, value)
 
     self._values[key] = val
 
+    -- 变化时间
+    self._updated = os.time()
+
     -- 监听变化
     if has then
-        self.watcher:dispatch(key, value)
+        -- self.watcher:dispatch(key, value)
+        self:emit("change", {
+            [key] = value
+        })
     end
 end
 
@@ -155,20 +160,14 @@ function Device:put_values(values)
         self._values[key] = val
     end
 
+    -- 变化时间
+    self._updated = os.time()
+
     -- 监听变化
     if has then
-        self.watcher:dispatch()
+        -- self.watcher:dispatch()
+        self:emit("change", values)
     end
-end
-
---- 监听值变化
-function Device:watch(cb)
-    return self.watcher:watch(cb)
-end
-
--- 取消监听
-function Device:unwatch(id)
-    self.watcher:unwatch(id)
 end
 
 return Device

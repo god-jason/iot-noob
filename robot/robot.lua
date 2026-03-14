@@ -30,17 +30,28 @@ robot.fsm:register("idle", {
 --- 创建计划，并执行
 -- @param name string 计划名称
 -- @param data any 参数
+-- @param branch boolean 支线任务（可选），否则为主线任务
 -- @return boolean 成功与否
 -- @return string 错误信息 或 结果
-function robot.plan(name, data)
+function robot.plan(name, data, branch)
     local ret, plan = planner.plan(name, data)
     if not ret then
         return ret, plan
     end
 
     -- 创建一个虚拟机并执行
-    robot.executor = Executor:new(plan)
-    return robot.executor:start()
+    local executor = Executor:new(plan)
+    if not branch then
+        -- 停止主任务
+        if robot.executor then
+            robot.executor:stop()
+        end
+        -- 替换主任务
+        robot.executor = executor
+    end
+
+    -- 开始执行
+    return executor:start()
 end
 
 function robot.state(name)
@@ -66,7 +77,7 @@ end
 
 --- 关闭
 function robot.close()
-    
+
     robot.fsm:stop()
 
     return true

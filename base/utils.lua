@@ -73,4 +73,21 @@ function utils.increment(first)
     end
 end
 
+--- 判断是否是数组
+-- @param t 表
+-- @return boolean
+function utils.is_array(t)
+    if type(t) ~= "table" then
+        return false
+    end
+    local i = 1
+    for k, _ in pairs(t) do
+        if k ~= i then
+            return false
+        end
+        i = i + 1
+    end
+    return true
+end
+
 return utils

@@ -101,7 +101,7 @@ function Scene:open()
                 log.error(info)
                 return false, info
             else
-                trigger.cron = info
+                trigger._cron = info
             end
 
         elseif trigger.type == "device" then
@@ -109,7 +109,7 @@ function Scene:open()
 
             local device = devices[trigger.device]
             if device then
-                device:watch(function()
+                trigger._cancel = device:on("change", function()
                     this:execute()
                 end)
             else
@@ -126,10 +126,13 @@ end
 function Scene:close()
     -- 从计划任务注销
     for i, trigger in ipairs(self.triggers) do
-        if trigger.type == "time" then
-            if trigger.cron then
-                cron.stop(trigger.cron)
-            end
+        -- 取消定时
+        if trigger._cron then
+            cron.stop(trigger._cron)
+        end
+        -- 取消设备订阅
+        if trigger._cancel then
+            trigger._cancel()
         end
     end
 end
