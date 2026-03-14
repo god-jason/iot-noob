@@ -31,17 +31,17 @@ local function find_device(data)
         data.device_id = options.id -- 赋值回传
         return gateway.device
     end
-    return devices[data.device_id]    
+    return devices[data.device_id]
 end
 
 -- 上报设备在线状态
-local function report_device_status(dev, timeout)
+local function report_device_status(dev)
     local now = os.time()
 
     local st = ""
 
     -- 默认10分钟无数据离线
-    if now - dev._updated > (timeout or 10) * 60 then
+    if now - dev._updated > (options.sub_offline_timeout or 10) * 60 then
         st = "offline"
     else
         st = "online"
@@ -74,7 +74,7 @@ end
 local function report_devices_status()
     for id, dev in pairs(devices) do
         if dev.values and not dev.inline then
-            report_device_status(dev, 10) -- TODO 离线参数延时
+            report_device_status(dev)
         end
     end
 end
@@ -87,7 +87,6 @@ local function report_devices_values(all)
         end
     end
 end
-
 
 -- 解析JSON
 local function parse_json(callback)
@@ -127,8 +126,11 @@ local function on_database_operators(topic, data)
     local ret, info
     if op == "clear" then
         ret, info = database.clear(db)
+    elseif op == "sync" then -- 同步数据库
+        database.clear(db)
+        ret, info = database.insertArray(db, data)
     elseif op == "delete" then
-        ret, info = database.delete(db, data)
+        ret, info = database.delete(db, data.id)
     elseif op == "update" then
         ret, info = database.update(db, data.id, data)
     elseif op == "insert" then
@@ -146,21 +148,21 @@ local function on_database_operators(topic, data)
 end
 
 -- 远程下发配置
-local function on_setting(topic, data)
+local function on_device_setting(topic, data)
     settings.update(data.name, data.content, data.version)
     -- 数据直接原路返回了
     cloud:publish(topic .. "/response", data)
 end
 
 -- 设备同步请求
-local function on_sync(topic, data)
+local function on_device_sync(topic, data)
     local dev = find_device(data)
     if dev then
         local ret, info = dev:poll()
         if not ret then
             data.error = info
         end
-        
+
         -- 上传数据
         report_device_values(dev)
     else
@@ -170,7 +172,7 @@ local function on_sync(topic, data)
 end
 
 -- 设备写请求
-local function on_write(topic, data)
+local function on_device_write(topic, data)
     local dev = find_device(data)
     if dev then
         data.results = {}
@@ -190,7 +192,7 @@ local function on_write(topic, data)
 end
 
 -- 设备读请求
-local function on_read(topic, data)
+local function on_device_read(topic, data)
     local dev = find_device(data)
     if dev then
         data.values = {}
@@ -244,9 +246,8 @@ local function register()
     log.info("register")
 
     local info = {
-        id = mobile.imei(),
+        id = options.id,
         product_id = options.product_id,
-        bsp = rtos.bsp(),
         firmware = rtos.firmware(),
         version = VERSION,
         imei = mobile.imei(),
@@ -266,8 +267,6 @@ local function register()
     cloud:publish("device/" .. options.id .. "/register", info)
 end
 
-
-
 local function master_task()
     -- 等待网络就绪
     iot.wait("IP_READY")
@@ -279,13 +278,12 @@ local function master_task()
     if not options.id or #options.id == 0 then
         options.id = mobile.imei()
     end
-    options.id = options.id
 
     -- 生成秘钥， username:imei, password:md5(imei+date+key)
     -- local date = os.date("%Y-%m-%d") -- 系统可能还没获取到正确的时间
-    options.clientid = options.id
-    options.username = options.id
-    options.password = crypto.md5(options.id .. options.key)
+    options.clientid = options.clientid or options.id
+    options.username = options.username or options.id
+    options.password = options.password or crypto.md5(options.id .. options.key)
 
     -- 连接云平台
     cloud = MqttClient:new(options)
@@ -303,16 +301,15 @@ local function master_task()
     -- 订阅网关消息
     cloud:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database_operators))
     cloud:subscribe("device/" .. options.id .. "/setting/+/+", parse_json(on_setting_operators))
-    cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_setting))
-    cloud:subscribe("device/" .. options.id .. "/write", parse_json(on_write))
-    cloud:subscribe("device/" .. options.id .. "/read", parse_json(on_read))
-    cloud:subscribe("device/" .. options.id .. "/sync", parse_json(on_sync))
+    cloud:subscribe("device/" .. options.id .. "/setting", parse_json(on_device_setting))
+    cloud:subscribe("device/" .. options.id .. "/write", parse_json(on_device_write))
+    cloud:subscribe("device/" .. options.id .. "/read", parse_json(on_device_read))
+    cloud:subscribe("device/" .. options.id .. "/sync", parse_json(on_device_sync))
     cloud:subscribe("device/" .. options.id .. "/action", parse_json(on_action))
 
     -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
     register()
-
 
     -- 在线
     cloud:publish("device/" .. options.id .. "/online", {})
@@ -328,11 +325,14 @@ local function master_task()
 
             -- 上传网关设备数据
             report_device_values(gateway.device, true)
-            report_devices(true)
+            report_devices_values(true)
         else
             report_device_values(gateway.device)
-            report_devices()
+            report_devices_values()
         end
+
+        -- 子设备状态
+        report_devices_status()
 
         -- 正在查看时，1秒上传一次
         if agent.watching then
@@ -354,6 +354,10 @@ end
 
 function master.close()
     -- 关闭连接
+    if cloud then
+        cloud:close()
+        cloud = nil
+    end
 end
 
 master.deps = {"settings"}
