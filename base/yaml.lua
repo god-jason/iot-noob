@@ -58,8 +58,17 @@ local function encode_table(t, indent)
             end
         end
     else
+        -- 先排序
+        local keys = {}
         for k, v in pairs(t) do
+            table.insert(keys, k)
+        end
+        table.sort(keys)
+
+        -- 遍历内容
+        for _, k in ipairs(keys) do
             local key = tostring(k)
+            local v = t[k]
             local val = format_value(v)
             if val then
                 table.insert(lines, prefix .. key .. ": " .. val)
