@@ -4,27 +4,19 @@ local tag = "battery"
 local Led = require "led"
 local settings = require("settings")
 
--- 电源指示灯
-battery.led_power = Led:new(21)
-battery.led_power:on() -- 常亮
-
 battery.charging = false
-
--- 充电继电器
-local charge_enable = iot.gpio(20)
-charge_enable:set(1) -- 默认关闭充电
 
 -- 充电（常闭继电器）
 function battery.charge(onoff)
     log.info("charge", onoff)
     battery.charging = onoff
     if onoff then
-        charge_enable:set(0)
-        battery.led_power:blink()
+        components.charge:set(0)
+        components.led_power:blink()
         iot.emit("device_log", "开始充电")
     else
-        charge_enable:set(1)
-        battery.led_power:on()
+        components.charge:set(1)
+        components.led_power:on()
         iot.emit("device_log", "结束充电")
     end
 end
@@ -130,12 +122,12 @@ iot.start(function()
         -- 状态灯
         if battery.charging then
             if charge_current < 0.4 and vbat < battery_full then
-                battery.led_power:off() -- 充电故障
+                components.led_power:off() -- 充电故障
             else
-                battery.led_power:blink() -- 充电中
+                components.led_power:blink() -- 充电中
             end
         else
-            battery.led_power:on() -- 未充电
+            components.led_power:on() -- 未充电
         end
 
         -- 电压过低，认为电池没电了（避免误判）

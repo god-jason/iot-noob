@@ -442,24 +442,10 @@ end)
 planner.register("feed", function(data)
     -- 切换到投喂状态
     robot.state("feed")
-
-    -- 找到餐食
-    if not data.food then
-        data.food = feeder.find_nearest_food()
-        if not data.food then
-            return false, "没有配置喂餐"
-        end
-    end
-
-    current_plans = {}
-    current_food = settings["food" .. data.food]
-    current_weights = {0, 0, 0, 0}
-    current_checked = false
-    wait_times = 0
-
-    local ret, info = robot.feed_check(data.manual)
-    if not ret then
-        return false, info
-    end
-
+    return feeder.feed()
 end)
+
+planner.register("feed_rank", function(data)
+    return feeder.feed_rank()
+end)
+

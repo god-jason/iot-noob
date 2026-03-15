@@ -13,17 +13,19 @@ end
 
 -- 停止风机
 function vm.fan_stop(task, ctx)
-    ctx.fan_level = 0
+    ctx.fan_level = nil
     components.fan:stop()
 end
 
 -- 震动
-function vm.vibrator()
+function vm.vibrator(task, ctx)
+    ctx.vibrator = true
     components.vibrator:on()
 end
 
 -- 震动停止
-function vm.vibrator_stop()
+function vm.vibrator_stop(task, ctx)
+    ctx.vibrator = false
     components.vibrator:off()
 end
 
@@ -34,7 +36,7 @@ function vm.move(task, ctx)
         if not task.force and sensor.position() > settings.total_length - 10 then
             return
         end
-        if settings.device.forward_limit_enable and components.forward_limit:get() == 0 then
+        if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
             return
         end
     else
@@ -42,10 +44,10 @@ function vm.move(task, ctx)
         if not task.force and sensor.position() < 10 then
             return
         end
-        if settings.device.backward_limit_enable and components.backward_limit:get() == 0 then
+        if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
             return
         end
-        if settings.device.meg_sensor_enable and components.meg_sensor:get() == 0 then
+        if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
             return
         end
     end
@@ -139,7 +141,7 @@ end
 
 -- 停止移动
 function vm.move_stop(task, ctx)
-    control.move_stop()
+    components.move_servo:stop()
     vm.move_end(task, ctx)
 end
 
@@ -211,6 +213,43 @@ function vm.weigh(task, ctx)
     ctx.weight = weight
 end
 
+-- 上报消息
 function vm.report(task)
     iot.emit("report")
+end
+
+-- 停止，内部调用
+function vm.stop(task, ctx)
+    if ctx.move_task then
+        vm.move_stop()
+    end
+    if ctx.move_task then
+        vm.feed_stop()
+    end
+    if ctx.fan_level then
+        vm.fan_stop()
+    end
+    if ctx.vibrator then
+        vm.vibrator_stop()
+    end
+end
+
+-- 恢复，内部调用
+function vm.resume(task, ctx)
+    if ctx.fan_level then
+        components.fan:start(ctx.fan_level)
+    end
+    if ctx.vibrator then
+        components.vibrator:on()
+    end
+    if ctx.move_task then
+        if task.type ~= "move" then
+            vm.move(task, ctx)
+        end
+    end
+    if ctx.feed_task then
+        if task.type ~= "feed" then
+            vm.feed(task, ctx)
+        end
+    end
 end

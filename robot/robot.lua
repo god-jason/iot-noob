@@ -23,10 +23,10 @@ robot.fsm = fsm:new({
 robot.executors = {}
 
 -- 空状态，避免无法启动，实际项目需要覆盖
-robot.fsm:register("idle", {
-    name = "空闲",
+robot.fsm:register("init", {
+    name = "初始化",
     tick = function()
-        log.info("robot state idle", os.date("%Y-%m-%d %H:%M:%S"))
+        log.info("robot tick", os.date("%Y-%m-%d %H:%M:%S"))
     end
 })
 
@@ -89,7 +89,7 @@ function robot.open()
     -- 启动计划任务
 
     -- 启动状态机
-    local ret, info = robot.fsm:start("idle")
+    local ret, info = robot.fsm:start("init")
     if not ret then
         log.error("状态机启动失败", info)
     end

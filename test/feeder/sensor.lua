@@ -53,6 +53,9 @@ function sensor.set_position(p)
     if settings.encoder and settings.encoder.enable then
         if p == 0 then
             sensor.reset()
+            -- 重复设置2次，避免未生效
+            iot.setTimeout(sensor.reset, 100)
+            iot.setTimeout(sensor.reset, 200)
         end
         -- 编码器 每圈100脉冲
         ticks = p / math.pi / 8 * settings.encoder.pulse
@@ -161,7 +164,7 @@ function sensor.query_status()
 end
 
 -- 100ms向单片机询问一次
-iot.setInterval(sensor.query_status, 100)
+iot.setInterval(sensor.query_status, 500)
 
 
 -- 自动校正重量到目标值

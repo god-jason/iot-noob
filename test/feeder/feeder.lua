@@ -5,7 +5,9 @@ local settings = require("settings")
 local configs = require("configs")
 local sensor = require("sensor")
 local robot = require("robot")
+local battery = require("battery")
 local schedule = require("schedule")
+local master = require("master")
 
 -- 每圈的距离，齿比20:70，直径8cm
 feeder.distance_per_round = 20 / 70 * math.pi * 8
@@ -88,6 +90,12 @@ function feeder.find_nearest_food()
     return nearest_food
 end
 
+-- 充电位
+settings.charge_position = 0
+
+-- 总棚长
+settings.total_length = 0
+
 -- 关键节点
 local all_points = {} -- 全部节点
 
@@ -97,8 +105,26 @@ local feed_lengths = {}
 -- 规整数据，把毛竹插入到正确的位置
 function feeder.normalize()
 
-    local stage = 1
+    settings.charge_position = 0
+    settings.total_length = 0
+    for k, v in pairs(settings.distance) do
+        if k:startsWith("length") then
+            if v > settings.total_length then
+                settings.total_length = v
+            end
+        elseif k == "charge" then
+            -- 数据录入为米，以喷嘴为准电刷，需要加20cm
+            if v > 0.1 then
+                settings.charge_position = v * 100 + 20 -- 转cm，实时以喷嘴测量，机身上喷嘴离电刷25cm
+            else
+                settings.charge_position = v * 100
+            end
+        end
+    end
+    settings.total_length = settings.total_length * 100 -- 转cm  
 
+    -- 计算点位
+    local stage = 1
     all_points = {}
 
     -- 准备
@@ -826,9 +852,7 @@ local function onFeedFinished(ctx)
                     iot.emit("error", "喂料未达标，电话报警")
 
                     -- 投喂异常了
-                    components.led_feed:off()
-                    -- TODO 退出feed状态，就恢复on了
-
+                    feeder.error = true
                 end
             end
 
@@ -864,9 +888,6 @@ local function onFeedFinished(ctx)
     settings.stats["season" .. season] = (settings.stats["season" .. season] or 0) + total_weight / 1000
     settings.save("stats")
 
-    -- 关闭投喂模式
-    next_feed_time = 0
-
     -- 处理定时平移
     -- 只有设定有效返回时间，才平移
     log.info("定时平移", current_food.move_wait, current_food.move_back)
@@ -892,6 +913,10 @@ local function onFeedFinished(ctx)
             log.info("定时平移等待时间", wait, wait2)
 
             if wait2 > 300 then
+
+                -- 先进入平移模式
+                robot.state("move")
+
                 -- 定时平移
                 iot.setTimeout(function()
                     robot.plan("move", {
@@ -912,7 +937,7 @@ local function onFeedFinished(ctx)
     current_food = {}
 end
 
-local function feed_check(manual)
+function feeder.feed_check()
     if current_checked then
         return true
     end
@@ -923,7 +948,6 @@ local function feed_check(manual)
 
     -- 非智能模式，直接检验通过
     if not options.smart then
-        robot.mode = "feed"
         current_checked = true
         return true
     end
@@ -942,26 +966,25 @@ local function feed_check(manual)
     -- 小于最小投喂量
     if weight < (settings.device.feed_min or 300) * count then
         -- 自动模式，需要等待加料
-        if not manual then
-            log.info("重量不足")
-            next_feed_time = os.time() + 5 * 60 -- 再等5分钟
+        -- if not manual then
+        log.info("重量不足")
+        next_feed_time = os.time() + 5 * 60 -- 再等5分钟
 
-            if wait_times < 6 then
-                robot.mode = "feed"
-                wait_times = wait_times + 1
-                log.info("等待下一轮")
-                return false, "重量不足"
-            else
-                -- 结束任务了
-                robot.state("idle")
+        if wait_times < 6 then
+            wait_times = wait_times + 1
+            log.info("等待下一轮")
+            return false, "重量不足"
+        else
+            -- 结束任务了
+            robot.state("idle")
 
-                -- 异常了
-                -- control.led_feed:off()
+            -- 异常了
+            feeder.error = true
 
-                log.info("超过6次，结束投喂")
-                return false, "重量不足，结束投喂"
-            end
+            log.info("超过6次，结束投喂")
+            return false, "重量不足，结束投喂"
         end
+        -- end
 
         return false, "小于最小投喂量"
     end
@@ -990,10 +1013,9 @@ local function feed_check(manual)
 end
 
 -- 投喂一轮
-local function feed_rank()
-    local ret, info = robot.feed_check()
+function feeder.feed_rank()
+    local ret, info = feeder.feed_check()
     if not ret then
-        -- robot.idle() -- 结束投喂模式
         return false, info
     end
 
@@ -1001,7 +1023,7 @@ local function feed_rank()
     sensor.feed_rounds = 0
 
     -- 创建计划（每餐调用一次）
-    local tasks = smart.plan(current_plans, current_weights, current_food.ranks, current_food.board_times,
+    local tasks = feeder.plan(current_plans, current_weights, current_food.ranks, current_food.board_times,
         current_correct)
 
     iot.emit("device_log", "投喂计划：\r\n" .. planLog())
@@ -1018,9 +1040,38 @@ local function feed_rank()
     next_feed_time = os.time() + current_food.interval * 60
     log.info("下次投喂时间", os.date("%Y-%m-%d %H:%M:%S", next_feed_time))
 
-    return true, tasks
+    return true, {
+        tasks = tasks,
+        on_finish = onFeedFinished
+    }
 end
 
+-- 开启投喂任务
+function feeder.feed(data)
+
+    -- 找到餐食
+    if not data.food then
+        data.food = feeder.find_nearest_food()
+        if not data.food then
+            return false, "没有配置喂餐"
+        end
+    end
+
+    -- 初始化投喂数据
+    current_plans = {}
+    current_food = settings["food" .. data.food]
+    current_weights = {0, 0, 0, 0}
+    current_checked = false
+    wait_times = 0
+
+    -- 重置错误状态
+    feeder.error = false
+
+    -- 开始第一轮
+    return feeder.feed_rank()
+end
+
+-- 自动
 function feeder.auto(v)
     if v == nil then
         return options.auto
@@ -1035,6 +1086,7 @@ function feeder.auto(v)
     end
 end
 
+-- 智能
 function feeder.smart(v)
     if v == nil then
         return options.smart
@@ -1053,6 +1105,10 @@ function feeder.start()
             local food = settings[name]
             if food.enable then
                 schedule.clock(food.start, function()
+                    -- 直接进入投喂模式
+                    robot.state("feed")
+
+                    -- 启动计划
                     local ret, info = robot.plan("feed", {
                         food = i
                     })
@@ -1185,12 +1241,72 @@ function feeder.auto_correct()
     end
 end
 
-function feeder.open()
-    feeder.start()
-    -- 自动修正
-    iot.start(feeder.auto_correct)
+
+local function is_job(job)
+    return robot.executor and (robot.executor.job == job)
 end
 
+-- 更新状态
+function feeder.update_status()
+    while true do
+        iot.sleep(1000) -- 每秒检查一次
+
+        master.device:put_values({
+            charging = battery.charging,
+            charge_current = battery.charge_current(),
+            usage_current = battery.usage_current(),
+            voltage = battery.voltage(),
+            battery = battery.percent(),
+            position = sensor.position() / 100,
+            weight = sensor.weight() / 1000,
+            move_speed = robot.executor and robot.executor.context.move_speed,
+            feed_speed = robot.executor and robot.executor.context.feed_speed,
+            forward_limit = components.forward_limit.gpio:get() == 0,
+            backward_limit = components.backward_limit.gpio:get() == 0,
+            meg_sensor = components.meg_sensor.gpio:get() == 0,
+            -- move_alarm = convert_down_gpio(limit.move_alarm:get(),)
+            -- feed_alarm = convert_down_gpio(limit.feed_alarm:get(),)
+            weight_per_round = feeder.weight_per_round,
+            auto = robot.auto(),
+            smart = robot.smart(),
+            dry = settings.dry.enable,
+            moving_forward = is_job("move_forward"),
+            moving_backward = is_job("move_backward"),
+            feeding_forward = components.feed_servo.rounds > 0,
+            feeding_backward = components.feed_servo.rounds < 0,
+            faning = components.fan.pwm ~= nil,
+            clearing = is_job("auto_tare"),
+            forward_limit_enable = settings.device.forward_limit_enable,
+            backward_limit_enable = settings.device.backward_limit_enable,
+            meg_sensor_enable = settings.device.meg_sensor_enable,
+            feed_rounds = sensor.feed_rounds,
+            job = robot.executor and robot.executor.job,
+            feeding = is_job("feed"),
+            moving = is_job("move"),
+            mode = robot.modes[robot.mode],
+            error = robot.state_name() == "error",
+            -- ranks = robot.ranks(),
+            stats = settings.stats["season" .. (settings.stats.season or 1)] or 0
+        })
+    end
+end
+
+-- 打开
+function feeder.open()
+    -- 规整数据
+    feeder.normalize()
+
+    -- 启动定时任务
+    feeder.start()
+
+    -- 自动修正
+    iot.start(feeder.auto_correct)
+
+    -- 上报状态
+    iot.start(feeder.update_status)
+end
+
+-- 关闭
 function feeder.close()
     feeder.stop()
 end

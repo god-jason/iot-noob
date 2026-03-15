@@ -49,7 +49,7 @@ function scenes.close()
     end
 end
 
-scenes.deps = {"gateway"}
+scenes.deps = {"master"}
 
 boot.register("scenes", scenes)
 

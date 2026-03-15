@@ -2,6 +2,14 @@
 -- @module vm
 local vm = {}
 
+--- 停止指令（需要实现）
+function vm.stop(task, ctx)
+end
+
+--- 恢复指令（需要实现）
+function vm.resume(task, ctx)    
+end
+
 --- 等待指令
 function vm.wait(task)
     return true, task.timeout or task.wait

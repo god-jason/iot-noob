@@ -49,6 +49,9 @@ function Stepper:start(rpm, rounds)
     --     -- 电机驱动必须先把PWM停下，再修改频率才有效
     --     --pwm.stop(self.pwm)
     -- end
+    
+    -- 记录圈数
+    self.rounds = rounds
     self.running = true
 
     -- 方向
@@ -60,6 +63,7 @@ function Stepper:start(rpm, rounds)
 
     -- 取正
     rounds = math.abs(rounds)
+
 
     -- 使能
     self.en_pin:set(0)
@@ -139,6 +143,8 @@ end
 function Stepper:stop()
     log.info(self.pwm_id, "stop")
     if self.running then
+        self.rounds = 0
+
         -- pwm.stop(self.pwm)
         if self.pwm then
             self.pwm:stop()
