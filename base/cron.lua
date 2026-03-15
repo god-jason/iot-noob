@@ -210,18 +210,21 @@ function cron.execute()
         if not job.next then
             calc_next(job, now)
         elseif job.next <= now then
-            for _, cb in pairs(job.callbacks) do
-                -- 异步执行(不知道有没有数量限制，会不会影响性能)
-                iot.start(function()
-                    if RELEASE then
-                        local ret, info = pcall(cb)
-                        if not ret then
-                            iot.emit("error", info)
+            -- 超过1个小时，则丢弃（避免时间同步，系统日期有较大变化）
+            if job.next > now - 3600 then
+                for _, cb in pairs(job.callbacks) do
+                    -- 异步执行(不知道有没有数量限制，会不会影响性能)
+                    iot.start(function()
+                        if RELEASE then
+                            local ret, info = pcall(cb)
+                            if not ret then
+                                iot.emit("error", info)
+                            end
+                        else
+                            cb()
                         end
-                    else
-                        cb()
-                    end
-                end)
+                    end)
+                end
             end
             calc_next(job, now)
         end

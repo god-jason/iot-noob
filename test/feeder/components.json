@@ -49,12 +49,12 @@
     },
     {
         "type": "relay",
-        "name": "battery",
+        "name": "charge",
         "pin": 20
     },
     {
         "type": "led",
-        "name": " led_power",
+        "name": "led_power",
         "pin": 21
     },
     {

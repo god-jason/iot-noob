@@ -114,7 +114,7 @@ function MasterDevice:modified_values(clear)
     return values
 end
 
-local device = MasterDevice:new({})
+local device = MasterDevice:new(Device:new({}))
 master.device = device
 -- devices.register("$master$", device)
 

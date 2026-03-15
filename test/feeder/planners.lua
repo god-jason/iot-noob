@@ -7,7 +7,6 @@ local settings = require("settings")
 local sensor = require("sensor")
 local feeder = require("feeder")
 local battery = require("battery")
-local smart = require("smart")
 
 local planners = {}
 

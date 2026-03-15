@@ -23,7 +23,9 @@ function Stepper:new(opts)
         en = opts.en,
         reverse = opts.reverse or false,
         freq = opts.freq or 16000,
-        smooth = opts.smooth or false
+        smooth = opts.smooth or false,
+        running = false,
+        rounds = 0,
     }, Stepper)
     stepper:init()
     return stepper

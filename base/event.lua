@@ -1,4 +1,4 @@
---- 事件机制
+--- 事件机制（lua不能多重继承）
 -- @module Event
 local Event = {}
 Event.__index = Event

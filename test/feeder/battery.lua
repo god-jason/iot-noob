@@ -3,6 +3,7 @@ local tag = "battery"
 
 local Led = require "led"
 local settings = require("settings")
+local boot = require("boot")
 
 battery.charging = false
 
@@ -99,8 +100,8 @@ function battery.percent()
     end
 end
 
-iot.start(function()
-    iot.sleep(5000)
+local function battery_task()
+    -- iot.sleep(5000)
     -- settings.device.battery_volume
 
     -- 电池容量，单位Ah，默认14Ah，换算成As
@@ -161,6 +162,18 @@ iot.start(function()
             percent = 0
         end
     end
-end)
+end
+
+function battery.open()
+    -- 默认打开电源灯
+    components.led_power:on()
+    
+    iot.start(battery_task)
+end
+
+battery.deps = {"components", "settings"}
+
+-- 注册
+boot.register("battery", battery)
 
 return battery

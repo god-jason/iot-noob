@@ -124,7 +124,7 @@ states.feed = {
     end,
     tick = function()
         -- 检查下一轮任务
-        if os.time() > feeder.next_feed_time then
+        if os.time() > feeder.next() then
 
             log.info("投喂间隔到，准备下一轮投喂")
             local ret, info = robot.plan("feed_rank")

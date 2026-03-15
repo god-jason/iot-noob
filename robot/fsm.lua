@@ -105,7 +105,7 @@ function FSM:execute()
         local ret, info = iot.wait("fsm_" .. self.id .. "_break", self.tick)
         if ret then
             -- 被中断
-            log.info(self.name, self.state_name, "被中断", info)
+            log.info(self.name, self.state_name, "break", info)
             -- break
         end
     end

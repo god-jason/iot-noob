@@ -2,7 +2,6 @@ local actions = require("agent").commands()
 
 local settings = require "settings"
 local controls = require "controls"
-local smart = require "smart"
 local vm = require "vm"
 local sensor = require "sensor"
 local robot = require "robot"

@@ -272,7 +272,7 @@ local function master_task()
     iot.wait("IP_READY")
 
     -- 加载配置
-    options = settings.master
+    options = settings.cloud
 
     -- 默认使用IMEI号作为ID
     if not options.id or #options.id == 0 then
@@ -314,7 +314,10 @@ local function master_task()
     -- 在线
     client:publish("device/" .. options.id .. "/online", {})
 
-    local ticks = 9999999 -- 保证连上平台就上报一次数据
+    -- 主设备使用配置ID
+    master.device.id = options.id
+
+    local ticks = 9999999 -- 保证连上平台就上报一次数据    
 
     while true do
 
@@ -361,8 +364,8 @@ function cloud.close()
 end
 
 cloud.deps = {"settings"}
-boot.register("master", cloud)
+boot.register("cloud", cloud)
 
-settings.register("master", default_options)
+settings.register("cloud", default_options)
 
 return cloud

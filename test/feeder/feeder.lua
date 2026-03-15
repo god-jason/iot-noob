@@ -738,6 +738,10 @@ local current_correct = false -- 启用补偿，单餐标识
 local next_feed_time = 0
 local wait_times = 0
 
+function feeder.next()
+    return next_feed_time
+end
+
 local function formatFloat(val)
     return string.format("%.2f", val or 0)
 end
@@ -1105,6 +1109,10 @@ function feeder.start()
             local food = settings[name]
             if food.enable then
                 schedule.clock(food.start, function()
+                    if not options.auto then
+                        return
+                    end
+
                     -- 直接进入投喂模式
                     robot.state("feed")
 
@@ -1138,6 +1146,8 @@ function feeder.start()
         end)
     end
 
+    -- 进入待机状态
+    robot.state("idle")
 end
 
 function feeder.stop()
@@ -1148,6 +1158,7 @@ end
 -- 电子秤自动修正
 function feeder.auto_correct()
 
+    local weight = sensor.weight()
     local weight_start = sensor.weight()
     local weight_last = weight_start
 
@@ -1161,14 +1172,15 @@ function feeder.auto_correct()
     while true do
         iot.sleep(1000) -- 每秒检查一次
 
+        -- 非智能模式，空转
         if not options.smart then
             goto continue
         end
 
-        local weight = sensor.weight()
+        weight = sensor.weight()
 
         -- 投喂中，跳过
-        if robot.mode == "feed" then
+        if robot.state_name() == "feed" then
             wait_stable = true
             wait_stable_ticks = 1
             wait_correct_ticks = 1
@@ -1176,7 +1188,7 @@ function feeder.auto_correct()
         end
 
         -- 移动中，跳过
-        if vm.move_task ~= nil then
+        if components.move_servo.running then
             wait_stable = true
             wait_stable_ticks = 1
             wait_correct_ticks = 1
@@ -1267,8 +1279,8 @@ function feeder.update_status()
             -- move_alarm = convert_down_gpio(limit.move_alarm:get(),)
             -- feed_alarm = convert_down_gpio(limit.feed_alarm:get(),)
             weight_per_round = feeder.weight_per_round,
-            auto = robot.auto(),
-            smart = robot.smart(),
+            auto = feeder.auto(),
+            smart = feeder.smart(),
             dry = settings.dry.enable,
             moving_forward = is_job("move_forward"),
             moving_backward = is_job("move_backward"),
@@ -1283,7 +1295,7 @@ function feeder.update_status()
             job = robot.executor and robot.executor.job,
             feeding = is_job("feed"),
             moving = is_job("move"),
-            mode = robot.modes[robot.mode],
+            mode = robot.fsm.state.name,
             error = robot.state_name() == "error",
             -- ranks = robot.ranks(),
             stats = settings.stats["season" .. (settings.stats.season or 1)] or 0
