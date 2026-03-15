@@ -1,0 +1,98 @@
+[
+    {
+        "type": "stepper",
+        "name": "move_servo",
+        "reverse": true,
+        "smooth": true,
+        "pwm_id": 0,
+        "dir": 2,
+        "en": 3,
+        "freq": 1600
+    },
+    {
+        "type": "speeder",
+        "name": "move_speeder",
+        "levels": 10,
+        "min": 41.77817,
+        "max": 417.7817
+    },
+    {
+        "type": "stepper",
+        "name": "feed_servo",
+        "reverse": true,
+        "pwm_id": 1,
+        "dir": 25,
+        "en": 36,
+        "freq": 1600
+    },
+    {
+        "type": "fan",
+        "name": "fan",
+        "reverse": true,
+        "pwm_id": 2,
+        "pin": 30,
+        "freq": 10000,
+        "duty_min": 1,
+        "duty_max": 50,
+        "levels": 10,
+        "smooth": true
+    },
+    {
+        "type": "relay",
+        "name": "vibrator",
+        "pin": 36
+    },
+    {
+        "type": "relay",
+        "name": "driver",
+        "pin": 36
+    },
+    {
+        "type": "relay",
+        "name": "battery",
+        "pin": 20
+    },
+    {
+        "type": "led",
+        "name": " led_power",
+        "pin": 21
+    },
+    {
+        "type": "led",
+        "name": "led_move",
+        "pin": 22
+    },
+    {
+        "type": "led",
+        "name": "led_feed",
+        "pin": 23
+    },
+    {
+        "type": "led",
+        "name": "led_net",
+        "pin": 38
+    },
+    {
+        "type": "led",
+        "name": "led_cloud",
+        "pin": 37
+    },
+    {
+        "type": "switch",
+        "name": "forward_limit",
+        "debounce": 100,
+        "event": "FORWARD_LIMIT"
+    },
+    {
+        "type": "switch",
+        "name": "backward_limit",
+        "debounce": 100,
+        "event": "BACKWARD_LIMIT"
+    },
+    {
+        "type": "switch",
+        "name": "meg_sensor",
+        "debounce": 100,
+        "event": "MEG_SENSOR"
+    }
+]

@@ -1,0 +1,8 @@
+{
+    "weight_correct": 100,
+    "weight_correct_max": 200,
+    "weight_error": 300,
+    "magn_reset_distance": 100,
+    "forward_detect": 100,
+    "backward_detect": 100
+}

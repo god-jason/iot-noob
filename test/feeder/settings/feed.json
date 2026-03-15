@@ -1,0 +1,12 @@
+{
+    "feed_move_speed": 6,
+    "move_speed": 9,
+    "move_timeout": 10,
+    "feed_speed": 60,
+    "feed_fan_level": 7,
+    "weight_per_round": 10,
+    "board_fan_level": 1,
+    "board_percent": 10,
+    "board_time": 10,
+    "vibrator": false
+}

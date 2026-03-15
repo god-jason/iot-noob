@@ -1,0 +1,10 @@
+{
+    "auto_tare_enable": true,
+    "auto_tare_time": "03:00",
+    "auto_tare_max": 300,
+    "auto_tare_timeout": 1,
+    "correct_interval": 10,
+    "correct_threshold": 10,
+    "zero_correct_threshold": 150,
+    "negative_correct_threshold": 500
+}

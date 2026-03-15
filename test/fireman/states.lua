@@ -4,9 +4,10 @@ local log = iot.logger("states")
 local states = {}
 
 -- 待机状态
-states.standby = {
+states.idle = {
     name = "待机",
     enter = function()
+        robot.plan("extinguish", {})
     end,
     leave = function()
     end,

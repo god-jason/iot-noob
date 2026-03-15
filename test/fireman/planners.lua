@@ -79,12 +79,12 @@ function planners.extinguish(data)
     }, {
         type = "turn_angle", -- 机身旋转
         rpm = data.turn_rpm or 60,
-        angle = data.turn_angle,
+        angle = data.turn_angle or 30,
         wait = true
     }, {
         type = "arm_angle", -- 机械臂旋转
         rpm = data.arm_rpm or 60,
-        angle = data.arm_angle,
+        angle = data.arm_angle or 30,
         wait = true
     }, {
         type = "water_up", -- 接水
