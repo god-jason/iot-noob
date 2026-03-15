@@ -774,22 +774,25 @@ end
 
 local function onFeedFinished(ctx)
     log.info("onFeedFinished 下料圈数", ctx.feed_rounds, sensor.feed_rounds)
-    log.info("onFeedFinished 重量", ctx.weights[1], ctx.weights[2], ctx.weights[3], ctx.weights[4])
+    -- log.info("onFeedFinished 重量", ctx.weights[1], ctx.weights[2], ctx.weights[3], ctx.weights[4])
 
     -- 记录并计算总重
     local total = 0
-    for i = 1, 4, 1 do
-        local w = ctx.weights[i]
-        if w and w > 0 then
-            current_plans[#current_plans][i].final_weight = w
-            total = total + w
-        else
-            current_plans[#current_plans][i].final_weight = 0
+    if options.smart then
+        for i = 1, 4, 1 do
+            local w = ctx.weights and ctx.weights[i] or 0
+            if w and w > 0 then
+                current_plans[#current_plans][i].final_weight = w
+                total = total + w
+            else
+                current_plans[#current_plans][i].final_weight = 0
+            end
         end
     end
 
     -- 智能模式，计算并更新绞龙下料量
     if options.smart and total > 0 and ctx.feed_rounds and ctx.feed_rounds > 0 then
+
         -- 更新每圏重量
         local weight_per_round = total / ctx.feed_rounds
 
@@ -821,7 +824,7 @@ local function onFeedFinished(ctx)
     -- 判断重量是否达标
     if options.smart then
         local lack = false
-        local total = 0
+        local total_lack = 0
         for i = 1, 4, 1 do
             local weight = current_weights[i]
             for j, plan in ipairs(current_plans) do
@@ -833,7 +836,7 @@ local function onFeedFinished(ctx)
                 log.info(i .. "棚喂料未达标，缺少" .. weight)
                 iot.emit("device_log", i .. "棚喂料未达标，缺少" .. weight)
                 lack = true
-                total = total + weight
+                total_lack = total_lack + weight
             end
         end
 
@@ -841,7 +844,7 @@ local function onFeedFinished(ctx)
             -- 最后一趟判断，并启用补偿
             if current_food.ranks == #current_plans then
 
-                if total > 50 then
+                if total_lack > 50 then
                     log.info("启用重量补偿")
                     iot.emit("device_log", "启用重量补偿")
                     next_feed_time = os.time() + 20 -- 20秒后开始补偿
@@ -850,7 +853,7 @@ local function onFeedFinished(ctx)
 
             else
                 -- 补偿之后，还不到位
-                if total > (settings.correct.weight_error or 100) then
+                if total_lack > (settings.correct.weight_error or 100) then
 
                     -- TODO 产生报警 event，电话报警
                     iot.emit("error", "喂料未达标，电话报警")
@@ -1252,7 +1255,6 @@ function feeder.auto_correct()
         weight_last = weight
     end
 end
-
 
 local function is_job(job)
     return robot.executor and (robot.executor.job == job)

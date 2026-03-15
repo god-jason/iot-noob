@@ -205,11 +205,17 @@ function vm.weigh(task, ctx)
     local weight = sensor.weight()
     task.weight = weight
 
+    -- 避免为空
+    if not ctx.weights then
+        ctx.weights = {}
+    end
+
     -- 记录到每个阶段
-    if task.stage and task.stage > 0 then
+    if task.stage and task.stage > 0 and ctx.weight then
         -- vm.plans[#vm.plans][task.stage].final_weight = weight - vm.weight
         ctx.weights[task.stage] = ctx.weight - weight
     end
+
     ctx.weight = weight
 end
 
