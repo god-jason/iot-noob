@@ -98,6 +98,8 @@ function MqttClient:open()
             iot.emit("MQTT_MESSAGE_" .. self.id)
         elseif event == "conack" then
             iot.emit("MQTT_CONNECT_" .. self.id)
+            iot.emit("MQTT_PUBLISH_" .. self.id)
+
             -- 恢复订阅
             for filter, cnt in pairs(self.subs) do
                 if cnt > 0 then
@@ -141,7 +143,7 @@ function MqttClient:open()
             iot.wait("MQTT_PUBLISH_" .. self.id, 30000)
 
             -- 先从队列中取
-            while #self.pub_queue > 0 do
+            while self.client:ready() and #self.pub_queue > 0 do
                 local m = table.remove(self.pub_queue, 1)
                 self.client:publish(m.topic, m.payload, m.qos)
             end

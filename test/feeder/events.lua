@@ -24,7 +24,7 @@ iot.on("FORWARD_LIMIT", function(level)
             end
         else
             if robot.executor then
-                robot.executor:stop()
+                robot.executor:interrupt()
             end
             sensor.set_position(settings.total_length)
         end
@@ -55,7 +55,7 @@ iot.on("BACKWARD_LIMIT", function(level)
             end
         else
             if robot.executor then
-                robot.executor:stop()
+                robot.executor:interrupt()
             end
             sensor.set_position(0) -- 位置清零
         end
@@ -82,7 +82,7 @@ iot.on("MEG_SENSOR", function(level)
         components.move_servo:stop()
 
         if robot.executor then
-            robot.executor:stop()
+            robot.executor:interrupt()
         end
 
         sensor.set_position(0) -- 位置清零

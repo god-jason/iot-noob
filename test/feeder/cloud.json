@@ -1,0 +1,6 @@
+{
+    "product_id": "feeder",
+    "host": "iot.longyuanshuichan.cn",
+    "port": 1883,
+    "key": "noob"
+}

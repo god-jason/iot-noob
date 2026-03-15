@@ -51,6 +51,11 @@ function Executor:stop()
     iot.emit("executor_" .. self.id .. "_break")
 end
 
+--- 中断当前任务等待
+function Executor:interrupt()
+    iot.emit("executor_" .. self.id .. "_break")
+end
+
 function Executor:wait(timeout)
     return iot.wait("executor_" .. self.id .. "_break", timeout)
 end
@@ -74,7 +79,6 @@ function Executor:execute(cursor)
 
         local task = self.tasks[self.current]
         log.info("task", self.current, iot.json_encode(task))
-
 
         -- 记录起始时间
         if not task.start_time then
@@ -120,11 +124,11 @@ function Executor:execute(cursor)
             end
 
             -- 任务等待
-            if info then
+            if info and wait and wait > 0 then
                 ret = iot.wait("executor_" .. self.id .. "_break", wait)
                 if ret then
                     -- 被中断
-                    log.info("被中断")
+                    log.info("break")
                     break
                 end
             end
@@ -153,11 +157,20 @@ function Executor:execute(cursor)
     self.stoped = true
     self.end_time = os.date("%X") -- 记录当前 时分秒
 
+    if self.current < #self.tasks then
+        if self.on_error then
+            self.on_error("被中止")
+        end
+    else
+        if self.on_finish ~= nil then
+            self.on_finish(self.context)
+        end
+    end
+
     log.info("execute finished", yaml.encode(self))
 
-    if self.on_finish ~= nil then
-        self.on_finish(self.context)
-    end
+    -- 置空当前任务
+    self.job = "-"
 end
 
 --- 恢复

@@ -8,13 +8,13 @@ local feeder = require("feeder")
 -- 启动风机
 function vm.fan(task, ctx)
     ctx.fan_level = task.level
-    components.fan:level(task.level)
+    components.fan:speed(task.level)
 end
 
 -- 停止风机
 function vm.fan_stop(task, ctx)
     ctx.fan_level = nil
-    components.fan:stop()
+    components.fan:close()
 end
 
 -- 震动
@@ -173,7 +173,7 @@ function vm.feed(task, ctx)
         components.feed_servo:start(task.speed, task.rounds * tm2 / tm) -- 按比例投喂
         tm = tm2
     else
-        ctx.feed_rounds = ctx.feed_rounds + task.rounds -- 累计圈数
+        ctx.feed_rounds = (ctx.feed_rounds or 0) + task.rounds -- 累计圈数
         ctx.start_ticks = mcu.ticks()
         components.feed_servo:start(task.speed, task.rounds)
     end
@@ -237,7 +237,7 @@ end
 -- 恢复，内部调用
 function vm.resume(task, ctx)
     if ctx.fan_level then
-        components.fan:start(ctx.fan_level)
+        components.fan:speed(ctx.fan_level)
     end
     if ctx.vibrator then
         components.vibrator:on()

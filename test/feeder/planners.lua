@@ -12,23 +12,15 @@ local planners = {}
 
 local function home_tasks(data)
     -- 判断磁感应
-    if settings.device.meg_sensor_enable and components.meg_sensor:get() == 0 then
+    if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
         sensor.set_position(0)
-
-        if cb ~= nil then
-            cb()
-        end
         return false, "已经在起点(磁感应)"
     end
 
     -- 判断后接近
-    if settings.device.backward_limit_enable and components.backward_limit:get() == 0 then
+    if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
         if sensor.position() < (settings.correct.backward_detect or 50) then
             sensor.set_position(0)
-
-            if cb ~= nil then
-                cb()
-            end
             return false, "已经在起点(后接近)"
         end
     end
@@ -127,9 +119,18 @@ planner.register("home", function(data)
     if not ret then
         return ret, tasks
     end
+
+    -- 已经在起点
+    if #tasks == 0 then
+        robot.state("idle")
+        return false, "已经在起点"
+    end
+
     return true, {
-        tasks = tasks
-        -- on_finish = data.on_finish
+        tasks = tasks,
+        on_finish = function()
+            robot.state("idle")
+        end
     }
 end)
 
@@ -183,6 +184,10 @@ planner.register("move_backward", function(data)
     local ret, tasks = home_tasks(data)
     if not ret then
         return false, tasks
+    end
+    if #tasks == 0 then
+        robot.state("idle")
+        return false, "已经在起点"
     end
     return true, {
         tasks = tasks,
@@ -391,7 +396,7 @@ planner.register("vibrator", function(data)
             type = "vibrator"
         }, {
             type = "wait",
-            timeout = (data.timeout or 60) * 1000
+            time = (data.timeout or 60) * 1000
         }, {
             type = "vibrator_stop"
         }}
@@ -413,7 +418,7 @@ planner.register("dry", function(data)
         })
         table.insert(tasks, {
             type = "wait",
-            timeout = (settings.dry.vibrator_time or 10) * 1000
+            time = (settings.dry.vibrator_time or 10) * 1000
         })
         table.insert(tasks, {
             type = "vibrator_stop"
@@ -423,7 +428,7 @@ planner.register("dry", function(data)
     -- 等待风机结束
     table.insert(tasks, {
         type = "wait",
-        timeout = (settings.dry.dry_time or 120) * 1000
+        time = (settings.dry.dry_time or 120) * 1000
     })
     table.insert(tasks, {
         type = "fan_stop"
@@ -432,7 +437,7 @@ planner.register("dry", function(data)
     -- 休息
     table.insert(tasks, {
         type = "wait",
-        timeout = (settings.dry.idle_time or 600) * 1000
+        time = (settings.dry.idle_time or 600) * 1000
     })
 
     return true, tasks
@@ -441,10 +446,10 @@ end)
 planner.register("feed", function(data)
     -- 切换到投喂状态
     robot.state("feed")
-    return feeder.feed()
+    return feeder.feed(data)
 end)
 
 planner.register("feed_rank", function(data)
-    return feeder.feed_rank()
+    return feeder.feed_rank(data)
 end)
 

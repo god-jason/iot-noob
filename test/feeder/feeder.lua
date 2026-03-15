@@ -414,7 +414,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
         table.insert(tasks, {
             stage = 0,
             type = "wait",
-            timeout = 10000
+            time = 10000
         })
         table.insert(tasks, {
             stage = 0,
@@ -707,7 +707,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 table.insert(tasks, {
                     stage = 0,
                     type = "wait",
-                    timeout = 10000
+                    time = 10000
                 })
                 table.insert(tasks, {
                     stage = point.stage,
@@ -789,7 +789,7 @@ local function onFeedFinished(ctx)
     end
 
     -- 智能模式，计算并更新绞龙下料量
-    if options.smart and total > 0 then
+    if options.smart and total > 0 and ctx.feed_rounds and ctx.feed_rounds > 0 then
         -- 更新每圏重量
         local weight_per_round = total / ctx.feed_rounds
 

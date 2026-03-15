@@ -41,7 +41,7 @@ function agent.execute(name, data)
         return false, "找不到命令：" .. name
     end
 
-    local ret, res, info = pcall(cmd)
+    local ret, res, info = pcall(cmd, data)
     if not ret then
         return false, res
     end

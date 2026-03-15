@@ -19,6 +19,8 @@ robot.fsm = fsm:new({
     name = "robot"
 })
 
+robot.executor = Executor:new({})
+
 -- 分支执行器
 robot.executors = {}
 
@@ -70,6 +72,17 @@ function robot.plan(name, data, opts)
 
     -- 开始执行
     return executor:start()
+end
+
+--- 停机
+function robot.stop()
+    if robot.executor then
+        robot.executor:stop()
+    end
+    for k, v in pairs(robot.executors) do
+        v:stop()
+    end
+    robot.executors = {}
 end
 
 function robot.state(name)

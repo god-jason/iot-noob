@@ -31,14 +31,14 @@ function planners.patrol(data)
         wait = true
     }, {
         type = "wait",
-        timeout = 100
+        time = 100
     }, {
         type = "cam_left",
         rpm = data.rpm or 5,
         wait = true
     }, {
         type = "wait",
-        timeout = 100
+        time = 100
     }, {
         type = "goto", -- 重复执行旋转
         label = "cam"
@@ -53,7 +53,7 @@ function planners.cam_angle(data)
         wait = true
     }, {
         type = "wait",
-        timeout = 100
+        time = 100
     }, {
         type = "cam_angle",
         rpm = 5,
@@ -70,7 +70,7 @@ function planners.extinguish(data)
         wait = true
     }, {
         type = "wait",
-        timeout = 100
+        time = 100
     }, {
         type = "cam_angle",
         rpm = data.cam_rpm or 5,

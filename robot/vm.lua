@@ -12,7 +12,7 @@ end
 
 --- 等待指令
 function vm.wait(task)
-    return true, task.timeout or task.wait
+    return true, task.time
 end
 
 --- 跳转指令

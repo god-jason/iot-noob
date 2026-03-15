@@ -20,6 +20,7 @@ function actions.move(data)
     -- 结束平移
     if not data.value then
         if robot.state_name() == "move" then
+            robot.executor:stop()
             robot.state("standby")
             return true
         end
@@ -39,8 +40,9 @@ function actions.feed(data)
     if not data.value then
         if robot.state_name() == "feed" then
             -- 取消投喂，进入维护模式
-            -- robot.state("standby")
-            robot.state("idle")
+            robot.executor:stop()
+            robot.state("standby")
+            -- robot.state("idle")
             return true
         end
         return false, "不在投喂中"
@@ -50,7 +52,7 @@ function actions.feed(data)
         return false, "已经在投喂中"
     end
 
-    if not robot.auto() then
+    if not feeder.auto() then
         return false, "未开启自动模式"
     end
 
@@ -73,7 +75,8 @@ end
 -- 向前移动
 function actions.move_forward(data)
     if not data.value then
-        if robot.executor.job == "move_forward" then
+        if robot.executor and robot.executor.job == "move_forward" then
+            robot.executor:stop()
             robot.state("standby")
             return true
         end
@@ -84,7 +87,7 @@ function actions.move_forward(data)
         return false, "正在投喂中"
     end
 
-    if robot.executor.job == "move_forward" then
+    if robot.executor and robot.executor.job == "move_forward" then
         return false, "已经在距离前进中"
     end
 
@@ -94,7 +97,8 @@ end
 -- 向后移动
 function actions.move_backward(data)
     if not data.value then
-        if robot.executor.job == "move_backward" then
+        if robot.executor and robot.executor.job == "move_backward" then
+            robot.executor:stop()
             robot.state("standby")
             return true
         end
@@ -105,7 +109,7 @@ function actions.move_backward(data)
         return false, "正在投喂中"
     end
 
-    if robot.executor.job == "move_backward" then
+    if robot.executor and robot.executor.job == "move_backward" then
         return false, "已经在距离后退中"
     end
 
