@@ -117,7 +117,7 @@ end
 planner.register("home", function(data)
     local ret, tasks = home_tasks(data)
     if not ret then
-        return ret, tasks
+        return false, tasks
     end
 
     -- 已经在起点

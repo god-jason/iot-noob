@@ -124,7 +124,7 @@ function feeder.normalize()
     settings.total_length = settings.total_length * 100 -- 转cm  
 
     -- 计算点位
-    local stage = 1
+    local pool = 1
     all_points = {}
 
     -- 准备
@@ -132,14 +132,14 @@ function feeder.normalize()
         name = "起点",
         type = "prepare",
         position = 0,
-        stage = 1
+        pool = 1
     })
 
     -- 投喂起始
     table.insert(all_points, {
         type = "feed",
         position = 0,
-        stage = 1
+        pool = 1
     })
 
     -- 距离参数转为数组
@@ -168,33 +168,33 @@ function feeder.normalize()
                 name = "料台",
                 type = "board",
                 position = point.position,
-                stage = stage
+                pool = pool
             })
 
             -- 行走投喂
             table.insert(all_points, {
                 type = "feed",
                 position = point.position,
-                stage = stage
+                pool = pool
             })
 
         elseif point.type:startsWith("dam") then
 
-            stage = tonumber(point.type:sub(4)) + 1 -- 遇到葛坝，下一个棚开始
+            pool = tonumber(point.type:sub(4)) + 1 -- 遇到葛坝，下一个棚开始
 
             -- 准备
             table.insert(all_points, {
                 name = "葛坝",
                 type = "prepare",
                 position = point.position,
-                stage = stage
+                pool = pool
             })
 
             -- 行走投喂
             table.insert(all_points, {
                 type = "feed",
                 position = point.position,
-                stage = stage
+                pool = pool
             })
 
         elseif point.type:startsWith("length") then
@@ -204,7 +204,7 @@ function feeder.normalize()
                 name = "结束",
                 type = "finish",
                 position = point.position,
-                stage = stage
+                pool = pool
             })
 
         elseif point.type:startsWith("bamboo") and settings.functions.bamboo then
@@ -214,14 +214,14 @@ function feeder.normalize()
                 name = "毛竹",
                 type = "bamboo",
                 position = point.position - (settings.device.bamboo_distance or 30), -- 毛竹提前量
-                stage = stage
+                pool = pool
             })
 
             -- 行走投喂
             table.insert(all_points, {
                 type = "feed",
                 position = point.position + 5, -- 行走5cm，跳过毛竹
-                stage = stage
+                pool = pool
             })
 
         elseif point.type:startsWith("charge") and settings.functions.bamboo then
@@ -231,14 +231,14 @@ function feeder.normalize()
                 name = "充电位",
                 type = "bamboo",
                 position = point.position - (settings.device.bamboo_distance or 30), -- 毛竹提前量
-                stage = stage
+                pool = pool
             })
 
             -- 行走投喂
             table.insert(all_points, {
                 type = "feed",
                 position = point.position + 5, -- 行走5cm，跳过毛竹
-                stage = stage
+                pool = pool
             })
         end
     end
@@ -255,7 +255,7 @@ function feeder.normalize()
     for i, p in ipairs(all_points) do
         if p.type == "feed" and i < #all_points then
             local len = all_points[i + 1].position - p.position
-            feed_lengths[p.stage] = feed_lengths[p.stage] + len
+            feed_lengths[p.pool] = feed_lengths[p.pool] + len
         end
     end
 
@@ -270,7 +270,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
     local remain_ranks = ranks - #plans -- 剩余趟数
 
-    local stages = 0
+    local pools = 0
 
     -- 计算一趟的投喂量
     for i, v in ipairs(weights) do
@@ -361,7 +361,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             end
 
             table.insert(plan, obj)
-            stages = stages + 1
+            pools = pools + 1
         else
             table.insert(plan, {})
         end
@@ -370,7 +370,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
     -- TODO 这一段代码无效
 
     -- 如果只有一个棚，则全程投喂，避免剩料
-    if stages == 1 and remain_ranks == 0 then
+    if pools == 1 and remain_ranks == 0 then
         for i, plan in ipairs(plans) do
             if plan.weight then
                 local rpm = feeder.calc_move_rpm(settings.feed.feed_move_speed)
@@ -387,9 +387,9 @@ function feeder.plan(plans, weights, ranks, board_times, single)
     -- 节点过滤
     local points = {}
     for i, p in ipairs(all_points) do
-        if weights[p.stage] <= 0 then
+        if weights[p.pool] <= 0 then
             -- 该棚无效，跳过
-        elseif plan[p.stage] and plan[p.stage].weight <= 0 then
+        elseif plan[p.pool] and plan[p.pool].weight <= 0 then
             -- 已经喂完，直接跳过
         elseif (remain_ranks < 1 or remain_ranks > board_times) and p.type == "board" then
             -- 优先后面的料台投喂
@@ -412,12 +412,12 @@ function feeder.plan(plans, weights, ranks, board_times, single)
     -- 起始点，静置称重
     if options.smart then
         table.insert(tasks, {
-            stage = 0,
+            pool = 0,
             type = "wait",
             time = 10000
         })
         table.insert(tasks, {
-            stage = 0,
+            pool = 0,
             type = "weigh",
             wait = true -- not immediate -- 立即执行时，为了用户体验，不等待
         })
@@ -431,7 +431,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
         -- 冬日和最后一趟启动震动器
         if settings.feed.vibrator or remain_ranks <= 1 then
             table.insert(tasks, {
-                stage = 0,
+                pool = 0,
                 type = "vibrator"
             })
         end
@@ -449,14 +449,14 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 启动风机 1s
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "fan",
                 level = settings.feed.feed_fan_level
             })
 
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 type = "wait",
                 time = 1000
             })
@@ -465,21 +465,21 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 料台投喂 风机降速
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "fan",
                 level = settings.feed.board_fan_level
             })
 
             -- 计算料台投喂量
-            weight = plan[point.stage].board_weight
+            weight = plan[point.pool].board_weight
             rounds = feeder.calc_feed_rounds(weight)
 
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "feed",
-                speed = plan[point.stage].board_speed,
+                speed = plan[point.pool].board_speed,
                 weight = weight,
                 rounds = rounds,
                 wait = true -- 等待投喂结束
@@ -492,7 +492,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 行进投喂
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "fan",
                 level = settings.feed.feed_fan_level
@@ -500,17 +500,17 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 计算投喂量            
             distance = next_point.position - point.position
-            -- weight = (plan[point.stage].weight - plan[point.stage].board_weight) * distance / feed_lengths[point.stage]
+            -- weight = (plan[point.pool].weight - plan[point.pool].board_weight) * distance / feed_lengths[point.pool]
             -- rounds = control.calc_feed_rounds(weight)
-            local rpm = feeder.calc_move_rpm(plan[point.stage].move_speed)
+            local rpm = feeder.calc_move_rpm(plan[point.pool].move_speed)
             local tm = feeder.calc_move_time(rpm, distance) -- 计算时长
-            rounds = plan[point.stage].speed * tm / 60 / 1000 -- 计算实际圈数
+            rounds = plan[point.pool].speed * tm / 60 / 1000 -- 计算实际圈数
 
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "feed",
-                speed = plan[point.stage].speed,
+                speed = plan[point.pool].speed,
                 weight = weight,
                 rounds = rounds
             })
@@ -532,17 +532,17 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             local brake = 0
             if stop then
                 -- 减去刹车距离
-                brake = feeder.calc_brake_distance(plan[point.stage].move_speed)
+                brake = feeder.calc_brake_distance(plan[point.pool].move_speed)
                 log.info("brake", brake)
                 distance = distance - brake
             end
 
             -- 行走投喂
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "move",
-                speed = plan[point.stage].move_speed,
+                speed = plan[point.pool].move_speed,
                 distance = distance,
                 rounds = feeder.calc_move_rounds(distance),
                 position = next_point.position - brake, -- 目标位置
@@ -561,7 +561,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             -- 刹车
             if stop then
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "刹车",
                     type = "brake"
                 })
@@ -572,18 +572,18 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 停止投喂
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "feed_stop"
             })
             -- 1s降风机
             -- table.insert(tasks, {
-            --     stage = point.stage,
+            --     pool = point.pool,
             --     type = "wait",
             --     time = 1000
             -- })
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 type = "fan",
                 level = settings.device.bamboo_fan_level or 2
             })
@@ -591,7 +591,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             -- 降速
             distance = next_point.position - point.position
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "move",
                 speed = settings.device.bamboo_move_speed or 3,
@@ -607,29 +607,29 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 棚结束，继续下一个
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 name = point.name,
                 type = "feed_stop"
             })
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 type = "wait",
                 time = 1000 -- 等待1s，料吹完
             })
             table.insert(tasks, {
-                stage = point.stage,
+                pool = point.pool,
                 type = "fan_stop"
             })
 
             local brake = feeder.calc_brake_distance(settings.feed.move_speed)
-            -- local brake = control.calc_brake_distance(plan[point.stage].move_speed)
+            -- local brake = control.calc_brake_distance(plan[point.pool].move_speed)
             log.info("brake", brake)
 
             -- 如果未结束，则走到下一个葛坝，否则回到起点
             if next_point ~= nil then
                 distance = next_point.position - point.position
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "去下一个棚",
                     type = "move",
                     speed = settings.feed.move_speed,
@@ -643,7 +643,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 })
 
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "刹车",
                     type = "brake"
                 })
@@ -654,7 +654,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 if settings.functions.vibrator then
                     if settings.feed.vibrator or remain_ranks <= 1 then
                         table.insert(tasks, {
-                            stage = point.stage,
+                            pool = point.pool,
                             type = "vibrator_stop"
                         })
                     end
@@ -662,7 +662,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
                 -- 等待停稳，再返程
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     type = "wait",
                     time = 5000 -- 等5s再返回，避免抖动
                 })
@@ -672,7 +672,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 rounds = feeder.calc_move_rounds(distance)
 
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "返回起点",
                     type = "move",
                     speed = settings.feed.move_speed,
@@ -689,7 +689,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 rounds = feeder.calc_move_rounds(distance)
 
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "zero", -- 清零
                     type = "move",
                     speed = 2, -- 2档回到起点
@@ -705,12 +705,12 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             -- 静置称重
             if options.smart then
                 table.insert(tasks, {
-                    stage = 0,
+                    pool = 0,
                     type = "wait",
                     time = 10000
                 })
                 table.insert(tasks, {
-                    stage = point.stage,
+                    pool = point.pool,
                     name = "称重",
                     type = "weigh",
                     wait = true
@@ -749,24 +749,24 @@ end
 local function planLog()
     local plan = current_plans[#current_plans]
     local msg = "第" .. #current_plans .. "轮：\r\n"
-    for i, stage in ipairs(plan) do
+    for i, pool in ipairs(plan) do
         msg = msg .. i .. "\r\n"
-        if stage.weight ~= nil then
-            msg = msg .. "目标重量" .. formatFloat(stage.weight) .. "\r\n"
+        if pool.weight ~= nil then
+            msg = msg .. "目标重量" .. formatFloat(pool.weight) .. "\r\n"
         end
-        if stage.move_speed ~= nil then
-            msg = msg .. "行走速度" .. stage.move_speed .. "\r\n"
+        if pool.move_speed ~= nil then
+            msg = msg .. "行走速度" .. pool.move_speed .. "\r\n"
         end
-        if stage.board_weight ~= nil and stage.board_speed ~= nil then
-            msg = msg .. "料台重量" .. formatFloat(stage.board_weight) .. "\r\n"
-            msg = msg .. "料台转速" .. formatFloat(stage.board_speed) .. "\r\n"
+        if pool.board_weight ~= nil and pool.board_speed ~= nil then
+            msg = msg .. "料台重量" .. formatFloat(pool.board_weight) .. "\r\n"
+            msg = msg .. "料台转速" .. formatFloat(pool.board_speed) .. "\r\n"
         end
-        if stage.move_weight ~= nil and stage.speed ~= nil then
-            msg = msg .. "行走重量" .. formatFloat(stage.move_weight) .. "\r\n"
-            msg = msg .. "投喂转速" .. formatFloat(stage.speed) .. "\r\n"
+        if pool.move_weight ~= nil and pool.speed ~= nil then
+            msg = msg .. "行走重量" .. formatFloat(pool.move_weight) .. "\r\n"
+            msg = msg .. "投喂转速" .. formatFloat(pool.speed) .. "\r\n"
         end
-        if stage.final_weight ~= nil then
-            msg = msg .. "实际重量" .. formatFloat(stage.final_weight) .. "\r\n"
+        if pool.final_weight ~= nil then
+            msg = msg .. "实际重量" .. formatFloat(pool.final_weight) .. "\r\n"
         end
     end
     return msg

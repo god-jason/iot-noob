@@ -45,11 +45,11 @@ function planner.plan(name, data)
     end
 
     local ret, res, plan = pcall(fn, data or {})
+    --log.info("plan", name, ret, res, plan)
     if not ret then
         return ret, res
     end
-
-    if not ret then
+    if not res then
         return res, plan
     end
 

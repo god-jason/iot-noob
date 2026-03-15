@@ -136,6 +136,7 @@ end
 -- @param topic string 消息
 -- @param arg1 any 参数
 function iot.emit(topic, ...)
+    --log.info("iot", "emit", topic, ...)
     sys.publish(topic, ...)
 end
 

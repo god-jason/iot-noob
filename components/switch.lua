@@ -18,6 +18,7 @@ function Switch:new(opts)
         falling = opts.falling or false,
         debounce = opts.debounce or 50,
         state = false,
+        event = opts.event,
         callback = opts.callback
     }, Switch)
     switch:init()
@@ -25,23 +26,22 @@ function Switch:new(opts)
 end
 
 function Switch:init()
-    local this = self
 
     self.gpio = iot.gpio(self.pin, {
         rising = self.rising,
         falling = self.falling,
         debounce = self.debounce,
-        callback = function(id, level)
+        callback = function(level, id)
             -- 反转
-            if this.reverse then
+            if self.reverse then
                 level = level > 0 and 0 or 1
             end
 
             self.state = (level == 1)
 
-            log.info("switch", id, level, this.name)
+            log.info("switch", id, level, self.name, self.event)
 
-            if this.disabled then
+            if self.disabled then
                 return
             end
 
@@ -53,14 +53,14 @@ function Switch:init()
             -- 发送统一事件
             iot.emit("SWITCH", {
                 pin = id,
-                name = this.name,
-                event = this.event,
+                name = self.name,
+                event = self.event,
                 level = level
             })
 
             -- 发送特定事件
-            if this.event and this.event ~= "" then
-                iot.emit(this.event, level)
+            if self.event then
+                iot.emit(self.event, level)
             end
         end
     })

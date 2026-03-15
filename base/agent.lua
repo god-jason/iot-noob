@@ -61,7 +61,7 @@ function commands.watch(data)
 
     local w = watcher
 
-    local tm = (data.value or 60) * 1000
+    local tm = (data.value or 1) * 60000
     iot.setTimeout(function()
         -- 只在最后一个定时结束时，结束监听
         if w == watcher then

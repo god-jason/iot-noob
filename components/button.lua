@@ -13,6 +13,7 @@ function Button:new(opts)
     local button = setmetatable({
         pin = opts.pin, -- 按钮连接的 GPIO 引脚
         name = opts.name, -- 名称
+        event = opts.event, -- 事件
         reverse = opts.reverse or false, -- 是否反转信号
         rising = opts.rising or false, -- 上升沿触发
         falling = opts.falling or false, -- 下降沿触发
@@ -33,7 +34,7 @@ function Button:init()
         rising = self.rising,
         falling = self.falling,
         debounce = self.debounce,
-        callback = function(id, level)
+        callback = function(level, id)
             -- 反转信号（如果设置了反转）
             if this.reverse then
                 level = level > 0 and 0 or 1

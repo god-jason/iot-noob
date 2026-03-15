@@ -153,7 +153,7 @@ function actions.fan(data)
     if data.value then
         components.fan:open(settings.feed.feed_fan_level or 7)
     else
-        components.fan:stop()
+        components.fan:close()
     end
     return true
     -- iot.setTimeout(control.fan_stop, (data.time or 10) * 1000) -- 默认10秒

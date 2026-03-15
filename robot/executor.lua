@@ -68,7 +68,8 @@ function Executor:execute(cursor)
     -- 执行恢复指令
     if cursor > 1 and cursor <= #self.tasks then
         local task = self.tasks[cursor]
-        pcall(vm.resume, task, self.context, self)
+        local ret, info = pcall(vm.resume, task, self.context, self)
+        log.info("vm.resume", ret, info)
     end
 
     -- 从起始任务执行
@@ -81,9 +82,7 @@ function Executor:execute(cursor)
         log.info("task", self.current, iot.json_encode(task))
 
         -- 记录起始时间
-        if not task.start_time then
-            task.start_time = os.date("%X") -- 记录起始 时分秒
-        end
+        local start_time = os.date("%X") -- 记录起始 时分秒
 
         -- 条件指令
         local cond = task._condition or task.condition
@@ -137,7 +136,8 @@ function Executor:execute(cursor)
             log.info("未知类型", task.type)
         end
 
-        task.end_time = os.date("%X") -- 记录结时间
+        local end_time = os.date("%X") -- 记录结时间
+        task.executed = start_time .. " - " .. end_time
 
         -- 下一条
         self.current = self.current + 1
@@ -151,7 +151,8 @@ function Executor:execute(cursor)
 
     -- 执行停止指令，用于结束动作
     -- vm.stop({}, self.context)
-    pcall(vm.stop, {}, self.context, self)
+    local ret, info = pcall(vm.stop, {}, self.context, self)
+    log.info("vm.stop", ret, info)
 
     -- 任务结束
     self.stoped = true

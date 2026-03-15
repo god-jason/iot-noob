@@ -33,17 +33,11 @@ end
 function vm.move(task, ctx)
     if task.distance > 0 then
         -- 到终点时，不能移动了
-        if not task.force and sensor.position() > settings.total_length - 10 then
-            return
-        end
         if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
             return
         end
     else
         -- 到起点时，不能移动了
-        if not task.force and sensor.position() < 10 then
-            return
-        end
         if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
             return
         end
@@ -60,18 +54,19 @@ function vm.move(task, ctx)
     -- local tm = control.move(task.speed, task.rounds)
 
     local rpm = feeder.calc_move_rpm(task.speed)
-    local tm = feeder.calc_move_time(rpm, task.distance) -- 此处没有计算加速时间
+    local tm = feeder.calc_move_time(rpm, task.distance) -- TODO 此处没有计算加速时间
+
     -- log.info("move time", tm)
     task.time = tm
 
     -- 处理恢复的移动任务
     if task.final_time ~= nil and task.final_time < tm then
         local tm2 = tm - task.final_time -- 减去上次的时间
-        ctx.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算
+        task.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算
         tm = components.move_servo:start(rpm, task.rounds * tm2 / tm) -- 按比例行进
     else
-        ctx.start_ticks = mcu.ticks()
-        ctx = components.move_servo:start(rpm, task.rounds)
+        task.start_ticks = mcu.ticks()
+        tm = components.move_servo:start(rpm, task.rounds)
     end
 
     return task.wait, tm
@@ -125,7 +120,7 @@ function vm.move_end(task, ctx)
 
     -- 运行速度置零
     ctx.move_speed = 0
-    ctx.move_task.final_time = mcu.ticks() - ctx.start_ticks
+    ctx.move_task.final_time = mcu.ticks() - ctx.move_task.start_ticks
 
     -- 无编码器时，暂停或结束时，需要计算位置
     if not settings.encoder.enable then
@@ -169,12 +164,12 @@ function vm.feed(task, ctx)
     -- 处理恢复的移动任务
     if task.final_time ~= nil and task.final_time < tm then
         local tm2 = tm - task.final_time -- 减去上次的时间
-        ctx.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算        
+        task.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算        
         components.feed_servo:start(task.speed, task.rounds * tm2 / tm) -- 按比例投喂
         tm = tm2
     else
         ctx.feed_rounds = (ctx.feed_rounds or 0) + task.rounds -- 累计圈数
-        ctx.start_ticks = mcu.ticks()
+        task.start_ticks = mcu.ticks()
         components.feed_servo:start(task.speed, task.rounds)
     end
 
@@ -189,7 +184,7 @@ function vm.feed_end(task, ctx)
 
     ctx.feed_speed = 0
     ctx.feed_task.end_weight = sensor.weight()
-    ctx.feed_task.final_time = mcu.ticks() - ctx.start_ticks
+    ctx.feed_task.final_time = mcu.ticks() - ctx.feed_task.start_ticks
     ctx.feed_task.final_weight = ctx.feed_task.end_weight - ctx.feed_task.start_weight
     ctx.feed_task = nil -- 指令结束，清空
 end
@@ -211,9 +206,9 @@ function vm.weigh(task, ctx)
     end
 
     -- 记录到每个阶段
-    if task.stage and task.stage > 0 and ctx.weight then
-        -- vm.plans[#vm.plans][task.stage].final_weight = weight - vm.weight
-        ctx.weights[task.stage] = ctx.weight - weight
+    if task.pool and task.pool > 0 and ctx.weight then
+        -- vm.plans[#vm.plans][task.pool].final_weight = weight - vm.weight
+        ctx.weights[task.pool] = ctx.weight - weight
     end
 
     ctx.weight = weight
@@ -227,16 +222,16 @@ end
 -- 停止，内部调用
 function vm.stop(task, ctx)
     if ctx.move_task then
-        vm.move_stop()
+        vm.move_stop(task, ctx)
     end
     if ctx.move_task then
-        vm.feed_stop()
+        vm.feed_stop(task, ctx)
     end
     if ctx.fan_level then
-        vm.fan_stop()
+        vm.fan_stop(task, ctx)
     end
     if ctx.vibrator then
-        vm.vibrator_stop()
+        vm.vibrator_stop(task, ctx)
     end
 end
 

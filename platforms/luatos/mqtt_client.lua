@@ -70,10 +70,16 @@ function MqttClient:open()
         return false, "缺少MQTT"
     end
 
+    -- 创建客户端
     self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
     if self.client == nil then
         log.error("create client failed")
         return false, "创建MQTT失败"
+    end
+
+    -- 调试
+    if self.options.debug then
+        self.client:debug(true)
     end
 
     -- 鉴权
@@ -89,7 +95,8 @@ function MqttClient:open()
 
     -- 注册回调
     self.client:on(function(client, event, topic, payload)
-        -- log.info("event", event, client, topic, payload)
+        log.info("event", event, client, topic, payload)
+        
         if event == "recv" then
             table.insert(self.sub_queue, {
                 topic = topic,

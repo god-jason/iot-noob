@@ -1,12 +1,17 @@
+local log = iot.logger("events")
+
 local settings = require("settings")
 local feeder = require("feeder")
 local sensor = require("sensor")
 local robot = require("robot")
 
+
+
 iot.on("FORWARD_LIMIT", function(level)
     if not settings.device.forward_limit_enable then
         return
     end
+    log.info("FORWARD_LIMIT", level)
 
     if level == 0 then
         -- 后退抖动情况，不处理
@@ -39,6 +44,7 @@ iot.on("BACKWARD_LIMIT", function(level)
     if not settings.device.backward_limit_enable then
         return
     end
+    log.info("BACKWARD_LIMIT", level)
 
     if level == 0 then
         -- 前进抖动情况，不处理
@@ -71,6 +77,7 @@ iot.on("MEG_SENSOR", function(level)
     if not settings.device.meg_sensor_enable then
         return
     end
+    log.info("MEG_SENSOR", level)
 
     if level == 0 then
         -- 前进抖动情况，不处理
@@ -94,12 +101,15 @@ iot.on("MEG_SENSOR", function(level)
 end)
 
 iot.on("FEED_SENSOR", function(level)
+    log.info("FEED_SENSOR", level)
     if level == 0 then
         sensor.feed_rounds = sensor.feed_rounds + 1
     end
 end)
 
 iot.on("SETTING", function(name)
+    log.info("SETTING", name)
+    
     if name == "distance" then
         feeder.normalize()
     elseif name:startsWith("food") or name == "weight" then
