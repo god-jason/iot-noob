@@ -31,6 +31,9 @@ function settings.update(name, content, version)
     settings[name] = content
     configs.save(name, content)
 
+    -- 通知组件
+    iot.emit("SETTING", name)
+
     -- 更新版本
     if version ~= nil then
         options.versions[name] = version

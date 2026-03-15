@@ -20,6 +20,7 @@ function Executor:new(opts)
         tasks = opts.tasks or {},
         on_finish = opts.on_finish,
         on_error = opts.on_error,
+        -- on_task_start = opts.on_task_start,
         current = 1,
         context = {}
     }, Executor)
@@ -50,6 +51,10 @@ function Executor:stop()
     iot.emit("executor_" .. self.id .. "_break")
 end
 
+function Executor:wait(timeout)
+    return iot.wait("executor_" .. self.id .. "_break", timeout)
+end
+
 --- 执行（内部用）
 function Executor:execute(cursor)
     cursor = cursor or 1 -- 默认从头开始
@@ -64,12 +69,18 @@ function Executor:execute(cursor)
         local task = self.tasks[self.current]
         log.info("task", self.current, iot.json_encode(task))
 
+        if not task.start_time then
+            task.start_time = os.time() -- 记录起始 时分秒
+        end
+
         -- 条件指令
         local cond = task._condition or task.condition
         if type(cond) == "function" then
             local ret, info = pcall(cond, self.context)
             if not ret then
                 log.error(info)
+                -- 记录错误
+                task.error = info
                 -- 上报错误
                 if self.on_error then
                     self.on_error(info)
@@ -91,6 +102,8 @@ function Executor:execute(cursor)
             local ret, info, wait = pcall(fn, task, self.context, self)
             if not ret then
                 log.error(info)
+                -- 记录错误
+                task.error = info
                 -- 上报错误
                 if self.on_error then
                     self.on_error(info)
@@ -112,6 +125,8 @@ function Executor:execute(cursor)
             log.info("未知类型", task.type)
         end
 
+        task.end_time = os.date("%X") -- 记录结时间
+
         -- 下一条
         self.current = self.current + 1
     end
@@ -124,11 +139,12 @@ function Executor:execute(cursor)
 
     -- 任务结束
     self.stoped = true
+    self.end_time = os.date("%X") -- 记录当前 时分秒
 
     log.info("execute finished", yaml.encode(self))
 
     if self.on_finish ~= nil then
-        self.on_finish()
+        self.on_finish(self.context)
     end
 end
 
@@ -167,6 +183,8 @@ function Executor:start()
             return false, "找不到指令" .. task.type
         end
     end
+
+    self.start_time = os.date("%X") -- 记录当前 时分秒
 
     iot.start(Executor.execute, self)
 

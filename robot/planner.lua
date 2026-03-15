@@ -44,16 +44,19 @@ function planner.plan(name, data)
         return false, "找不到计划器"
     end
 
-    local ret, res, tasks = pcall(fn, data or {})
+    local ret, res, plan = pcall(fn, data or {})
     if not ret then
         return ret, res
     end
 
-    return res, {
-        job = name,
-        tasks = tasks,
-        created = os.time()
-    }
+    if not ret then
+        return res, plan
+    end
+
+    plan.job = plan.job or name
+    plan.created = os.date("%Y-%m-%d %H:%M:%S") -- 记录创建时间
+
+    return true, plan
 end
 
 return planner

@@ -43,6 +43,29 @@ function schedule.open()
     return true
 end
 
+local ids = {}
+
+-- 定时任务
+function schedule.clock(time, fn)
+    local ret, id = cron.clock(time, fn)
+    if not ret then
+        return false, id
+    end
+
+    -- 保存计划ID
+    table.insert(ids, id)
+
+    return true
+end
+
+-- 取消定时任务
+function schedule.clear()
+    for i, v in ipairs(ids) do
+        cron.stop(v)
+    end
+    ids = {}
+end
+
 --- 关闭
 function schedule.close()
 

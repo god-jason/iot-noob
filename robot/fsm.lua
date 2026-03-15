@@ -152,6 +152,10 @@ function FSM:switch(name)
         return false, "空状态"
     end
 
+    if self.state_name == name then
+        return false, "同名状态"
+    end
+
     -- 加载新状态
     local state = self.states[name]
     if not state then
