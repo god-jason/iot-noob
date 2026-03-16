@@ -106,6 +106,7 @@ function Stepper:start(rpm, rounds)
     -- pwm.stop(self.pwm)
     if self.pwm then
         self.pwm:stop()
+        self.pwm = nil
     end
 
     -- 匀速运行
@@ -150,6 +151,7 @@ function Stepper:stop()
         -- pwm.stop(self.pwm)
         if self.pwm then
             self.pwm:stop()
+            self.pwm = nil
         end
         self.last = 0
         self.running = false
@@ -219,6 +221,7 @@ function Stepper:accelerate(start, finish, count)
         -- pwm.start(self.pwm)
         if self.pwm then
             self.pwm:stop()
+            self.pwm = nil
         end
         local ret, pwm = iot.pwm(self.pwm_id, {
             freq = vv,

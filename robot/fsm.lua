@@ -65,8 +65,8 @@ function FSM:execute()
                 log.info(self.name, "leave state", self.state_name, self.state.name)
 
                 -- self.state.leave(self)
-                local ret, info = pcall(self.state.leave, self.context)
-                if not ret then
+                local ret, info = utils.call(self.state.leave, self.context)
+                if ret == false then
                     log.error(self.name, self.state_name, "执行leave错误", info)
                 end
             end
@@ -81,8 +81,8 @@ function FSM:execute()
                 log.info(self.name, "enter state", self.state_name, self.state.name)
 
                 -- state.enter(self)
-                local ret, info = pcall(self.state.enter, self.context)
-                if not ret then
+                local ret, info = utils.call(self.state.enter, self.context)
+                if ret == false then
                     log.error(self.name, self.state_name, "执行enter错误", info)
                 end
             end
@@ -92,8 +92,8 @@ function FSM:execute()
         if self.state then
             if self.state.tick then
                 -- self.state.tick(self)
-                local ret, info = pcall(self.state.tick, self.context)
-                if not ret then
+                local ret, info = utils.call(self.state.tick, self.context)
+                if ret == false then
                     log.error(self.name, self.state_name, "执行tick错误", info)
                 end
             end
@@ -115,8 +115,8 @@ function FSM:execute()
         log.info(self.name, "leave state", self.state_name, self.state.name)
 
         -- self.state.leave(self)
-        local ret, info = pcall(self.state.leave, self.context)
-        if not ret then
+        local ret, info = utils.call(self.state.leave, self.context)
+        if ret == false then
             log.error(self.name, self.state_name, "执行leave错误", info)
         end
     end

@@ -298,7 +298,7 @@ planner.register("move", function(data)
     local tasks = {}
 
     local rpm = feeder.calc_move_rpm(settings.feed.move_speed)
-    local brake = feeder.calc_brake_distance(settings.feed.move_speed)
+    local brake = feeder.calc_brake_distance(rpm)
 
     local distance = settings.total_length - position - brake
     local rounds = feeder.calc_move_rounds(distance)
@@ -387,8 +387,8 @@ planner.register("force_move", function(data)
     local tasks = {}
 
     local rpm = feeder.calc_move_rpm(data.speed or 5)
-    local brake = robot.calc_brake_distance(rpm)
-    local rounds = robot.calc_move_rounds(data.distance)
+    local brake = feeder.calc_brake_distance(rpm)
+    local rounds = feeder.calc_move_rounds(data.distance)
 
     -- 创建一个平移任务
     table.insert(tasks, {
@@ -514,7 +514,7 @@ planner.register("feed_rank", function(data)
     end
 
     -- 投喂任务
-    local ret, plan = feeder.feed(data)
+    local ret, plan = feeder.feed_rank(data)
     if not ret then
         return false, plan
     end
@@ -527,6 +527,6 @@ planner.register("feed_rank", function(data)
         plan.tasks = tasks
     end
 
-    return feeder.feed_rank(data)
+    return true, plan
 end)
 

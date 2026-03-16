@@ -231,7 +231,7 @@ function feeder.normalize()
 
         elseif point.type:startsWith("charge") and settings.functions.bamboo then
 
-            -- 插入一个毛竹开始节点
+            -- 充电位视作一个毛竹， 插入一个毛竹开始节点
             table.insert(all_points, {
                 name = "充电位",
                 type = "bamboo",
@@ -510,6 +510,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             local rpm = feeder.calc_move_rpm(plan[point.pool].move_speed)
             local tm = feeder.calc_move_time(rpm, distance) -- 计算时长
             rounds = plan[point.pool].speed * tm / 60 / 1000 -- 计算实际圈数
+            weight = rounds * feeder.weight_per_round
 
             table.insert(tasks, {
                 pool = point.pool,
@@ -527,7 +528,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                     stop = true
                 elseif next_point.type == "finish" then
                     -- 没有下一个棚了，需要减速
-                    if i + 2 > #point then
+                    if i + 2 > #points then
                         -- TODO 这个代码有点丑
                         stop = true
                     end
@@ -537,7 +538,8 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             local brake = 0
             if stop then
                 -- 减去刹车距离
-                brake = feeder.calc_brake_distance(plan[point.pool].move_speed)
+                local rpm = feeder.calc_move_rpm(plan[point.pool].move_speed)
+                brake = feeder.calc_brake_distance(rpm)
                 log.info("brake", brake)
                 distance = distance - brake
             end
@@ -626,7 +628,8 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 type = "fan_stop"
             })
 
-            local brake = feeder.calc_brake_distance(settings.feed.move_speed)
+            local rpm = feeder.calc_move_rpm(settings.feed.move_speed)
+            local brake = feeder.calc_brake_distance(rpm)
             -- local brake = control.calc_brake_distance(plan[point.pool].move_speed)
             log.info("brake", brake)
 
