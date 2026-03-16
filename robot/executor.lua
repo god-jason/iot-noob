@@ -140,6 +140,8 @@ function Executor:execute(cursor)
         local end_time = os.date("%X") -- 记录结时间
         task.executed = start_time .. " - " .. end_time
 
+
+
         -- 下一条
         self.current = self.current + 1
     end
@@ -170,7 +172,9 @@ function Executor:execute(cursor)
         end
     end
 
-    log.info(self.job, "execute finished", yaml.encode(self))
+    local text = yaml.encode(self)
+    log.info(self.job, "execute finished", text)
+    -- iot.emit("log", "### 执行器结果 " .. text)
 
     -- 置空当前任务
     self.job = "-"

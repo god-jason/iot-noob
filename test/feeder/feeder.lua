@@ -771,6 +771,73 @@ local function planLog()
     return msg
 end
 
+local vm_names = {
+    move = "行走",
+    move_stop = "停止行走",
+    move_lock = "锁机",
+    feed = "投喂",
+    feed_stop = "停止投喂",
+    wait = "等待",
+    weigh = "称重",
+    fan = "风机启动",
+    fan_stop = "风机停止",
+    brake = "刹车",
+    stop = "停止",
+    vibrator = "震动器启动",
+    vibrator_stop = "震动器停止"
+}
+
+local function feedLog()
+    local msg = "第" .. #current_plans .. "轮：\r\n"
+    for i, task in ipairs(robot.executor.tasks) do
+
+        if task.executed then
+            msg = msg .. "[" .. task.executed .. "]\r\n"
+        end
+
+        if task.stage ~= nil then
+            msg = msg .. " " .. task.stage
+        end
+
+        msg = msg .. " [" .. (vm_names[task.type] or task.type) .. "]"
+
+        if task.name ~= nil then
+            msg = msg .. " " .. task.name
+        end
+
+        if task.weight ~= nil then
+            msg = msg .. " 重量" .. formatFloat(task.weight) .. "g"
+        end
+
+        if task.start_weight and task.end_weight then
+            msg = msg .. " 电子秤(" .. formatFloat(task.start_weight) .. "-" .. formatFloat(task.end_weight) .. ")"
+        end
+
+        if task.distance then
+            msg = msg .. " 距离" .. formatFloat(task.distance) .. "cm"
+        end
+
+        if task.start_position and task.end_position then
+            msg = msg .. " 位置(" .. formatFloat(task.start_position) .. "-" .. formatFloat(task.end_position) .. ")"
+        end
+
+        if task.speed ~= nil then
+            msg = msg .. " 速度" .. formatFloat(task.speed)
+        end
+
+        if task.level ~= nil then
+            msg = msg .. " 等级" .. task.level
+        end
+
+        if task.time ~= nil then
+            msg = msg .. " 时间" .. task.time .. "ms"
+        end
+
+        msg = msg .. "\r\n"
+    end
+    return msg
+end
+
 local function onFeedFinished(ctx)
     log.info("onFeedFinished 下料圈数", ctx.feed_rounds, sensor.feed_rounds)
     -- log.info("onFeedFinished 重量", ctx.weights[1], ctx.weights[2], ctx.weights[3], ctx.weights[4])
@@ -807,8 +874,7 @@ local function onFeedFinished(ctx)
         -- log.info("weight_per_round", weight_per_round)           
     end
 
-    -- iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
-    -- TODO 上传VM日志
+    iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
 
     iot.emit("log", "投喂结束：\r\n" .. planLog())
 
