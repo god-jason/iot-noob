@@ -690,20 +690,11 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 })
 
                 -- 减速逼近起点
-                distance = -50 - (settings.correct.backward_detect or 100) -- 要运行到起点之前100cm，实现位置清零
-                rounds = feeder.calc_move_rounds(distance)
-
                 table.insert(tasks, {
-                    pool = point.pool,
-                    name = "zero", -- 清零
-                    type = "move",
+                    name = "清零", -- 清零
+                    type = "zero",
                     speed = 2, -- 2档回到起点
-                    rounds = rounds,
-                    distance = distance,
-                    wait = true
-                })
-                table.insert(tasks, {
-                    type = "move_end"
+                    distance = settings.correct.backward_detect or 100
                 })
             end
 

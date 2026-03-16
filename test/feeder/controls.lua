@@ -30,7 +30,7 @@ function vm.vibrator_stop(task, ctx)
 end
 
 -- 移动
-function vm.move(task, ctx)
+function vm.move(task, ctx, executor)
     ctx.move_task = task
     ctx.move_speed = task.speed
 
@@ -57,6 +57,39 @@ function vm.move(task, ctx)
     local rpm = feeder.calc_move_rpm(task.speed)
     local tm = feeder.calc_move_time(rpm, task.distance) -- TODO 此处没有计算加速时间
 
+    iot.start(function()
+        local start = mcu.ticks()
+
+        iot.sleep(500)
+        while task == ctx.move_task and not executor.stoped and not executor.paused do
+            local tm3 = mcu.ticks() - start
+            local dis = task.distance * tm3 / tm
+            local target = task.start_position + dis
+
+            if settings.encoder.enable then
+
+                -- 打开编码器，要检查距离
+                if math.abs(target - sensor.position()) > 100 then
+                    -- 如果误差较大，需要停止工作
+
+                end
+            else
+                -- 如果未开编码器，则定时设置距离
+                sensor.set_position(task.start_position + dis)
+                log.info("set_position", task.start_position, dis)
+            end
+
+            iot.sleep(500)
+        end
+
+        -- 任务结束
+        if not executor.paused and not settings.encoder.enable then
+            -- 写入最终位置
+            local position = task.start_position + task.distance
+            sensor.set_position(position)
+        end
+    end)
+
     -- log.info("move time", tm)
     task.time = tm
 
@@ -73,62 +106,54 @@ function vm.move(task, ctx)
     return task.wait, tm
 end
 
-local function __move_end()
-    -- 电机结束后，记录位置
-    log.info("move wait", tm)
-
-    -- iot.sleep(tm)
-    local ret = iot.wait("VM_BREAK", tm)
-    -- log.info("move end", ret, iot.json_encode(task))
-
-    -- 补偿距离，执行完，且编码器打开
-    if not ret and settings.encoder and settings.encoder.enable and task.position ~= nil then
-        local dis = task.position - sensor.position()
-        if dis > 10 then
-            iot.emit("device_log", "行走不到位，补偿" .. dis .. "cm")
-
-            -- 补偿距离
-            local rnds = feeder.calc_move_rounds(dis)
-            tm = components.move_servo:start(rpm, rnds)
-
-            ret = iot.wait("VM_BREAK", tm)
-            if not ret then
-
-                -- 补偿之后，还不到位
-                dis = task.position - sensor.position()
-                if dis > 10 then
-                    vm.stop()
-
-                    iot.emit("device_log", "行走不到位，误差" .. dis .. "cm")
-
-                    -- TODO 电话报警
-
-                    -- TODO 修改状态，暂停工作
-                    iot.emit("error", "行走不到位", true)
-                end
-            end
-        end
-    end
-end
-
 -- 移动结束
-function vm.move_end(task, ctx)
+function vm.move_end(task, ctx, executor)
     if not ctx.move_task then
         return
     end
 
-    -- TODO 位置补偿
+    -- 位置补偿
+    if settings.encoder.enable and executor and not executor.paused then
+        local diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
+
+        if math.abs(diff) > 10 then
+            task.error = "行走不到位，还差" .. diff .. "cm"
+
+            local times = 1
+            -- 至多补偿3次
+            while math.abs(diff) > 10 and times <= 3 do
+                local rpm = feeder.calc_move_rpm(ctx.move_task.speed)
+                local rounds = feeder.calc_move_rounds(diff)
+
+                -- 执行补偿
+                local tm = components.move_servo:start(rpm, rounds)
+                local ret = executor:wait(tm)
+                if ret then
+                    -- 补外部中断，则停止
+                    components.move_servo:stop()
+                    return
+                end
+
+                diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
+                times = times + 1
+            end
+
+            -- 停止电机
+            components.move_servo:stop()
+
+            -- 补偿仍不到位
+            if math.abs(diff) > 10 then
+                iot.emit("device_log", "行走不到位，还差" .. diff .. "cm")
+
+                -- TODO 如果差值较大，则报警，停机
+            end
+        end
+
+    end
 
     -- 运行速度置零
     ctx.move_speed = 0
     ctx.move_task.final_time = mcu.ticks() - ctx.move_task.start_ticks
-
-    -- 无编码器时，暂停或结束时，需要计算位置
-    if not settings.encoder.enable then
-        local distance = ctx.move_task.distance * ctx.move_task.final_time / ctx.move_task.time
-        local position = ctx.move_task.start_position + distance
-        sensor.set_position(position)
-    end
 
     ctx.move_task.end_position = sensor.position()
     ctx.move_task.final_distance = ctx.move_task.end_position - ctx.move_task.start_position
@@ -149,6 +174,52 @@ end
 -- 刹车
 function vm.brake(task)
     components.move_servo:brake()
+end
+
+-- 位置清零
+function vm.zero(task, ctx, executor)
+
+    -- 都禁用了，则不检查，直接归零
+    if not settings.device.backward_limit_enable and not settings.device.meg_sensor_enable then
+        components.move_servo:stop()
+        sensor.set_position(0)
+        return
+    end
+
+    -- 再减速逼近起点，直到-100cm，实现归零
+    local rpm = feeder.calc_move_rpm(task.speed or 2)
+    local distance = -math.abs(task.distance or 100)
+    local rounds = feeder.calc_move_rounds(distance)
+
+    -- 至多清零3次
+    for i = 1, 3, 1 do
+        -- 已经有后接近信号了
+        if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+            components.move_servo:stop()
+            sensor.set_position(0)
+            return
+        end
+        if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+            components.move_servo:stop()
+            sensor.set_position(0)
+            return
+        end
+
+        log.info("第" .. i .. "次位置清零")
+
+        -- 向前推进
+        local tm = components.move_servo:start(rpm, rounds)
+
+        -- 调用执行器的等待（反向调用了，有点怪）
+        executor:wait(tm)
+    end
+
+    -- 3次都失败，则直接置零
+    components.move_servo:stop()
+    sensor.set_position(0)
+
+    -- TODO 位置清零失败
+    iot.emit("device_log", "位置清零失败")
 end
 
 -- 投喂

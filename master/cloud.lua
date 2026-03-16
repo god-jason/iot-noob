@@ -351,6 +351,13 @@ local function master_task()
     end
 end
 
+-- 上传日志
+function cloud.log(data)
+    if client then
+        client:publish("device/" .. options.id .. "/log", data)    
+    end
+end
+
 function cloud.open()
     iot.start(master_task)
 end

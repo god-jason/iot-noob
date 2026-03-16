@@ -73,7 +73,6 @@ end
 
 -- 清除数据
 function commands.reset()
-    iot.emit("device_log", "恢复出厂设置")
     -- 删除所有文件，恢复出厂设置
     iot.walk("/", function(fn)
         log.info("remove", fn)
@@ -85,14 +84,12 @@ end
 
 -- 重启设备
 function commands.reboot()
-    iot.emit("device_log", "重启设备")
     iot.setTimeout(iot.reboot, 2000)
     return true
 end
 
 -- 升级
 function commands.upgrade(data)
-    iot.emit("device_log", "升级设备" .. (data.version or ''))
     iot.upgrade(data.url)
     return true
 end

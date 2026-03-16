@@ -87,19 +87,11 @@ local function home_tasks(data)
     end
 
     -- 再减速逼近起点，直到-100cm，实现归零
-    distance = -(settings.correct.backward_detect or 100) - position
-    rounds = control.calc_move_rounds(distance)
-
     table.insert(tasks, {
         name = "清零", -- 清零
-        type = "move",
+        type = "zero",
         speed = 2, -- 2档回到起点
-        rounds = rounds,
-        distance = distance,
-        wait = true
-    })
-    table.insert(tasks, {
-        type = "move_end"
+        distance = settings.correct.backward_detect or 100
     })
 
     -- 起点锁机
@@ -109,6 +101,12 @@ local function home_tasks(data)
             type = "move_lock"
         })
     end
+
+    -- 先等待2s，避免归零，立马去充电 或 喂料
+    table.insert(tasks, {
+        type = "wait",
+        time = 2000
+    })
 
     return true, tasks
 end
@@ -189,6 +187,10 @@ planner.register("move_backward", function(data)
         robot.state("idle")
         return false, "已经在起点"
     end
+
+    -- 先进入维护模式
+    robot.state("standby")
+
     return true, {
         tasks = tasks,
         on_finish = function()
@@ -227,6 +229,14 @@ planner.register("charge", function(data)
 
     -- 充电位不在原点，前进到充电位
     if settings.charge_position > 10 then
+        if #tasks > 0 then
+            -- 先等待2s，避免归零，立马去充电
+            table.insert(tasks, {
+                type = "wait",
+                time = 2000
+            })
+        end
+
         local rpm = feeder.calc_move_rpm(settings.feed.move_speed)
         local brake = feeder.calc_brake_distance(rpm)
         local distance = settings.charge_position - brake
@@ -345,16 +355,12 @@ planner.register("move", function(data)
     distance = -100 - (settings.correct.backward_detect or 50) -- 要运行到起点之前50cm，实现位置清零
     rounds = feeder.calc_move_rounds(distance)
 
+    -- 清零
     table.insert(tasks, {
-        name = "zero", -- 清零
-        type = "move",
+        name = "清零", -- 清零
+        type = "zero",
         speed = 2, -- 2档回到起点
-        rounds = rounds,
-        distance = distance,
-        wait = true
-    })
-    table.insert(tasks, {
-        type = "move_end"
+        distance = settings.correct.backward_detect or 100
     })
 
     -- 起点锁机
@@ -475,10 +481,52 @@ end)
 planner.register("feed", function(data)
     -- 切换到投喂状态
     robot.state("feed")
-    return feeder.feed(data)
+
+    -- 回归任务
+    local ret, tasks = home_tasks(data)
+    if not ret then
+        return false, tasks
+    end
+
+    -- 投喂任务
+    local ret, plan = feeder.feed(data)
+    if not ret then
+        return false, plan
+    end
+
+    -- 任务拼接
+    if #tasks > 0 then
+        for i, task in ipairs(plan.tasks) do
+            table.insert(tasks, task)
+        end
+        plan.tasks = tasks
+    end
+
+    return true, plan
 end)
 
 planner.register("feed_rank", function(data)
+
+    -- 回归任务
+    local ret, tasks = home_tasks(data)
+    if not ret then
+        return false, tasks
+    end
+
+    -- 投喂任务
+    local ret, plan = feeder.feed(data)
+    if not ret then
+        return false, plan
+    end
+
+    -- 任务拼接
+    if #tasks > 0 then
+        for i, task in ipairs(plan.tasks) do
+            table.insert(tasks, task)
+        end
+        plan.tasks = tasks
+    end
+
     return feeder.feed_rank(data)
 end)
 

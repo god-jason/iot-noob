@@ -4,8 +4,7 @@ local settings = require("settings")
 local feeder = require("feeder")
 local sensor = require("sensor")
 local robot = require("robot")
-
-
+local cloud = require("cloud")
 
 iot.on("FORWARD_LIMIT", function(level)
     if not settings.device.forward_limit_enable then
@@ -109,7 +108,7 @@ end)
 
 iot.on("SETTING", function(name)
     log.info("SETTING", name)
-    
+
     if name == "distance" then
         feeder.normalize()
     elseif name:startsWith("food") or name == "weight" then
@@ -117,4 +116,9 @@ iot.on("SETTING", function(name)
         feeder.stop()
         feeder.start()
     end
+end)
+
+-- 日志转发到平台
+iot.on("device_log", function(data)
+    cloud.log(data)
 end)
