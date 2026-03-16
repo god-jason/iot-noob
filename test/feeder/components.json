@@ -22,7 +22,7 @@
         "reverse": true,
         "pwm_id": 1,
         "dir": 25,
-        "en": 36,
+        "en": 26,
         "freq": 1600
     },
     {
@@ -45,7 +45,7 @@
     {
         "type": "relay",
         "name": "driver",
-        "pin": 36
+        "pin": 35
     },
     {
         "type": "relay",
