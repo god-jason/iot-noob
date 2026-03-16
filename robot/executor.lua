@@ -87,7 +87,7 @@ function Executor:execute(cursor)
         -- 条件指令
         local cond = task._condition or task.condition
         if type(cond) == "function" then
-            local ret, info = utils.call(cond, self.context)
+            local ret, info = utils.call(cond, self.context, self)
             if not ret then
                 log.error(info)
                 -- 记录错误

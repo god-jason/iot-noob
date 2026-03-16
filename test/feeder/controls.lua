@@ -6,25 +6,25 @@ local settings = require("settings")
 local feeder = require("feeder")
 
 -- 启动风机
-function vm.fan(task, ctx)
+function vm.fan(task, ctx, executor)
     ctx.fan_level = task.level
     components.fan:speed(task.level)
 end
 
 -- 停止风机
-function vm.fan_stop(task, ctx)
+function vm.fan_stop(task, ctx, executor)
     ctx.fan_level = nil
     components.fan:close()
 end
 
 -- 震动
-function vm.vibrator(task, ctx)
+function vm.vibrator(task, ctx, executor)
     ctx.vibrator = true
     components.vibrator:on()
 end
 
 -- 震动停止
-function vm.vibrator_stop(task, ctx)
+function vm.vibrator_stop(task, ctx, executor)
     ctx.vibrator = false
     components.vibrator:off()
 end
@@ -57,12 +57,24 @@ function vm.move(task, ctx, executor)
     local rpm = feeder.calc_move_rpm(task.speed)
     local tm = feeder.calc_move_time(rpm, task.distance) -- TODO 此处没有计算加速时间
 
-    iot.start(function()
-        local start = mcu.ticks()
+    -- log.info("move time", tm)
+    task.time = tm
 
+    -- 处理恢复的移动任务
+    if task.final_time ~= nil and task.final_time < tm then
+        local tm2 = tm - task.final_time -- 减去上次的时间
+        task.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算
+        tm = components.move_servo:start(rpm, task.rounds * tm2 / tm) -- 按比例行进
+    else
+        task.start_ticks = mcu.ticks()
+        tm = components.move_servo:start(rpm, task.rounds)
+    end
+
+    -- 进度检查
+    iot.start(function()
         iot.sleep(500)
         while task == ctx.move_task and not executor.stoped and not executor.paused do
-            local tm3 = mcu.ticks() - start
+            local tm3 = mcu.ticks() - task.start_ticks
             local dis = task.distance * tm3 / tm
             local target = task.start_position + dis
 
@@ -82,26 +94,14 @@ function vm.move(task, ctx, executor)
             iot.sleep(500)
         end
 
-        -- 任务结束
-        if not executor.paused and not settings.encoder.enable then
+        -- 任务正常结束
+        if not settings.encoder.enable and not executor.paused and not executor.stoped and
+            (mcu.ticks() - task.start_ticks) >= tm then
             -- 写入最终位置
             local position = task.start_position + task.distance
             sensor.set_position(position)
         end
     end)
-
-    -- log.info("move time", tm)
-    task.time = tm
-
-    -- 处理恢复的移动任务
-    if task.final_time ~= nil and task.final_time < tm then
-        local tm2 = tm - task.final_time -- 减去上次的时间
-        task.start_ticks = mcu.ticks() - task.final_time -- 向前推进一个假时间，方便计算
-        tm = components.move_servo:start(rpm, task.rounds * tm2 / tm) -- 按比例行进
-    else
-        task.start_ticks = mcu.ticks()
-        tm = components.move_servo:start(rpm, task.rounds)
-    end
 
     return task.wait, tm
 end
@@ -112,8 +112,8 @@ function vm.move_end(task, ctx, executor)
         return
     end
 
-    -- 位置补偿
-    if settings.encoder.enable and executor and not executor.paused then
+    -- 编码器启用，任务未结束，开启位置补偿
+    if settings.encoder.enable and executor and not executor.paused and not executor.stoped then
         local diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
 
         if math.abs(diff) > 10 then
@@ -161,18 +161,18 @@ function vm.move_end(task, ctx, executor)
 end
 
 -- 停止移动
-function vm.move_stop(task, ctx)
+function vm.move_stop(task, ctx, executor)
     components.move_servo:stop()
-    vm.move_end(task, ctx)
+    vm.move_end(task, ctx, executor)
 end
 
 -- 锁机
-function vm.move_lock()
+function vm.move_lock(task, ctx, executor)
     components.move_servo:move_lock()
 end
 
 -- 刹车
-function vm.brake(task)
+function vm.brake(task, ctx, executor)
     components.move_servo:brake()
 end
 
@@ -223,7 +223,7 @@ function vm.zero(task, ctx, executor)
 end
 
 -- 投喂
-function vm.feed(task, ctx)
+function vm.feed(task, ctx, executor)
     ctx.feed_task = task
 
     task.start_weight = sensor.weight() -- 记录起始重量
@@ -249,7 +249,7 @@ function vm.feed(task, ctx)
 end
 
 -- 投喂结束
-function vm.feed_end(task, ctx)
+function vm.feed_end(task, ctx, executor)
     if not ctx.feed_task then
         return
     end
@@ -262,13 +262,13 @@ function vm.feed_end(task, ctx)
 end
 
 -- 停止投喂
-function vm.feed_stop(task, ctx)
+function vm.feed_stop(task, ctx, executor)
     components.feed_servo:stop()
-    vm.feed_end(task, ctx)
+    vm.feed_end(task, ctx, executor)
 end
 
 -- 称重
-function vm.weigh(task, ctx)
+function vm.weigh(task, ctx, executor)
     local weight = sensor.weight()
     task.weight = weight
 
@@ -292,7 +292,7 @@ function vm.report(task)
 end
 
 -- 停止，内部调用
-function vm.stop(task, ctx)
+function vm.stop(task, ctx, executor)
     -- TODO 直接停止会影响其他任务
     components.move_servo:stop()
     components.feed_servo:stop()
@@ -300,21 +300,21 @@ function vm.stop(task, ctx)
     components.vibrator:off()
 
     if ctx.move_task then
-        vm.move_stop(task, ctx)
+        vm.move_stop(task, ctx, executor)
     end
 
     if ctx.feed_task then
-        vm.feed_stop(task, ctx)
+        vm.feed_stop(task, ctx, executor)
     end
     if ctx.fan_level then
-        vm.fan_stop(task, ctx)
+        vm.fan_stop(task, ctx, executor)
     end
     if ctx.vibrator then
-        vm.vibrator_stop(task, ctx)
+        vm.vibrator_stop(task, ctx, executor)
     end
 end
 
-function vm.pause(task, ctx)
+function vm.pause(task, ctx, executor)
     -- TODO 直接停止会影响其他任务
     components.move_servo:stop()
     components.feed_servo:stop()
@@ -322,12 +322,12 @@ function vm.pause(task, ctx)
     components.vibrator:off()
 
     -- 主动停止，记录时间
-    vm.move_end()
-    vm.feed_end()
+    vm.move_end(task, ctx, executor)
+    vm.feed_end(task, ctx, executor)
 end
 
 -- 恢复，内部调用
-function vm.resume(task, ctx)
+function vm.resume(task, ctx, executor)
     if ctx.fan_level then
         components.fan:speed(ctx.fan_level)
     end
@@ -336,12 +336,12 @@ function vm.resume(task, ctx)
     end
     if ctx.move_task then
         if task.type ~= "move" then
-            vm.move(task, ctx)
+            vm.move(task, ctx, executor)
         end
     end
     if ctx.feed_task then
         if task.type ~= "feed" then
-            vm.feed(task, ctx)
+            vm.feed(task, ctx, executor)
         end
     end
 end
