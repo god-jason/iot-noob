@@ -117,8 +117,3 @@ iot.on("SETTING", function(name)
         feeder.start()
     end
 end)
-
--- 日志转发到平台
-iot.on("device_log", function(data)
-    cloud.log(data)
-end)

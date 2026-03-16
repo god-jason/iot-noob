@@ -4,6 +4,8 @@ local cron = {}
 
 local log = iot.logger("cron")
 
+local utils = require("utils")
+
 local increment = 1 -- 自增ID
 
 -- 所有任务
@@ -216,9 +218,9 @@ function cron.execute()
                     -- 异步执行(不知道有没有数量限制，会不会影响性能)
                     iot.start(function()
                         if RELEASE then
-                            local ret, info = pcall(cb)
+                            local ret, info = utils.call(cb)
                             if not ret then
-                                iot.emit("error", info)
+                                log.error(info)
                             end
                         else
                             cb()

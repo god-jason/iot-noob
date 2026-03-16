@@ -4,6 +4,7 @@
 local Device = {}
 Device.__index = Device
 
+local utils = require("utils")
 local log = iot.logger("device")
 
 --- 创建设备实例
@@ -230,7 +231,7 @@ function Device:emit(name, ...)
     end
     -- 依次回调
     for i, v in ipairs(list) do
-        pcall(v.callback, ...)
+        utils.call(v.callback, ...)
     end
     -- 删除once
     for i = #list, 1, -1 do

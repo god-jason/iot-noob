@@ -2,6 +2,8 @@
 -- @module agent
 local agent = {}
 
+local utils = require("utils")
+
 local log = iot.logger("agent")
 
 local commands = {}
@@ -41,12 +43,7 @@ function agent.execute(name, data)
         return false, "找不到命令：" .. name
     end
 
-    local ret, res, info = pcall(cmd, data)
-    if not ret then
-        return false, res
-    end
-
-    return res, info
+    return utils.call(cmd, data)
 end
 
 agent.watching = false

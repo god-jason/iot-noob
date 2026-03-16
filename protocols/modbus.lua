@@ -15,6 +15,7 @@ local protocols = require("protocols")
 local points = require("points")
 local binary = require("binary")
 local model = require("model")
+local utils = require("utils")
 
 local mapper_cache = {}
 
@@ -679,15 +680,8 @@ function ModbusMaster:_polling()
         for _, dev in pairs(self.devices) do
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
-            local ret, info = pcall(function()
-
-                local ret, values = dev:poll()
-                if ret then
-                    log.info("polling", dev.id, "succeed")
-                else
-                    log.error("polling", dev.id, "failed", values)
-                end
-
+            local ret, info = utils.call(function()
+                return dev:poll()
             end)
             if not ret then
                 log.error("polling", dev.id, "error", info)

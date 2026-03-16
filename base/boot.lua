@@ -4,6 +4,8 @@ local boot = {}
 
 local log = iot.logger("boot")
 
+local utils = require("utils")
+
 local modules = {}
 local boots = {}
 
@@ -57,10 +59,7 @@ function boot.open(name)
     mod.visiting = false
 
     log.info("启动", name)
-    local ret, res, info = pcall(mod.open)
-    if not ret then
-        return false, res
-    end
+    local res, info = utils.call(mod.open)
     if res == false then
         return false, info
     end
@@ -86,10 +85,7 @@ function boot.close(name)
     end
 
     log.info("close", name)
-    local ret, res, info = pcall(mod.close)
-    if not ret then
-        log.error(res)
-    end
+    local res, info = utils.call(mod.close)
     if res == false then
         log.error(info)
     end

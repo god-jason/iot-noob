@@ -11,6 +11,7 @@ _G.links = _links
 local settings = require("settings")
 local boot = require("boot")
 local log = iot.logger("links")
+local utils = require("utils")
 
 local types = {}
 
@@ -67,7 +68,7 @@ end
 function links.close()
     for i, s in pairs(_links) do
         if type(s) == "table" then
-            pcall(s.close, s)
+            utils.call(s.close, s)
         end
     end
 end

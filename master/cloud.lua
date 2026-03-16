@@ -296,6 +296,13 @@ local function master_task()
 
     log.info("平台连接成功")
 
+    iot.on("log", function(data)
+        client:publish("device/" .. options.id .. "/log", data)
+    end)
+    iot.on("error", function(data)
+        client:publish("device/" .. options.id .. "/log", "[设备错误] " .. data)
+    end)
+
     iot.emit("MASTER_READY")
 
     -- 订阅网关消息
@@ -348,13 +355,6 @@ local function master_task()
                 end
             end
         end
-    end
-end
-
--- 上传日志
-function cloud.log(data)
-    if client then
-        client:publish("device/" .. options.id .. "/log", data)    
     end
 end
 

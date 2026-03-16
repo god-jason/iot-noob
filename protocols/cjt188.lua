@@ -16,6 +16,7 @@ local protocols = require("protocols")
 local binary = require("binary")
 local points = require("points")
 local model = require("model")
+local utils = require("utils")
 
 -- 单位转换代码
 local units = {
@@ -575,11 +576,8 @@ function Cjt188Master:_polling()
         for _, dev in pairs(self.devices) do
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
-            local ret, info = pcall(function()
-                local ret, info = dev:poll()
-                if not ret then
-                    log.error("polling", dev.id, info)
-                end
+            local ret, info = utils.call(function()
+                return dev:poll()
             end)
             if not ret then
                 log.error("polling", dev.id, "error", info)

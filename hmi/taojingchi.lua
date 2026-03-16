@@ -6,6 +6,7 @@ local log = iot.logger("taojingchi")
 local settings = require("settings")
 local agent = require("agent")
 local boot = require("boot")
+local utils = require("utils")
 
 local options = {}
 
@@ -74,9 +75,9 @@ local function on_data(id, len)
 
             -- 卸载旧页面
             if type(current_page.leave) == "function" then
-                ret, err = pcall(current_page.leave)
-                if not ret then
-                    log.info("handle page leave error", err)
+                ret, err = utils.call(current_page.leave)
+                if ret == false then
+                    log.error("handle page leave error", err)
                 end
             end
 
@@ -85,17 +86,17 @@ local function on_data(id, len)
 
             -- 挂载新页面
             if type(current_page.enter) == "function" then
-                ret, err = pcall(current_page.enter)
-                if not ret then
-                    log.info("handle page enter error", err)
+                ret, err = utils.call(current_page.enter)
+                if ret == false then
+                    log.error("handle page enter error", err)
                 end
             end
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                ret, err = pcall(current_page.tick)
-                if not ret then
-                    log.info("handle page tick error", err)
+                ret, err = utils.call(current_page.tick)
+                if ret == false then
+                    log.error("handle page tick error", err)
                 end
             end
             return
@@ -124,9 +125,9 @@ function tjc.open()
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                local ret, err = pcall(current_page.tick)
-                if not ret then
-                    log.info("handle page tick error", err)
+                local ret, err = utils.call(current_page.tick)
+                if ret == false then
+                    log.error("handle page tick error", err)
                 end
             end
         end

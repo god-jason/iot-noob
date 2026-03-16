@@ -37,7 +37,7 @@ end
 function Watcher:dispatch(...)
     for i, cb in pairs(self.watchers) do
         if cb then
-            local ok, err = pcall(cb, ...)
+            local ok, err = utils.call(cb, ...)
             if not ok then
                 log.error("callback error:", err)
             end

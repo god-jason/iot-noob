@@ -807,10 +807,10 @@ local function onFeedFinished(ctx)
         -- log.info("weight_per_round", weight_per_round)           
     end
 
-    -- iot.emit("device_log", "###投喂结束 日志：\r\n" .. feedLog())
+    -- iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
     -- TODO 上传VM日志
 
-    iot.emit("device_log", "投喂结束：\r\n" .. planLog())
+    iot.emit("log", "投喂结束：\r\n" .. planLog())
 
     -- 如果未结束，则下一轮，结束则汇总上传
     if current_food.ranks > #current_plans then
@@ -833,7 +833,7 @@ local function onFeedFinished(ctx)
             -- 未达标
             if weight > 0 then
                 log.info(i .. "棚喂料未达标，缺少" .. weight)
-                iot.emit("device_log", i .. "棚喂料未达标，缺少" .. weight)
+                iot.emit("log", i .. "棚喂料未达标，缺少" .. weight)
                 lack = true
                 total_lack = total_lack + weight
             end
@@ -845,7 +845,7 @@ local function onFeedFinished(ctx)
 
                 if total_lack > 50 then
                     log.info("启用重量补偿")
-                    iot.emit("device_log", "启用重量补偿")
+                    iot.emit("log", "启用重量补偿")
                     next_feed_time = os.time() + 20 -- 20秒后开始补偿
                     return
                 end
@@ -1032,11 +1032,11 @@ function feeder.feed_rank()
     local tasks = feeder.plan(current_plans, current_weights, current_food.ranks, current_food.board_times,
         current_correct)
 
-    iot.emit("device_log", "投喂计划：\r\n" .. planLog())
+    iot.emit("log", "投喂计划：\r\n" .. planLog())
 
     if #tasks == 0 then
         log.info("无有效投喂任务")
-        iot.emit("device_log", "无法生成有效投喂任务")
+        iot.emit("log", "无法生成有效投喂任务")
 
         robot.state("idle") -- 结束投喂模式
         return false, "无法生成有效投喂任务"
@@ -1124,7 +1124,7 @@ function feeder.start()
                     })
                     if not ret then
                         log.info(tag, "投喂失败", info)
-                        iot.emit("device_log", "定时投喂启动失败：" .. info)
+                        iot.emit("log", "定时投喂启动失败：" .. info)
                     end
                 end)
             end

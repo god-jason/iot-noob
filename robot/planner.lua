@@ -4,6 +4,7 @@ local planners = {}
 
 local planner = {}
 local log = iot.logger("planner")
+local utils = require("utils")
 
 --[[
 计划器参考
@@ -44,13 +45,10 @@ function planner.plan(name, data)
         return false, "找不到计划器"
     end
 
-    local ret, res, plan = pcall(fn, data or {})
+    local ret, plan = utils.call(fn, data or {})
     --log.info("plan", name, ret, res, plan)
     if not ret then
-        return ret, res
-    end
-    if not res then
-        return res, plan
+        return ret, plan
     end
 
     plan.job = plan.job or name

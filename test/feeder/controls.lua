@@ -143,7 +143,7 @@ function vm.move_end(task, ctx, executor)
 
             -- 补偿仍不到位
             if math.abs(diff) > 10 then
-                iot.emit("device_log", "行走不到位，还差" .. diff .. "cm")
+                iot.emit("log", "行走不到位，还差" .. diff .. "cm")
 
                 -- TODO 如果差值较大，则报警，停机
             end
@@ -219,7 +219,7 @@ function vm.zero(task, ctx, executor)
     sensor.set_position(0)
 
     -- TODO 位置清零失败
-    iot.emit("device_log", "位置清零失败")
+    iot.emit("log", "位置清零失败")
 end
 
 -- 投喂

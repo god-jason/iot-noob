@@ -8,6 +8,7 @@ local log = iot.logger("protocols")
 
 local links = require("links")
 local boot = require("boot")
+local utils = require("utils")
 
 local types = {}
 
@@ -40,14 +41,7 @@ local function create_protocol(link)
     protocol_instanses[link.id] = instanse
 
     -- 打开协议
-    local ret2, res, info = pcall(instanse.open, instanse)
-    if not ret2 then
-        return false, res
-    end
-    if not res then
-        return false, info
-    end
-    return true
+    return utils.call(instanse.open, instanse)
 end
 
 --- 创建所有协议
@@ -65,7 +59,7 @@ end
 --- 关闭所有协议
 function protocols.close()
     for k, instanse in pairs(protocol_instanses) do
-        pcall(instanse.close, instanse)
+        utils.call(instanse.close, instanse)
     end
     protocol_instanses = {}
 end

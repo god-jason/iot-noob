@@ -4,6 +4,8 @@
 local Link = {}
 Link.__index = Link
 
+local utils = require("utils")
+
 ---  创建实例，子类定义可参考
 -- @param obj table 连接对象
 -- @return Link 对象
@@ -114,7 +116,7 @@ function Link:emit(name, ...)
     end
     -- 依次回调
     for i, v in ipairs(list) do
-        pcall(v.callback, ...)
+        utils.call(v.callback, ...)
     end
     -- 删除once
     for i = #list, 1, -1 do

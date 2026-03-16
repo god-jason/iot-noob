@@ -142,7 +142,7 @@ states.feed = {
                 -- local ret, info = feeder.feed_rank()
                 if not ret then
                     log.info("投喂失败", info)
-                    iot.emit("device_log", "投喂启动失败：" .. info)
+                    iot.emit("log", "投喂启动失败：" .. info)
                 end
             end
         end

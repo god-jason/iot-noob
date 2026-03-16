@@ -3,6 +3,8 @@
 local Event = {}
 Event.__index = Event
 
+local utils = require("utils")
+
 --- 初始化
 function Event:new(obj)
     local event = setmetatable(obj or {}, Event)
@@ -69,7 +71,7 @@ function Event:emit(name, ...)
     end
     -- 依次回调
     for i, v in ipairs(list) do
-        pcall(v.callback, ...)
+        utils.call(v.callback, ...)
     end
     -- 删除once
     for i = #list, 1, -1 do
