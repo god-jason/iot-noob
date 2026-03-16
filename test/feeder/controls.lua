@@ -31,6 +31,12 @@ end
 
 -- 移动
 function vm.move(task, ctx)
+    ctx.move_task = task
+    ctx.move_speed = task.speed
+
+    task.start_position = sensor.position() -- 记录起始位置
+
+    -- 如果限位开关已经触发，则不执行了，直接到move_end
     if task.distance > 0 then
         -- 到终点时，不能移动了
         if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
@@ -45,11 +51,6 @@ function vm.move(task, ctx)
             return
         end
     end
-
-    ctx.move_task = task
-    ctx.move_speed = task.speed
-
-    task.start_position = sensor.position() -- 记录起始位置
 
     -- local tm = control.move(task.speed, task.rounds)
 
@@ -221,10 +222,17 @@ end
 
 -- 停止，内部调用
 function vm.stop(task, ctx)
+    -- TODO 直接停止会影响其他任务
+    components.move_servo:stop()
+    components.feed_servo:stop()
+    components.fan:close()
+    components.vibrator:off()
+
     if ctx.move_task then
         vm.move_stop(task, ctx)
     end
-    if ctx.move_task then
+
+    if ctx.feed_task then
         vm.feed_stop(task, ctx)
     end
     if ctx.fan_level then
@@ -233,6 +241,18 @@ function vm.stop(task, ctx)
     if ctx.vibrator then
         vm.vibrator_stop(task, ctx)
     end
+end
+
+function vm.pause(task, ctx)
+    -- TODO 直接停止会影响其他任务
+    components.move_servo:stop()
+    components.feed_servo:stop()
+    components.fan:close()
+    components.vibrator:off()
+
+    -- 主动停止，记录时间
+    vm.move_end()
+    vm.feed_end()
 end
 
 -- 恢复，内部调用

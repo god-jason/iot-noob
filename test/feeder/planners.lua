@@ -198,6 +198,21 @@ planner.register("move_backward", function(data)
     }
 end)
 
+local function open_charge()
+    -- 延迟5秒充电
+    iot.setTimeout(function()
+        battery.charge(true)
+
+        -- 延迟5s开始风干
+        iot.setTimeout(function()
+            robot.plan("dry")
+            -- robot.plan("dry", {}, {
+            --     branch = true -- 子进程
+            -- })
+        end, 5000)
+    end, (settings.device.charge_timeout or 5) * 1000)
+end
+
 -- 充电
 planner.register("charge", function(data)
 
@@ -226,7 +241,7 @@ planner.register("charge", function(data)
             position = settings.charge_position - brake, -- 目标位置
             wait = true
         })
-        table.insert({
+        table.insert(tasks, {
             type = "move_end"
         })
 
@@ -245,13 +260,16 @@ planner.register("charge", function(data)
         end
     end
 
+    -- 设备就在原点，
+    if #tasks == 0 then
+        open_charge()
+        return false, "无需行走"
+    end
+
     return true, {
         tasks = tasks,
         on_finish = function()
-            -- 延迟5秒充电
-            iot.setTimeout(function()
-                battery.charge(true)
-            end, (settings.device.charge_timeout or 5) * 1000)
+            open_charge()
         end
     }
 end)
@@ -300,7 +318,7 @@ planner.register("move", function(data)
         })
     end
 
-    local wait = data.wait or settings.feed.move_timeout or 600 -- 平移等待时间 默认等10分钟，之后返回充电
+    local wait = data.wait or (settings.feed.move_timeout or 10) * 60 -- 平移等待时间 默认等10分钟，之后返回充电
     -- 等待
     table.insert(tasks, {
         type = "wait",
@@ -406,9 +424,12 @@ end)
 -- 风干
 planner.register("dry", function(data)
     local tasks = {}
+
+    -- 启动风机
     table.insert(tasks, {
         type = "fan",
-        level = settings.dry.fan_level or 3
+        level = settings.dry.fan_level or 3,
+        name = "begin"
     })
 
     -- 震动
@@ -440,7 +461,15 @@ planner.register("dry", function(data)
         time = (settings.dry.idle_time or 600) * 1000
     })
 
-    return true, tasks
+    -- 继续执行
+    table.insert(tasks, {
+        type = "jump",
+        label = "begin"
+    })
+
+    return true, {
+        tasks = tasks
+    }
 end)
 
 planner.register("feed", function(data)

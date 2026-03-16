@@ -12,11 +12,11 @@ function battery.charge(onoff)
     log.info("charge", onoff)
     battery.charging = onoff
     if onoff then
-        components.charge:set(0)
+        components.charge:off()
         components.led_power:blink()
         iot.emit("device_log", "开始充电")
     else
-        components.charge:set(1)
+        components.charge:on()
         components.led_power:on()
         iot.emit("device_log", "结束充电")
     end

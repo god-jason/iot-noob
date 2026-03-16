@@ -1,5 +1,7 @@
 local feeder = {}
 
+local log = iot.logger("controls")
+
 local boot = require("boot")
 local settings = require("settings")
 local configs = require("configs")
@@ -107,6 +109,7 @@ function feeder.normalize()
 
     settings.charge_position = 0
     settings.total_length = 0
+
     for k, v in pairs(settings.distance) do
         if k:startsWith("length") then
             if v > settings.total_length then
@@ -121,7 +124,9 @@ function feeder.normalize()
             end
         end
     end
-    settings.total_length = settings.total_length * 100 -- 转cm  
+    settings.total_length = settings.total_length * 100 -- 转cm
+
+    log.info("总棚长", settings.total_length, "充电位", settings.charge_position)
 
     -- 计算点位
     local pool = 1
@@ -259,7 +264,7 @@ function feeder.normalize()
         end
     end
 
-    log.info("normalize feed_lengths", json.encode(feed_lengths))
+    log.info("有效投喂距离", json.encode(feed_lengths))
 end
 
 -- 创建单次计划 计划，重量，趟数，料台次数，智能模式，单餐补偿
@@ -738,8 +743,11 @@ local current_correct = false -- 启用补偿，单餐标识
 local next_feed_time = 0
 local wait_times = 0
 
-function feeder.next()
-    return next_feed_time
+function feeder.next(tm)
+    if tm == nil then
+        return next_feed_time
+    end
+    next_feed_time = tm
 end
 
 local function formatFloat(val)
@@ -1281,8 +1289,8 @@ function feeder.update_status()
             -- move_alarm = convert_down_gpio(limit.move_alarm:get(),)
             -- feed_alarm = convert_down_gpio(limit.feed_alarm:get(),)
             weight_per_round = feeder.weight_per_round,
-            auto = feeder.auto(),
-            smart = feeder.smart(),
+            auto = options.auto,
+            smart = options.smart,
             dry = settings.dry.enable,
             moving_forward = is_job("move_forward"),
             moving_backward = is_job("move_backward"),
@@ -1299,7 +1307,7 @@ function feeder.update_status()
             moving = is_job("move"),
             mode = robot.fsm.state.name,
             error = robot.state_name() == "error",
-            -- ranks = robot.ranks(),
+            ranks = #current_plans,
             stats = settings.stats["season" .. (settings.stats.season or 1)] or 0
         })
     end

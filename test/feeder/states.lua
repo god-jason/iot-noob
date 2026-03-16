@@ -41,27 +41,37 @@ states.standby = {
 states.init = {
     name = "初始化",
     enter = function()
-        components.charge:off()
+        battery.charge(false)
         components.led_power:on()
         components.led_feed:on()
         components.led_move:on()
-        components.move_servo:stop()
-        components.feed_servo:stop()
-        components.fan:stop()
+        components.move_servo:unlock()
+        components.feed_servo:unlock()
+        -- components.fan:close()
     end
 }
+
+local idle_ticks = 0
 
 -- 待机状态
 states.idle = {
     name = "待机",
     enter = function()
-
+        idle_ticks = 0
     end,
     leave = function()
+        idle_ticks = 0
     end,
     tick = function()
         -- 超时自动充电
 
+        -- 空闲模式, 1分钟进入充电
+        idle_ticks = idle_ticks + 1
+
+        if idle_ticks > (settings.device.charge_wait or 60) then
+            idle_ticks = 0
+            robot.plan("charge", {})
+        end
     end
 }
 
@@ -85,9 +95,6 @@ states.charge = {
     name = "充电",
     enter = function()
         -- 打开风干任务
-        robot.plan("dry", {}, {
-            branch = true -- 子进程
-        })
     end,
     leave = function()
         -- 关闭充电继电器
@@ -125,13 +132,18 @@ states.feed = {
     tick = function()
         -- 检查下一轮任务
         if os.time() > feeder.next() then
-
             log.info("投喂间隔到，准备下一轮投喂")
-            local ret, info = robot.plan("feed_rank")
-            -- local ret, info = feeder.feed_rank()
-            if not ret then
-                log.info("投喂失败", info)
-                iot.emit("device_log", "投喂启动失败：" .. info)
+
+            if robot.executor.job == "feed" or robot.executor.job == "feed_rank" then
+                log.error("上一轮投喂还没结束")
+                feeder.next(os.time() + 1 * 60 * 1000) -- 顺延1分钟
+            else
+                local ret, info = robot.plan("feed_rank")
+                -- local ret, info = feeder.feed_rank()
+                if not ret then
+                    log.info("投喂失败", info)
+                    iot.emit("device_log", "投喂启动失败：" .. info)
+                end
             end
         end
 

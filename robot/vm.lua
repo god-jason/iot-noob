@@ -10,6 +10,10 @@ end
 function vm.resume(task, ctx)    
 end
 
+--- 暂停指令（需要实现）
+function vm.pause(task, ctx)    
+end
+
 --- 等待指令
 function vm.wait(task)
     return true, task.time

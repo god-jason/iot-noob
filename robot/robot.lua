@@ -47,19 +47,20 @@ function robot.plan(name, data, opts)
     end
 
     -- 补全参数
-    plan.name = opts.name or plan.name
+    plan.job = opts.job or plan.job or name
     plan.on_finish = opts.on_finish or plan.on_finish
     plan.on_error = opts.on_error or plan.on_error
 
     -- 创建一个虚拟机并执行
     local executor = Executor:new(plan)
+    
     if opts.branch then
         -- 停止支线任务
-        if robot.executors[plan.name] then
-            robot.executors[plan.name]:stop()
+        if robot.executors[plan.job] then
+            robot.executors[plan.job]:stop()
         end
         -- 替换支线任务
-        robot.executors[plan.name] = executor
+        robot.executors[plan.job] = executor
     else
         -- 停止主任务
         if robot.executor then

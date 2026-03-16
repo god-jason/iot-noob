@@ -63,13 +63,13 @@ end
 --- 执行（内部用）
 function Executor:execute(cursor)
     cursor = cursor or 1 -- 默认从头开始
-    log.info("execute", cursor, iot.json_encode(self.tasks))
+    log.info(self.job, "execute", cursor, iot.json_encode(self.tasks))
 
     -- 执行恢复指令
     if cursor > 1 and cursor <= #self.tasks then
         local task = self.tasks[cursor]
         local ret, info = pcall(vm.resume, task, self.context, self)
-        log.info("vm.resume", ret, info)
+        log.info(self.job, "vm.resume", ret, info)
     end
 
     -- 从起始任务执行
@@ -79,7 +79,7 @@ function Executor:execute(cursor)
         ::continue::
 
         local task = self.tasks[self.current]
-        log.info("task", self.current, iot.json_encode(task))
+        log.info(self.job, "task", self.current, iot.json_encode(task))
 
         -- 记录起始时间
         local start_time = os.date("%X") -- 记录起始 时分秒
@@ -125,15 +125,16 @@ function Executor:execute(cursor)
             -- 任务等待
             if info and wait and wait > 0 then
                 ret = iot.wait("executor_" .. self.id .. "_break", wait)
-                if ret then
+                if ret then                    
                     -- 被中断
-                    log.info("break")
+                    log.info(self.job, "break")
                     break
+                    -- TODO 恢复时，要计算等待时间
                 end
             end
         else
             -- 不会发生
-            log.info("未知类型", task.type)
+            log.info(self.job, "未知类型", task.type)
         end
 
         local end_time = os.date("%X") -- 记录结时间
@@ -145,14 +146,15 @@ function Executor:execute(cursor)
 
     -- 任务暂停
     if self.paused then
-        -- log.info("pause")
+        local ret, info = pcall(vm.pause, {}, self.context, self)
+        log.info(self.job, "vm.pause", ret, info)
         return
     end
 
     -- 执行停止指令，用于结束动作
     -- vm.stop({}, self.context)
     local ret, info = pcall(vm.stop, {}, self.context, self)
-    log.info("vm.stop", ret, info)
+    log.info(self.job, "vm.stop", ret, info)
 
     -- 任务结束
     self.stoped = true
@@ -168,7 +170,7 @@ function Executor:execute(cursor)
         end
     end
 
-    log.info("execute finished", yaml.encode(self))
+    log.info(self.job, "execute finished", yaml.encode(self))
 
     -- 置空当前任务
     self.job = "-"
@@ -212,7 +214,10 @@ function Executor:start()
 
     self.start_time = os.date("%X") -- 记录当前 时分秒
 
-    iot.start(Executor.execute, self)
+    -- 统一延迟200ms执行，避免上次任务未完全结束
+    iot.setTimeout(function()
+        iot.start(Executor.execute, self)    
+    end, 200)    
 
     return true
 end
