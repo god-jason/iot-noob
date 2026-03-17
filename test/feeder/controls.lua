@@ -4,6 +4,7 @@ local vm = require("vm")
 local sensor = require("sensor")
 local settings = require("settings")
 local feeder = require("feeder")
+local robot = require("robot")
 
 -- 启动风机
 function vm.fan(task, ctx, executor)
@@ -119,6 +120,8 @@ function vm.move_end(task, ctx, executor)
             local times = 1
             -- 至多补偿3次
             while math.abs(diff) > 10 and times <= 3 do
+                iot.emit("log", "行走不到位，还差" .. diff .. "cm" .. "，补偿第" .. times .. "次")
+
                 local rpm = feeder.calc_move_rpm(ctx.move_task.speed)
                 local rounds = feeder.calc_move_rounds(diff)
 
@@ -140,7 +143,7 @@ function vm.move_end(task, ctx, executor)
 
             -- 补偿仍不到位
             if math.abs(diff) > 10 then
-                iot.emit("log", "行走不到位，还差" .. diff .. "cm")
+                iot.emit("log", "行走不到位，补偿失败，还差" .. diff .. "cm")
 
                 -- TODO 如果差值较大，则报警，停机
             end
@@ -177,11 +180,11 @@ end
 function vm.zero(task, ctx, executor)
 
     -- 都禁用了，则不检查，直接归零
-    if not settings.device.backward_limit_enable and not settings.device.meg_sensor_enable then
-        components.move_servo:stop()
-        sensor.set_position(0)
-        return
-    end
+    -- if not settings.device.backward_limit_enable and not settings.device.meg_sensor_enable then
+    --     components.move_servo:stop()
+    --     sensor.set_position(0)
+    --     return
+    -- end
 
     -- 再减速逼近起点，直到-100cm，实现归零
     local rpm = feeder.calc_move_rpm(task.speed or 2)
@@ -208,7 +211,10 @@ function vm.zero(task, ctx, executor)
         local tm = components.move_servo:start(rpm, rounds)
 
         -- 调用执行器的等待（反向调用了，有点怪）
-        executor:wait(tm)
+        local ret = executor:wait(tm)
+        if ret then
+            break
+        end
     end
 
     -- 3次都失败，则直接置零
@@ -282,6 +288,18 @@ function vm.weigh(task, ctx, executor)
     end
 
     ctx.weight = weight
+end
+
+-- 去皮
+function vm.tare(task)
+    sensor.tare()
+end
+
+-- 创建支线任务
+function vm.plan(task, ctx)
+    robot.plan(task.name, task.data, {
+        branch = true
+    })
 end
 
 -- 上报消息

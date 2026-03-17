@@ -53,7 +53,7 @@ function robot.plan(name, data, opts)
 
     -- 创建一个虚拟机并执行
     local executor = Executor:new(plan)
-    
+
     if opts.branch then
         -- 停止支线任务
         if robot.executors[plan.job] then
@@ -73,6 +73,23 @@ function robot.plan(name, data, opts)
 
     -- 开始执行
     return executor:start()
+end
+
+--- 杀死计划
+-- @param name string 计划名称
+function robot.kill(name)
+    if robot.executor and robot.executor.job == name then
+        robot.executor:stop()
+        return true
+    end
+    -- 找到分支任务
+    for k, v in pairs(robot.executors) do
+        if k == name then
+            v:stop()
+            return true
+        end
+    end
+    return false
 end
 
 --- 停机

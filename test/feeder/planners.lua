@@ -16,7 +16,7 @@ local function home_tasks(data)
     -- 判断磁感应
     if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
         sensor.set_position(0)
-        --return false, "已经在起点(磁感应)"
+        -- return false, "已经在起点(磁感应)"
         return true, tasks
     end
 
@@ -71,8 +71,8 @@ local function home_tasks(data)
     end
 
     -- 如果距离远，需要先快速跑回去
-    if position > 50 then
-        distance = -position + 50
+    if position > 80 then
+        distance = -position + 80
         rounds = feeder.calc_move_rounds(distance)
 
         table.insert(tasks, {
@@ -95,7 +95,7 @@ local function home_tasks(data)
         name = "清零", -- 清零
         type = "zero",
         speed = 2, -- 2档回到起点
-        distance = settings.correct.backward_detect or 100
+        distance = 80 + (settings.correct.backward_detect or 0)
     })
 
     -- 起点锁机
@@ -211,14 +211,6 @@ local function open_charge()
     -- 延迟5秒充电
     iot.setTimeout(function()
         battery.charge(true)
-
-        -- 延迟5s开始风干
-        iot.setTimeout(function()
-            robot.plan("dry")
-            -- robot.plan("dry", {}, {
-            --     branch = true -- 子进程
-            -- })
-        end, 5000)
     end, (settings.device.charge_timeout or 5) * 1000)
 end
 
@@ -343,7 +335,7 @@ planner.register("move", function(data)
     })
 
     -- 回到起点
-    distance = -settings.total_length + (settings.correct.backward_detect or 50)
+    distance = -settings.total_length + 80
     rounds = feeder.calc_move_rounds(distance)
 
     table.insert(tasks, {
@@ -358,16 +350,12 @@ planner.register("move", function(data)
         type = "move_end"
     })
 
-    -- 减速逼近起点
-    distance = -100 - (settings.correct.backward_detect or 50) -- 要运行到起点之前50cm，实现位置清零
-    rounds = feeder.calc_move_rounds(distance)
-
     -- 清零
     table.insert(tasks, {
         name = "清零", -- 清零
         type = "zero",
         speed = 2, -- 2档回到起点
-        distance = settings.correct.backward_detect or 100
+        distance = 80 + (settings.correct.backward_detect or 0)
     })
 
     -- 起点锁机
@@ -438,6 +426,12 @@ end)
 planner.register("dry", function(data)
     local tasks = {}
 
+    -- 等5分钟正式开始
+    table.insert(tasks, {
+        type = "wait",
+        time = 5 * 60 * 1000
+    })
+
     -- 启动风机
     table.insert(tasks, {
         type = "fan",
@@ -445,6 +439,7 @@ planner.register("dry", function(data)
         name = "begin"
     })
 
+    log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
     -- 震动
     if settings.functions.vibrator and settings.dry.vibrator_time and settings.dry.vibrator_time > 0 then
         table.insert(tasks, {
@@ -478,6 +473,66 @@ planner.register("dry", function(data)
     table.insert(tasks, {
         type = "jump",
         label = "begin"
+    })
+
+    return true, {
+        tasks = tasks
+    }
+end)
+
+-- 清理料桶
+planner.register("auto_tare", function(data)
+
+    local tasks = {}
+
+    table.insert(tasks, {
+        type = "fan",
+        level = 5
+    })
+    table.insert(tasks, {
+        type = "wait",
+        time = 1000
+    })
+    table.insert(tasks, {
+        type = "vibrator"
+    })
+    table.insert(tasks, {
+        type = "feed",
+        speed = settings.device.feed_speed,
+        weight = 9999,
+        rounds = 9999
+    })
+    table.insert(tasks, {
+        type = "wait",
+        time = 10 * 1000 -- 10s
+    })
+    table.insert(tasks, {
+        type = "vibrator_stop"
+    })
+    table.insert(tasks, {
+        type = "wait",
+        time = 50 * 1000 -- 50s，不用参数
+    })
+
+    -- 停止
+    table.insert(tasks, {
+        type = "feed_stop"
+    })
+    table.insert(tasks, {
+        type = "wait",
+        time = 1000
+    })
+    table.insert(tasks, {
+        type = "fan_stop"
+    })
+
+    -- 等待秤稳定
+    table.insert(tasks, {
+        type = "wait",
+        time = 5000
+    })
+    table.insert(tasks, {
+        type = "tare"
     })
 
     return true, {

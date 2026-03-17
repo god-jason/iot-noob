@@ -676,7 +676,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 })
 
                 -- 回到起点
-                distance = -settings.total_length + 50
+                distance = -settings.total_length + 80
                 rounds = feeder.calc_move_rounds(distance)
 
                 table.insert(tasks, {
@@ -697,7 +697,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                     name = "清零", -- 清零
                     type = "zero",
                     speed = 2, -- 2档回到起点
-                    distance = settings.correct.backward_detect or 100
+                    distance = 80 + (settings.correct.backward_detect or 0)
                 })
             end
 
@@ -935,11 +935,20 @@ local function onFeedFinished(ctx)
 
     end
 
+    local auto_tare = false -- 清理料桶
+    local next_state = "idle" -- 下个状态
+
     log.info("任务全部结束")
     if options.smart and current_correct then
         if sensor.weight() < (settings.device.auto_tare_threshold or 150) then
+            auto_tare = true
+
+            -- 清理料桶
             robot.plan("auto_tare", {}, {
-                branch = true
+                branch = true,
+                on_finish = function()
+                    robot.state(next_state)
+                end
             })
         end
     end
@@ -990,7 +999,8 @@ local function onFeedFinished(ctx)
             if wait2 > 300 then
 
                 -- 先进入平移模式
-                robot.state("move")
+                -- robot.state("move")
+                next_state = "move"
 
                 -- 定时平移
                 iot.setTimeout(function()
@@ -999,13 +1009,15 @@ local function onFeedFinished(ctx)
                     })
                 end, wait * 1000)
 
-                return
+                -- TODO 切换状态，定时平移也要干掉
             end
         end
     end
 
     -- 退出投喂状态
-    robot.state("idle")
+    if not auto_tare then
+        robot.state(next_state)
+    end
 
     -- 清空计划和任务
     current_plans = {}
@@ -1098,7 +1110,7 @@ function feeder.feed_rank()
     sensor.feed_rounds = 0
 
     -- 创建计划（每餐调用一次）
-    local tasks = feeder.plan(current_plans, current_weights, current_food.ranks, current_food.board_times,
+    local tasks = feeder.plan(current_plans, current_weights, current_food.ranks or 1, current_food.board_times or 0,
         current_correct)
 
     iot.emit("log", "投喂计划：\r\n" .. planLog())
@@ -1204,7 +1216,29 @@ function feeder.start()
     if options.smart and settings.weight.auto_tare then
         schedule.clock(settings.weight.auto_tare_time or "03:00", function()
             if sensor.weight() < (settings.weight.auto_tare_threshold or 300) then
-                robot.plan("auto_tare")
+
+                if robot.state_name() ~= "charge" or robot.state_name() ~= "move" then
+                    return
+                end
+                if components.move_servo.running then
+                    return
+                end
+
+                -- 先关闭风干模式
+                local ret = robot.kill("dry")
+
+                -- 开始去皮
+                robot.plan("auto_tare", {}, {
+                    branch = true,
+                    on_finish = function()
+                        -- 恢复风干
+                        if ret then
+                            robot.plan("dry", {}, {
+                                branch = true
+                            })
+                        end
+                    end
+                })
             end
         end)
     end
@@ -1375,6 +1409,7 @@ end
 
 -- 打开
 function feeder.open()
+
     -- 规整数据
     feeder.normalize()
 

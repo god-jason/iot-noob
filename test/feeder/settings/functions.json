@@ -1,4 +1,5 @@
 {
     "bamboo": true,
-    "stop_feed": false
+    "stop_feed": false,
+    "vibrator": false
 }

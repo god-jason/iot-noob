@@ -248,7 +248,7 @@ end
 
 -- 重启设备
 function actions.reboot(data)
-    sensor.correct_save()
+    sensor.save()
     rtos.reboot()
     return true
 end
@@ -280,7 +280,7 @@ end
 -- 固件升级
 function actions.upgrade(data)
     iot.emit("FOTA", "固件升级")
-    sensor.correct_save()
+    sensor.save()
     return true
 end
 
@@ -293,7 +293,7 @@ end
 
 -- 重置设备
 function actions.reset(data)
-    sensor.correct_save()
+    sensor.save()
     settings.reset()
     return true
 end

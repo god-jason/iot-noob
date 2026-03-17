@@ -66,6 +66,7 @@ function sensor.add_position(v)
     _position = _position + v
 end
 
+
 -- 处理单片机消息
 local handlers = {}
 function handlers.status(data)
@@ -144,7 +145,7 @@ end
 function sensor.tare()
     correct = 0
     weight = 0
-    sensor.correct_save()
+    sensor.save()
     uart.write(uart_id, json.encode({
         type = "tare"
     }))
@@ -153,7 +154,7 @@ end
 -- 校准
 function sensor.calibrate(weight)
     correct = 0
-    sensor.correct_save()
+    sensor.save()
     uart.write(uart_id, json.encode({
         type = "calibrate",
         weight = weight
@@ -166,10 +167,6 @@ function sensor.query_status()
         type = "status"
     }))
 end
-
--- 100ms向单片机询问一次
-iot.setInterval(sensor.query_status, 500)
-
 
 -- 自动校正重量到目标值
 function sensor.correct(target, step)
@@ -188,17 +185,26 @@ function sensor.correct(target, step)
     end
 end
 
-function sensor.init()
+
+-- 初始化KV数据库
+fskv.init()
     
-    -- 读取修正值
-    correct = fskv.get("correct") or 0
+-- 读取修正值
+correct = fskv.get("correct") or 0
+_position = fskv.get("position") or 0
+log.info("fskv", correct, _position)
 
-    -- 每天保存一次修正值
-    iot.setInterval(sensor.correct_save, 24 * 3600)
-end
-
-function sensor.correct_save()
+-- 保存值
+function sensor.save()
+    fskv.set("position", _position)
     fskv.set("correct", correct)
 end
+
+-- 每天保存一次修正值
+iot.setInterval(sensor.save, 24 * 3600)
+
+-- 100ms向单片机询问一次数据
+iot.setInterval(sensor.query_status, 500)
+
 
 return sensor

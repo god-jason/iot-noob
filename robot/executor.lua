@@ -123,9 +123,9 @@ function Executor:execute(cursor)
             end
 
             -- 任务等待
-            if wait and wait > 0 then
+            if ret == true and wait and wait > 0 then
                 ret = iot.wait("executor_" .. self.id .. "_break", wait)
-                if ret then                    
+                if ret then
                     -- 被中断
                     log.info(self.job, "break")
                     break
@@ -139,8 +139,6 @@ function Executor:execute(cursor)
 
         local end_time = os.date("%X") -- 记录结时间
         task.executed = start_time .. " - " .. end_time
-
-
 
         -- 下一条
         self.current = self.current + 1
@@ -220,8 +218,8 @@ function Executor:start()
 
     -- 统一延迟200ms执行，避免上次任务未完全结束
     iot.setTimeout(function()
-        iot.start(Executor.execute, self)    
-    end, 200)    
+        iot.start(Executor.execute, self)
+    end, 200)
 
     return true
 end

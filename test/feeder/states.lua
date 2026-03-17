@@ -80,9 +80,18 @@ states.move = {
     name = "平移",
     enter = function()
         components.led_move:blink()
+
+        -- 打开风干任务
+        if settings.dry.enable then
+            robot.plan("dry", {}, {
+                branch = true
+            })
+        end
     end,
     leave = function()
         components.led_move:on()
+
+        robot.kill("dry")
     end,
     tick = function()
         -- 检查限位开关
@@ -95,16 +104,18 @@ states.charge = {
     name = "充电",
     enter = function()
         -- 打开风干任务
+        if settings.dry.enable then
+            robot.plan("dry", {}, {
+                branch = true
+            })
+        end
     end,
     leave = function()
         -- 关闭充电继电器
         battery.charge(false)
 
         -- 退出风干任务
-        if robot.executors.dry then
-            robot.executors.dry:stop()
-            robot.executors.dry = nil
-        end
+        robot.kill("dry")
     end,
     tick = function()
         -- TODO 检查充电电流
