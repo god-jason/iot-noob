@@ -334,6 +334,12 @@ planner.register("move", function(data)
         time = wait * 1000
     })
 
+    -- 平移返回日志
+    table.insert(tasks, {
+        type = "log",
+        data = "平移返回"
+    })
+
     -- 回到起点
     distance = -settings.total_length + 80
     rounds = feeder.calc_move_rounds(distance)
@@ -440,7 +446,7 @@ planner.register("dry", function(data)
     })
 
     --log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
-    
+
     -- 震动
     if settings.functions.vibrator and settings.dry.vibrator_time and settings.dry.vibrator_time > 0 then
         table.insert(tasks, {
@@ -533,7 +539,9 @@ planner.register("auto_tare", function(data)
         time = 5000
     })
     table.insert(tasks, {
-        type = "tare"
+        type = "tare",
+        wait = true,
+        time = 5000-- 去皮需要5s稳定时间
     })
 
     return true, {

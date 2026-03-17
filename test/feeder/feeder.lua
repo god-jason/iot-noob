@@ -1004,6 +1004,8 @@ local function onFeedFinished(ctx)
 
                 -- 定时平移
                 iot.setTimeout(function()
+                    iot.emit("log", "定时平移")
+
                     robot.plan("move", {
                         wait = wait2
                     })

@@ -101,6 +101,9 @@ function vm.move(task, ctx, executor)
         end)
     end
 
+    -- 主动上报数据
+    iot.emit("report")
+
     return task.wait, tm
 end
 
@@ -196,10 +199,16 @@ end
 -- 刹车
 function vm.brake(task, ctx, executor)
     components.move_servo:brake()
+
+    -- 刹车 一般是棚结束
+    -- 主动上报数据
+    iot.emit("report")
 end
 
 -- 位置清零
 function vm.zero(task, ctx, executor)
+    -- 主动上报数据
+    iot.emit("report")
 
     -- 都禁用了，则不检查，直接归零
     -- if not settings.device.backward_limit_enable and not settings.device.meg_sensor_enable then
@@ -228,6 +237,7 @@ function vm.zero(task, ctx, executor)
         end
 
         log.info("第" .. i .. "次位置清零")
+        --agent.watch() -- 实时上传位置
 
         -- 向前推进
         local tm = components.move_servo:start(rpm, rounds)
@@ -237,6 +247,9 @@ function vm.zero(task, ctx, executor)
         if ret then
             break
         end
+
+        -- 主动上报数据
+        iot.emit("report")
     end
 
     -- 3次都失败，则直接置零
@@ -270,6 +283,9 @@ function vm.feed(task, ctx, executor)
         task.start_ticks = mcu.ticks()
         components.feed_servo:start(task.speed, task.rounds)
     end
+
+    -- 主动上报数据
+    iot.emit("report")
 
     return task.wait, tm
 end
@@ -315,6 +331,11 @@ end
 -- 去皮
 function vm.tare(task)
     sensor.tare()
+
+    -- 主动上报数据
+    iot.emit("report")
+
+    return task.wait, task.time or 5000
 end
 
 -- 创建支线任务
@@ -326,7 +347,12 @@ end
 
 -- 上报消息
 function vm.report(task)
-    iot.emit("report")
+    iot.emit("report", task.all)
+end
+
+-- 记录日志
+function vm.log(task)
+    iot.emit("log", task.data)
 end
 
 -- 停止，内部调用
@@ -349,6 +375,9 @@ function vm.stop(task, ctx, executor)
     if ctx.vibrator then
         vm.vibrator_stop(task, ctx, executor)
     end
+
+    -- 主动上报数据
+    iot.emit("report")
 end
 
 function vm.pause(task, ctx, executor)
@@ -371,9 +400,8 @@ function vm.pause(task, ctx, executor)
         vm.vibrator_stop(task, ctx, executor)
     end
 
-    -- 主动停止，记录时间
-    vm.move_end(task, ctx, executor)
-    vm.feed_end(task, ctx, executor)
+    -- 主动上报数据
+    iot.emit("report")
 end
 
 -- 恢复，内部调用
@@ -386,12 +414,17 @@ function vm.resume(task, ctx, executor)
     end
     if ctx.move_task then
         if task.type ~= "move" then
+            -- 恢复行走
             vm.move(task, ctx, executor)
         end
     end
     if ctx.feed_task then
         if task.type ~= "feed" then
+            -- 恢复投喂
             vm.feed(task, ctx, executor)
         end
     end
+    
+    -- 主动上报数据
+    iot.emit("report")
 end

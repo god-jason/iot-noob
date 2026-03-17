@@ -3,5 +3,6 @@
     "product_id": "feeder",
     "host": "iot.longyuanshuichan.cn",
     "port": 1883,
-    "key": "noob"
+    "key": "noob",
+    "interval": 60
 }

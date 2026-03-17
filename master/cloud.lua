@@ -296,11 +296,23 @@ local function master_task()
 
     log.info("平台连接成功")
 
+    -- 上传日志
     iot.on("log", function(data)
-        client:publish("device/" .. options.id .. "/log", data)
+        if client then
+            client:publish("device/" .. options.id .. "/log", data)
+        end
     end)
+
+    -- 上传错误
     iot.on("error", function(data)
-        client:publish("device/" .. options.id .. "/log", "[设备错误] " .. data)
+        if client then
+            client:publish("device/" .. options.id .. "/log", "[设备错误] " .. data)
+        end
+    end)
+
+    -- 上传指令
+    iot.on("report", function(all)
+        report_device_values(master.device, all)
     end)
 
     iot.emit("MASTER_READY")
@@ -349,7 +361,7 @@ local function master_task()
             iot.sleep(1000)
         else
             -- 避免首次等60秒
-            for i = 1, 60, 1 do
+            for i = 1, (options.interval or 60), 1 do
                 if not agent.watching then
                     iot.sleep(1000)
                 end
