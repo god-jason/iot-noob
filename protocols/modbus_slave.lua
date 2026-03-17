@@ -382,6 +382,15 @@ function ModbusSlave:process()
         self.link:wait()
         local ret, data = self.link:read()
 
+        local tid, pid, ln
+
+        if self.tcp then
+            _, tid, pid, ln = iot.unpack(data, "3>H")
+            data = data:sub(7)
+        end
+
+        -- TODO 如果长度不足，则等待内容
+
         local slave = string.byte(data, 1)
 
         -- 找到设备
@@ -389,6 +398,11 @@ function ModbusSlave:process()
         if dev then
             local resp = dev:process(data)
             if resp and #resp > 0 then
+                if self.tcp then
+                    -- 拼接头，删除尾crc16
+                    resp = iot.pack("3>H", tid, pid, #resp - 2) .. resp:sub(1, #resp - 2)
+                end
+
                 self.link:write(resp)
             end
         end
