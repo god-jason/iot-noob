@@ -169,8 +169,8 @@ function ModbusSlaveDevice:read_holding_registers(data)
 
     local bytes = {}
     for i = 0, len - 1 do
-        local val = self.holding_registers[addr + i] or 0
-        table.insert(bytes, string.pack(">H", val))
+        local val = self.holding_registers[addr + i] or "0000"
+        table.insert(bytes, val)
     end
 
     return self:build_response(3, table.concat(bytes))
@@ -183,8 +183,8 @@ function ModbusSlaveDevice:read_input_registers(data)
 
     local bytes = {}
     for i = 0, len - 1 do
-        local val = self.input_registers[addr + i] or 0
-        table.insert(bytes, string.pack(">H", val))
+        local val = self.input_registers[addr + i] or "0000"
+        table.insert(bytes, val)
     end
 
     return self:build_response(4, table.concat(bytes))
@@ -215,13 +215,12 @@ end
 --- 写单个寄存器
 function ModbusSlaveDevice:write_register(data)
     local addr = iot.unpack(">H", data, 3)
-    local val = iot.unpack(">H", data, 5)
 
     if self.holding_registers[addr] == nil then
         return self:exception(6, 2)
     end
 
-    self.holding_registers[addr] = val
+    self.holding_registers[addr] = data:sub(5, 6)
 
     -- 找到变量，put_value
     for i, point in ipairs(self.mapper.holding_registers) do
@@ -275,8 +274,7 @@ function ModbusSlaveDevice:write_multiple_registers(data)
     local reg_bytes = data:sub(8, 7 + byte_cnt)
 
     for i = 0, len - 1 do
-        local val = string.unpack(">H", reg_bytes, 2 * i + 1)
-        self.holding_registers[addr + i] = val
+        self.holding_registers[addr + i] = reg_bytes:sub(2 * i + 1, 2 * i + 2)
     end
 
     -- 找到变量，put_values
