@@ -110,6 +110,22 @@ function vm.move_end(task, ctx, executor)
         return
     end
 
+    -- 已经到终点或起点，end任务就不再执行了
+    if ctx.move_task.distance > 0 then
+        -- 到终点时，不能移动了
+        if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
+            return
+        end
+    else
+        -- 到起点时，不能移动了
+        if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+            return
+        end
+        if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+            return
+        end
+    end
+
     -- 编码器启用，任务未结束，开启位置补偿
     if settings.encoder.enable and executor and not executor.paused and not executor.stoped then
         local diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
@@ -130,7 +146,7 @@ function vm.move_end(task, ctx, executor)
                 local ret = executor:wait(tm)
                 if ret then
                     -- 补外部中断，则停止
-                    components.move_servo:stop()
+                    -- components.move_servo:stop()
                     return
                 end
 
@@ -139,7 +155,7 @@ function vm.move_end(task, ctx, executor)
             end
 
             -- 停止电机
-            components.move_servo:stop()
+            -- components.move_servo:stop()
 
             -- 补偿仍不到位
             if math.abs(diff) > 10 then
@@ -310,15 +326,14 @@ end
 -- 停止，内部调用
 function vm.stop(task, ctx, executor)
     -- TODO 直接停止会影响其他任务
-    components.move_servo:stop()
-    components.feed_servo:stop()
-    components.fan:close()
-    components.vibrator:off()
+    -- components.move_servo:stop()
+    -- components.feed_servo:stop()
+    -- components.fan:close()
+    -- components.vibrator:off()
 
     if ctx.move_task then
         vm.move_stop(task, ctx, executor)
     end
-
     if ctx.feed_task then
         vm.feed_stop(task, ctx, executor)
     end
@@ -332,10 +347,23 @@ end
 
 function vm.pause(task, ctx, executor)
     -- TODO 直接停止会影响其他任务
-    components.move_servo:stop()
-    components.feed_servo:stop()
-    components.fan:close()
-    components.vibrator:off()
+    -- components.move_servo:stop()
+    -- components.feed_servo:stop()
+    -- components.fan:close()
+    -- components.vibrator:off()
+
+    if ctx.move_task then
+        vm.move_stop(task, ctx, executor)
+    end
+    if ctx.feed_task then
+        vm.feed_stop(task, ctx, executor)
+    end
+    if ctx.fan_level then
+        vm.fan_stop(task, ctx, executor)
+    end
+    if ctx.vibrator then
+        vm.vibrator_stop(task, ctx, executor)
+    end
 
     -- 主动停止，记录时间
     vm.move_end(task, ctx, executor)

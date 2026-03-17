@@ -14,7 +14,7 @@ local log = iot.logger("stepper")
 --  opts.reverse boolean 电机反转（适用于接线装反的场景）
 --  opts.en integer 使能引脚
 --  opts.freq integer  基础频率(一周的脉冲数)
---  opts.smooth boolean 平滑过渡
+--  opts.smooth boolean 平滑过渡 注意！！！开启平滑之后，正常行走脉冲会多发，需要手动停止或刹车
 function Stepper:new(opts)
     opts = opts or {}
     local stepper = setmetatable({
@@ -26,6 +26,7 @@ function Stepper:new(opts)
         smooth = opts.smooth or false,
         running = false,
         rounds = 0,
+        last = 0
     }, Stepper)
     stepper:init()
     return stepper
@@ -51,7 +52,7 @@ function Stepper:start(rpm, rounds)
     --     -- 电机驱动必须先把PWM停下，再修改频率才有效
     --     --pwm.stop(self.pwm)
     -- end
-    
+
     -- 记录圈数
     self.rounds = rounds
     self.running = true
@@ -65,7 +66,6 @@ function Stepper:start(rpm, rounds)
 
     -- 取正
     rounds = math.abs(rounds)
-
 
     -- 使能
     self.en_pin:set(0)
@@ -103,13 +103,12 @@ function Stepper:start(rpm, rounds)
     local time = math.ceil(count / freq * 1000)
 
     -- 先停止再改速
-    --pwm.stop(self.pwm_id)
+    -- pwm.stop(self.pwm_id)
     if self.pwm then
         self.pwm:stop()
         self.pwm = nil
     end
 
-    
     if freq > 0 and count > 0 then
         -- pwm.setup(self.pwm_id, freq, 50, count)
         -- pwm.start(self.pwm_id)
@@ -128,17 +127,17 @@ end
 
 --- 刹车（至零）
 function Stepper:brake()
-    if self.last ~= nil and self.last > 0 then
-        log.info(self.pwm_id, "brake")
+    log.info(self.pwm_id, "brake")
+    if self.smooth and self.last > 0 then
         self:accelerate(self.last, 0)
-        self:stop()
     end
+    self:stop()
 end
 
 --- 动态调整转速（无效，驱动器不支持直接改变频率）
 function Stepper:speed(rpm)
     local freq = math.floor(self.freq * rpm / 60)
-    --pwm.setFreq(self.pwm_id, freq)
+    -- pwm.setFreq(self.pwm_id, freq)
     self.pwm:setFreq(freq)
 end
 
@@ -146,7 +145,7 @@ end
 function Stepper:stop()
     log.info(self.pwm_id, "stop")
     if self.running then
-        --pwm.stop(self.pwm_id)
+        -- pwm.stop(self.pwm_id)
         if self.pwm then
             self.pwm:stop()
             self.pwm = nil
@@ -186,7 +185,6 @@ function Stepper:accelerate(start, finish, count)
     else
         log.info(self.pwm_id, "减速 start", start, "finish", finish, "count", count)
     end
-    
 
     local pulse = 0
 
@@ -214,8 +212,8 @@ function Stepper:accelerate(start, finish, count)
         -- local a = -6 * t * t + 6 * t -- 加速度
         local vv = (finish - start) * v + start
         vv = math.ceil(vv)
-        
-        --log.info("accelerate", i, vv)
+
+        -- log.info("accelerate", i, vv)
 
         -- 可能会出现0，导致死机，实时不会出现
         if vv == 0 then

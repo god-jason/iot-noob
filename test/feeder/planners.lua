@@ -439,7 +439,8 @@ planner.register("dry", function(data)
         name = "begin"
     })
 
-    log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
+    --log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
+    
     -- 震动
     if settings.functions.vibrator and settings.dry.vibrator_time and settings.dry.vibrator_time > 0 then
         table.insert(tasks, {
