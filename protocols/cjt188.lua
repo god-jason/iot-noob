@@ -547,11 +547,7 @@ function Cjt188Master:open()
     end
 
     -- 开启轮询
-    local this = self
-    self.trequest = iot.start(function()
-        -- 这个写法。。。
-        this:_polling()
-    end)
+    iot.start(Cjt188Master._polling, self)
 end
 
 --- 关闭

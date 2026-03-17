@@ -23,20 +23,19 @@ end
 ---  打开
 -- @return boolean, error
 function Device:open()
-    return false, "Device open() 未实现"
+    return true
 end
 
 ---  关闭
 -- @return boolean, error
 function Device:close()
-    return false, "Device close() 未实现"
+    return true
 end
 ---  读值
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
-    self.__index = key -- 避免self未使用错误提醒
-    return false, "Device get(key) 未实现"
+    return true, self._values[key]
 end
 
 ---  写值
@@ -44,13 +43,14 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
-    return false, "Device set(key, value) 未实现"
+    self._values[key] = value
+    return true
 end
 
 ---  轮询
 -- @return boolean, error
 function Device:poll()
-    return false, "Device poll() 未实现"
+    return true
 end
 
 function Device:set_threshold(key, threshold)

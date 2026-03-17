@@ -98,29 +98,27 @@ function Serial:pipe(peer)
         return
     end
 
-    local this = self
-
     -- 读取当前数据并转发
     iot.start(function()
-        while this.peer ~= nil do
-            this.uart:wait(1000)
-            local ret, data = this.uart:read()
-            if ret and #data > 0 and this.peer ~= nil then
+        while self.peer ~= nil do
+            self.uart:wait(1000)
+            local ret, data = self.uart:read()
+            if ret and #data > 0 and self.peer ~= nil then
                 log.info("serial write to peer", data:toHex())
-                this.peer:write(data)
+                self.peer:write(data)
             end
         end
     end)
 
     -- 读取透传数据并转发
     iot.start(function()
-        while this.peer ~= nil do
-            this.peer:wait(1000)
-            if this.peer ~= nil then
-                local ret, data = this.peer:read()
+        while self.peer ~= nil do
+            self.peer:wait(1000)
+            if self.peer ~= nil then
+                local ret, data = self.peer:read()
                 if ret and #data > 0 then
                     log.info("serial read from peer", data:toHex())
-                    this.uart:write(data)
+                    self.uart:write(data)
                 end
             end
         end

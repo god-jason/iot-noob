@@ -74,7 +74,6 @@ function Scene:open()
     end
 
     -- 注册触发器
-    local this = self
     for i, trigger in ipairs(self.triggers) do
         if trigger.type == "time" then
             -- 每日启动
@@ -95,7 +94,7 @@ function Scene:open()
                     end
                 end
 
-                this:execute()
+                self:execute()
             end)
 
             if not ret then
@@ -111,7 +110,7 @@ function Scene:open()
             local device = devices[trigger.device]
             if device then
                 trigger._cancel = device:on("change", function()
-                    this:execute()
+                    self:execute()
                 end)
             else
                 log.error("找不到设备", trigger.device)
@@ -223,16 +222,15 @@ end
 
 --- 场景执行（先检查条件，满足则执行响应）
 function Scene:execute()
-    local this = self
-
+    
     -- 延迟处理，同时避免了快速重入
     if self.delay and self.delay > 0 then
         if self._timer then
             return
         end
         self._timer = iot.setTimeout(function()
-            this._timer = nil
-            this:execute()
+            self._timer = nil
+            self:execute()
         end, self.delay * 1000)
         return
     end

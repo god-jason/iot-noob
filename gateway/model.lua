@@ -16,7 +16,7 @@ function model.get(product_id)
         return cache[product_id]
     end
 
-    log.info("load 模型", product_id)
+    log.info("load 物模型", product_id)
     local mod = database.get("model", "id", product_id)
     if mod then
         cache[product_id] = mod
