@@ -76,15 +76,15 @@ function ModbusSlaveDevice:set(key, value)
 end
 
 --- 生成异常响应
-function ModbusSlaveDevice:exception(code, code)
-    local resp = string.char(self.slave, code | 0x80, code)
+function ModbusSlaveDevice:exception(func, code)
+    local resp = string.char(self.slave, func | 0x80, code)
     local crc = modbus.crc16(resp)
     return resp .. iot.pack("<H", crc)
 end
 
 --- 构建标准响应（RTU）
-function ModbusSlaveDevice:build_response(code, payload)
-    local resp = string.char(self.slave, code) .. payload
+function ModbusSlaveDevice:build_response(func, payload)
+    local resp = string.char(self.slave, func) .. payload
     local crc = modbus.crc16(resp)
     return resp .. iot.pack("<H", crc)
 end
@@ -94,7 +94,14 @@ function ModbusSlaveDevice:read_coils(data)
     local addr = iot.unpack(">H", data, 3)
     local len = iot.unpack(">H", data, 5)
 
-    -- TODO 处理1个长度
+    --  处理1个长度
+    if len == 1 then
+        if self.coils[addr] then
+            return self:build_response(2, string.char(2) .. "\xFF00")
+        else
+            return self:build_response(2, string.char(2) .. "\x0000")
+        end
+    end
 
     local payload = {}
     for i = 0, len - 1 do
@@ -124,7 +131,14 @@ function ModbusSlaveDevice:read_discrete_inputs(data)
     local addr = iot.unpack(">H", data, 3)
     local len = iot.unpack(">H", data, 5)
 
-    -- TODO 处理1个长度
+    -- 处理1个长度
+    if len == 1 then
+        if self.discrete_inputs[addr] then
+            return self:build_response(2, string.char(2) .. "\xFF00")
+        else
+            return self:build_response(2, string.char(2) .. "\x0000")
+        end
+    end
 
     local payload = {}
     for i = 0, len - 1 do
@@ -187,7 +201,13 @@ function ModbusSlaveDevice:write_coil(data)
 
     self.coils[addr] = val
 
-    -- TODO 找到变量，put_value
+    -- 找到变量，put_value
+    for i, point in ipairs(self.mapper.coils) do
+        if point.address == addr then
+            self:put_value(point.name, val)
+            break
+        end
+    end
 
     return self:build_response(5, data:sub(3, 6))
 end
@@ -203,7 +223,16 @@ function ModbusSlaveDevice:write_register(data)
 
     self.holding_registers[addr] = val
 
-    -- TODO 找到变量，put_value
+    -- 找到变量，put_value
+    for i, point in ipairs(self.mapper.holding_registers) do
+        if point.address == addr then
+            local ret, val = points.parseWord(point, data:sub(5), point.address)
+            if ret then
+                self:put_value(point.name, val)
+            end
+            break
+        end
+    end
 
     return self:build_response(6, data:sub(3, 6))
 end
@@ -222,7 +251,18 @@ function ModbusSlaveDevice:write_multiple_coils(data)
         self.coils[addr + i] = bit_val == 1
     end
 
-    -- TODO 找到变量，put_values
+    -- 找到变量，put_values
+    local has = false
+    local values = {}
+    for i, point in ipairs(self.mapper.coils) do
+        if point.address >= addr and point.address < addr + coil_bytes then
+            values[point.name] = self.coils[point.address]
+            has = true
+        end
+    end
+    if has then
+        self:put_values(values)
+    end
 
     return self:build_response(15, data:sub(3, 6))
 end
@@ -239,7 +279,21 @@ function ModbusSlaveDevice:write_multiple_registers(data)
         self.holding_registers[addr + i] = val
     end
 
-    -- TODO 找到变量，put_values
+    -- 找到变量，put_values
+    local has = false
+    local values = {}
+    for i, point in ipairs(self.mapper.holding_registers) do
+        if point.address >= addr and point.address < addr + reg_bytes then
+            local ret, val = points.parseWord(point, reg_bytes, addr)
+            if ret then
+                values[point.name] = val
+                has = true
+            end
+        end
+    end
+    if has then
+        self:put_values(values)
+    end
 
     return self:build_response(16, data:sub(3, 6))
 end
@@ -247,30 +301,30 @@ end
 --- 主处理函数
 function ModbusSlaveDevice:process(data)
     local slave = string.byte(data, 1)
-    local code = string.byte(data, 2)
+    local func = string.byte(data, 2)
 
     if slave ~= self.slave then
         return nil -- 非本从站的数据
     end
 
-    if code == 1 then
+    if func == 1 then
         return self:read_coils(data)
-    elseif code == 2 then
+    elseif func == 2 then
         return self:read_discrete_inputs(data)
-    elseif code == 3 then
+    elseif func == 3 then
         return self:read_holding_registers(data)
-    elseif code == 4 then
+    elseif func == 4 then
         return self:read_input_registers(data)
-    elseif code == 5 then
+    elseif func == 5 then
         return self:write_coil(data)
-    elseif code == 6 then
+    elseif func == 6 then
         return self:write_register(data)
-    elseif code == 15 then
+    elseif func == 15 then
         return self:write_multiple_coils(data)
-    elseif code == 16 then
+    elseif func == 16 then
         return self:write_multiple_registers(data)
     else
-        return self:exception(code, 1) -- 非法功能码
+        return self:exception(func, 1) -- 非法功能码
     end
 end
 

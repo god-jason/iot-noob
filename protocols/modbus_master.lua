@@ -99,25 +99,25 @@ function ModbusMasterDevice:set(key, value)
 
     local ret
     local data
-    local code = point.register
+    local func = point.register
 
     -- 编码数据
-    if code == 1 or code == 2 then
+    if func == 1 or func == 2 then
         if value then
             data = string.fromHex("FF00")
         else
             data = string.fromHex("0000")
         end
-        code = 5
+        func = 5
     else
         ret, data = points.encode(point, value)
         if not ret then
             return false, data
         end
-        code = 6
+        func = 6
     end
 
-    return self.master:write(self.slave, code, point.address, data)
+    return self.master:write(self.slave, func, point.address, data)
 end
 
 ---读取所有数据
@@ -172,10 +172,10 @@ function ModbusMaster:new(link, opts)
     return master
 end
 
-function ModbusMaster:readTCP(slave, code, addr, len)
-    log.info("readTCP", slave, code, addr, len)
+function ModbusMaster:readTCP(slave, func, addr, len)
+    log.info("readTCP", slave, func, addr, len)
 
-    local data = iot.pack("b2>H2", slave, code, addr, len)
+    local data = iot.pack("b2>H2", slave, func, addr, len)
     -- 事务ID, 0000, 长度
     local header = iot.pack(">H3", self.increment, 0, #data)
     self.increment = self.increment + 1
@@ -213,19 +213,19 @@ end
 
 -- 读取数据
 -- @param slave integer 从站号
--- @param code integer 功能码
+-- @param func integer 功能码
 -- @param addr integer 地址
 -- @param len integer 长度
 -- @return boolean 成功与否
 -- @return string 只有数据
-function ModbusMaster:read(slave, code, addr, len)
+function ModbusMaster:read(slave, func, addr, len)
     if self.tcp then
-        return self:readTCP(slave, code, addr, len)
+        return self:readTCP(slave, func, addr, len)
     end
 
-    log.info("read", slave, code, addr, len)
+    log.info("read", slave, func, addr, len)
 
-    local data = iot.pack("b2>H2", slave, code, addr, len)
+    local data = iot.pack("b2>H2", slave, func, addr, len)
     local crc = iot.pack('<H', modbus.crc16(data))
 
     local ret, buf = self.request:request(data .. crc, 7)
@@ -257,10 +257,10 @@ function ModbusMaster:read(slave, code, addr, len)
     return true, string.sub(buf, 4, len2 - 2)
 end
 
-function ModbusMaster:writeTCP(slave, code, addr, data)
-    log.info("writeTCP", slave, code, addr, data)
+function ModbusMaster:writeTCP(slave, func, addr, data)
+    log.info("writeTCP", slave, func, addr, data)
 
-    data = iot.pack("b2>H", slave, code, addr) .. data
+    data = iot.pack("b2>H", slave, func, addr) .. data
 
     -- 事务ID, 0000, 长度
     local header = iot.pack(">H3", self.increment, 0, #data)
@@ -299,27 +299,27 @@ end
 
 -- 写入数据
 -- @param slave integer 从站号
--- @param code integer 功能码
+-- @param func integer 功能码
 -- @param addr integer 地址
 -- @param data string 数据
 -- @return boolean 成功与否
-function ModbusMaster:write(slave, code, addr, data)
-    if code == 1 then
-        code = 5
-    elseif code == 3 or code == 4 then
+function ModbusMaster:write(slave, func, addr, data)
+    if func == 1 then
+        func = 5
+    elseif func == 3 or func == 4 then
         if #data > 2 then
-            code = 16
+            func = 16
         else
-            code = 6
+            func = 6
         end
     end
 
     if self.tcp then
-        return self:writeTCP(slave, code, addr, data)
+        return self:writeTCP(slave, func, addr, data)
     end
 
-    log.info("write", slave, code, addr, data)
-    data = iot.pack("b2>H", slave, code, addr) .. data
+    log.info("write", slave, func, addr, data)
+    data = iot.pack("b2>H", slave, func, addr) .. data
     local crc = iot.pack('<H', modbus.crc16(data))
 
     local ret, buf = self.request:request(data .. crc, 7)
