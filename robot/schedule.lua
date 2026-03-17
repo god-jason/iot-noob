@@ -45,9 +45,22 @@ end
 
 local ids = {}
 
--- 定时任务
+-- 定时任务 时钟模式 00:00
 function schedule.clock(time, fn)
     local ret, id = cron.clock(time, fn)
+    if not ret then
+        return false, id
+    end
+
+    -- 保存计划ID
+    table.insert(ids, id)
+
+    return true
+end
+
+-- 定时任务 linux crontab格式
+function schedule.start(crontab, fn)
+    local ret, id = cron.start(crontab, fn)
     if not ret then
         return false, id
     end

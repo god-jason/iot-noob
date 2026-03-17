@@ -238,10 +238,17 @@ function cron.execute()
 
     -- 下次唤醒
     if next ~= nil and next > now then
+
+        -- 每10分钟唤醒一次，避免NTP时间同步之后错误，导致长时间等待
+        if next - now > 600 then
+            next = now + 600
+        end
+
+        -- 避免重复
         if not next_time or next_time ~= next then
             next_time = next
             log.info("wait", (next - now))
-            iot.setTimeout(cron.execute, (next - now) * 1000)
+            iot.setTimeout(cron.execute, (next - now) * 1000 + 100) -- 加100ms，避免唤醒时间早于目标时间
         end
     end
 end
@@ -304,18 +311,31 @@ function cron.stop(id)
     end
 end
 
+
 --- 创建时钟格式的计划任务
--- @param time 时间，支持到秒 06:00 06:00:00
+-- @param time 时间字符串: 06:00 或 06:00:00
 -- @param callback function
 -- @return boolean 成功与否
--- @return integer 任务ID
+-- @return integer|string 任务ID或错误信息
 function cron.clock(time, callback)
-    local crontab = ""
-    local h, m = time:match("(%d+):(%d+)")
-    if h == nil or m == nil then
-        return false, "错误格式" .. time
+    local h, m, s = time:match("^(%d+):(%d+):?(%d*)$")
+
+    if not h or not m then
+        return false, "错误时间格式: " .. time
     end
-    crontab = "0 " .. tonumber(m) .. " " .. tonumber(h) .. " * * *"
+
+    h = tonumber(h)
+    m = tonumber(m)
+    s = tonumber(s) or 0
+
+    -- 范围检查
+    if h > 23 or m > 59 or s > 59 then
+        return false, "时间超出范围: " .. time
+    end
+
+    --local crontab = string.format("%d %d %d * * *", s, m, h)
+    local crontab = s .. " " .. m .. " " .. h .. " * * *"
+
     return cron.start(crontab, callback)
 end
 

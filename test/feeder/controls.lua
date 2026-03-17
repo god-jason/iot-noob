@@ -237,7 +237,7 @@ function vm.zero(task, ctx, executor)
         end
 
         log.info("第" .. i .. "次位置清零")
-        --agent.watch() -- 实时上传位置
+        -- agent.watch() -- 实时上传位置
 
         -- 向前推进
         local tm = components.move_servo:start(rpm, rounds)
@@ -245,7 +245,8 @@ function vm.zero(task, ctx, executor)
         -- 调用执行器的等待（反向调用了，有点怪）
         local ret = executor:wait(tm)
         if ret then
-            break
+            -- 外部触发，结束任务，可能是到起点了，也可能是被取消了
+            return
         end
 
         -- 主动上报数据
@@ -256,7 +257,7 @@ function vm.zero(task, ctx, executor)
     components.move_servo:stop()
     sensor.set_position(0)
 
-    -- TODO 位置清零失败
+    -- 位置清零失败
     iot.emit("log", "位置清零失败")
 end
 
@@ -424,7 +425,7 @@ function vm.resume(task, ctx, executor)
             vm.feed(task, ctx, executor)
         end
     end
-    
+
     -- 主动上报数据
     iot.emit("report")
 end
