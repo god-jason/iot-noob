@@ -28,40 +28,39 @@ end
 
 --- 初始化按钮
 function Button:init()
-    local this = self
-
+    
     self.gpio = iot.gpio(self.pin, {
         rising = self.rising,
         falling = self.falling,
         debounce = self.debounce,
         callback = function(level, id)
             -- 反转信号（如果设置了反转）
-            if this.reverse then
+            if self.reverse then
                 level = level > 0 and 0 or 1
             end
 
-            this.state = (level == 1) -- 按钮按下时状态为 true
-            log.info("button", id, this.state, this.name)
+            self.state = (level == 1) -- 按钮按下时状态为 true
+            log.info("button", id, self.state, self.name)
 
-            if this.disabled then
+            if self.disabled then
                 return
             end
 
-            if this.state then
+            if self.state then
                 -- 按钮被按下，记录时间
-                this.press_start_time = mcu.ticks()
+                self.press_start_time = mcu.ticks()
             else
                 -- 按钮被松开，判断是否是长按
-                local press_duration = mcu.ticks() - this.press_start_time
-                if press_duration >= this.long_press_threshold then
+                local press_duration = mcu.ticks() - self.press_start_time
+                if press_duration >= self.long_press_threshold then
                     iot.emit("PRESS", {
                         pin = id,
-                        name = this.name
+                        name = self.name
                     })
                 else
                     iot.emit("CLICK", {
                         pin = id,
-                        name = this.name
+                        name = self.name
                     })
                 end
             end
@@ -69,14 +68,14 @@ function Button:init()
             -- 广播统一事件
             iot.emit("BUTTON", {
                 pin = id,
-                name = this.name,
-                state = this.state,
+                name = self.name,
+                state = self.state,
                 level = level
             })
 
             -- 发送特定事件
-            if this.event then
-                iot.emit(this.event, this.state)
+            if self.event then
+                iot.emit(self.event, self.state)
             end
         end
     })

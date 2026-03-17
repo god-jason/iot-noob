@@ -104,5 +104,23 @@
         "pin": 13,
         "debounce": 100,
         "event": "FEED_SENSOR"
+    },
+    {
+        "type": "button",
+        "name": "feed_button",
+        "pin": 8,
+        "debounce": 100,
+        "falling": true,
+        "reverse": true,
+        "event": "FEED_BUTTON"
+    },
+    {
+        "type": "button",
+        "name": "move_button",
+        "pin": 9,
+        "debounce": 100,
+        "falling": true,
+        "reverse": true,
+        "event": "MOVE_BUTTON"
     }
 ]

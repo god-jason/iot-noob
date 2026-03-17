@@ -11,24 +11,26 @@ local battery = require("battery")
 local planners = {}
 
 local function home_tasks(data)
+    local tasks = {}
+
     -- 判断磁感应
     if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
         sensor.set_position(0)
-        return false, "已经在起点(磁感应)"
+        --return false, "已经在起点(磁感应)"
+        return true, tasks
     end
 
     -- 判断后接近
     if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
         if sensor.position() < (settings.correct.backward_detect or 50) then
             sensor.set_position(0)
-            return false, "已经在起点(后接近)"
+            -- return false, "已经在起点(后接近)"
+            return true, tasks
         end
     end
 
     -- 创建任务
-    local tasks = {}
     local distance, rounds
-
     local position = sensor.position()
     if position < 10 then
         return true, tasks
