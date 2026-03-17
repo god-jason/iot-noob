@@ -129,13 +129,19 @@ function vm.move_end(task, ctx, executor)
     -- 编码器启用，任务未结束，开启位置补偿
     if settings.encoder.enable and executor and not executor.paused and not executor.stoped then
         local diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
+        local d = 10
 
-        if math.abs(diff) > 10 then
+        if (ctx.move_task.distance > 0 and diff > d) or (ctx.move_task.distance < 0 and diff < -d) then
             task.error = "行走不到位，还差" .. diff .. "cm"
 
             local times = 1
-            -- 至多补偿3次
-            while math.abs(diff) > 10 and times <= 3 do
+            while (ctx.move_task.distance > 0 and diff > d) or (ctx.move_task.distance < 0 and diff < -d) do
+
+                -- 至多补偿3次
+                if times > 3 then
+                    break
+                end
+
                 iot.emit("log", "行走不到位，还差" .. diff .. "cm" .. "，补偿第" .. times .. "次")
 
                 local rpm = feeder.calc_move_rpm(ctx.move_task.speed)
@@ -158,7 +164,7 @@ function vm.move_end(task, ctx, executor)
             -- components.move_servo:stop()
 
             -- 补偿仍不到位
-            if math.abs(diff) > 10 then
+            if (ctx.move_task.distance > 0 and diff > d) or (ctx.move_task.distance < 0 and diff < -d) then
                 iot.emit("log", "行走不到位，补偿失败，还差" .. diff .. "cm")
 
                 -- TODO 如果差值较大，则报警，停机
