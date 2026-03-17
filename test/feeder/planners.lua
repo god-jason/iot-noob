@@ -50,7 +50,9 @@ local function home_tasks(data)
                 rounds = feeder.calc_move_rounds(charge_distance),
                 wait = true
             })
-
+            table.insert(tasks, {
+                type = "move_end"
+            })
             table.insert(tasks, {
                 type = "brake"
             })
@@ -156,6 +158,9 @@ planner.register("move_forward", function(data)
         distance = distance,
         rounds = rounds,
         wait = true
+    })
+    table.insert(tasks, {
+        type = "move_end"
     })
 
     table.insert(tasks, {

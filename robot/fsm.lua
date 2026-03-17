@@ -56,6 +56,8 @@ end
 function FSM:execute()
     self.running = true
 
+    local ticked = false
+
     while self.running do
 
         -- 执行状态离开和进入
@@ -86,16 +88,25 @@ function FSM:execute()
                     log.error(self.name, self.state_name, "执行enter错误", info)
                 end
             end
+
+            ticked = false
         end
 
         -- 执行状态tick任务
         if self.state then
             if self.state.tick then
                 -- self.state.tick(self)
-                local ret, info = utils.call(self.state.tick, self.context)
+                local ret, info = pcall(self.state.tick, self.context)
                 if ret == false then
                     log.error(self.name, self.state_name, "执行tick错误", info)
+
+                    -- 使用原始pcall，避免错误日志上传多次
+                    if not ticked then
+                        iot.emit("error", info)
+                    end
                 end
+
+                ticked = true
             end
         else
             log.error(self.name, "未设置状态")

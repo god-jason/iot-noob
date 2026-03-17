@@ -753,6 +753,7 @@ end
 -- @return PWM
 function iot.pwm(id, opts)
     opts = opts or {}
+    --pwm.stop(id) -- 先停止之前的输出
     local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 50, opts.count or 0)
     if not ret then
         return false, "PWM打开失败" ..id

@@ -100,21 +100,21 @@ function Stepper:start(rpm, rounds)
     end
 
     log.info(self.pwm_id, "start freq", freq, "count", count)
-    local time = math.floor(count / freq * 1000)
+    local time = math.ceil(count / freq * 1000)
 
     -- 先停止再改速
-    -- pwm.stop(self.pwm)
+    --pwm.stop(self.pwm_id)
     if self.pwm then
         self.pwm:stop()
         self.pwm = nil
     end
 
-    -- 匀速运行
+    
     if freq > 0 and count > 0 then
-        -- pwm.setup(self.pwm, freq, 50, count)
-        -- pwm.start(self.pwm)
+        -- pwm.setup(self.pwm_id, freq, 50, count)
+        -- pwm.start(self.pwm_id)
         local ret, pwm = iot.pwm(self.pwm_id, {
-            freq = self.freq,
+            freq = freq,
             duty = 50,
             count = count
         })
@@ -138,7 +138,7 @@ end
 --- 动态调整转速（无效，驱动器不支持直接改变频率）
 function Stepper:speed(rpm)
     local freq = math.floor(self.freq * rpm / 60)
-    -- pwm.setFreq(self.pwm, freq)
+    --pwm.setFreq(self.pwm_id, freq)
     self.pwm:setFreq(freq)
 end
 
@@ -146,13 +146,13 @@ end
 function Stepper:stop()
     log.info(self.pwm_id, "stop")
     if self.running then
-        self.rounds = 0
-
-        -- pwm.stop(self.pwm)
+        --pwm.stop(self.pwm_id)
         if self.pwm then
             self.pwm:stop()
             self.pwm = nil
         end
+
+        self.rounds = 0
         self.last = 0
         self.running = false
         self:unlock()
@@ -181,7 +181,12 @@ local acc_interval = 10 -- 10ms加速一次
 -- @return integer 加减速消耗的时间ms
 -- @return integer 加减速消耗的脉冲数
 function Stepper:accelerate(start, finish, count)
-    log.info(self.pwm_id, "加速 start", start, "finish", finish, "count", count)
+    if start < finish then
+        log.info(self.pwm_id, "加速 start", start, "finish", finish, "count", count)
+    else
+        log.info(self.pwm_id, "减速 start", start, "finish", finish, "count", count)
+    end
+    
 
     local pulse = 0
 
@@ -208,17 +213,18 @@ function Stepper:accelerate(start, finish, count)
         local v = -2 * t * t * t + 3 * t * t -- 速度
         -- local a = -6 * t * t + 6 * t -- 加速度
         local vv = (finish - start) * v + start
-        -- log.info("accelerate", i, v, vv)
         vv = math.ceil(vv)
+        
+        --log.info("accelerate", i, vv)
 
         -- 可能会出现0，导致死机，实时不会出现
         if vv == 0 then
             vv = 1
         end
 
-        -- pwm.stop(self.pwm) -- PWM必须先停止再启动，否则无效
-        -- pwm.setup(self.pwm, vv, 50, count)
-        -- pwm.start(self.pwm)
+        -- pwm.stop(self.pwm_id) -- PWM必须先停止再启动，否则无效
+        -- pwm.setup(self.pwm_id, vv, 50, count)
+        -- pwm.start(self.pwm_id)
         if self.pwm then
             self.pwm:stop()
             self.pwm = nil

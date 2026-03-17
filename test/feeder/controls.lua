@@ -70,38 +70,35 @@ function vm.move(task, ctx, executor)
         tm = components.move_servo:start(rpm, task.rounds)
     end
 
+    -- TODO 加速距离没有计算
+
     -- 进度检查
-    iot.start(function()
-        iot.sleep(500)
-        while task == ctx.move_task and not executor.stoped and not executor.paused do
-            local tm3 = mcu.ticks() - task.start_ticks
-            local dis = task.distance * tm3 / tm
-            local target = task.start_position + dis
+    if not settings.encoder.enable then
+        iot.start(function()
+            local start = mcu.ticks()
 
-            if settings.encoder.enable then
+            iot.sleep(100)
+            while task == ctx.move_task and not executor.stoped and not executor.paused do
 
-                -- 打开编码器，要检查距离
-                if math.abs(target - sensor.position()) > 100 then
-                    -- 如果误差较大，需要停止工作
+                -- 计算用时
+                local tick = mcu.ticks()
+                local tm3 = tick - start
+                start = tick
 
-                end
-            else
+                -- 计算距离
+                local dis = feeder.calc_move_distance(rpm * tm3 / 60000)
+
                 -- 如果未开编码器，则定时设置距离
-                sensor.set_position(task.start_position + dis)
-                log.info("set_position", task.start_position, dis)
+                if task.distance > 0 then
+                    sensor.add_position(dis)
+                else
+                    sensor.add_position(-dis)
+                end
+
+                iot.sleep(100)
             end
-
-            iot.sleep(500)
-        end
-
-        -- 任务正常结束
-        if not settings.encoder.enable and not executor.paused and not executor.stoped and
-            (mcu.ticks() - task.start_ticks) >= tm then
-            -- 写入最终位置
-            local position = task.start_position + task.distance
-            sensor.set_position(position)
-        end
-    end)
+        end)
+    end
 
     return task.wait, tm
 end
@@ -229,6 +226,7 @@ function vm.feed(task, ctx, executor)
     task.start_weight = sensor.weight() -- 记录起始重量
 
     ctx.feed_speed = task.speed
+
     -- local tm = control.feed(task.speed, task.rounds)
     local tm = feeder.calc_feed_time(task.speed, task.weight)
     task.time = tm

@@ -62,6 +62,10 @@ function sensor.set_position(p)
     end
 end
 
+function sensor.add_position(v)
+    _position = _position + v
+end
+
 -- 处理单片机消息
 local handlers = {}
 function handlers.status(data)

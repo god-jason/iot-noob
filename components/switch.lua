@@ -66,6 +66,11 @@ function Switch:init()
     })
 end
 
+--- 直接获取GPIO真实状态
+function Switch:get()
+    return self.gpio:get()
+end
+
 --- 状态
 function Switch:status()
     return self.state
