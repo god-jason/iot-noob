@@ -39,13 +39,23 @@
     },
     {
         "type": "relay",
+        "name": "driver",
+        "pin": 35
+    },
+    {
+        "type": "relay",
         "name": "vibrator",
         "pin": 36
     },
     {
-        "type": "relay",
-        "name": "driver",
-        "pin": 35
+        "type": "led",
+        "name": "led_cloud",
+        "pin": 37
+    },
+    {
+        "type": "led",
+        "name": "led_net",
+        "pin": 38
     },
     {
         "type": "relay",
@@ -68,23 +78,6 @@
         "pin": 23
     },
     {
-        "type": "led",
-        "name": "led_net",
-        "pin": 38
-    },
-    {
-        "type": "led",
-        "name": "led_cloud",
-        "pin": 37
-    },
-    {
-        "type": "switch",
-        "name": "feed_sensor",
-        "pin": 13,
-        "debounce": 100,
-        "event": "FEED_SENSOR"
-    },
-    {
         "type": "button",
         "name": "feed_button",
         "pin": 8,
@@ -101,5 +94,33 @@
         "falling": true,
         "reverse": true,
         "event": "MOVE_BUTTON"
+    },
+    {
+        "type": "switch",
+        "name": "forward_limit",
+        "pin": 10,
+        "debounce": 100,
+        "event": "FORWARD_LIMIT"
+    },
+    {
+        "type": "switch",
+        "name": "backward_limit",
+        "pin": 11,
+        "debounce": 100,
+        "event": "BACKWARD_LIMIT"
+    },
+    {
+        "type": "switch",
+        "name": "meg_sensor",
+        "pin": 12,
+        "debounce": 100,
+        "event": "MEG_SENSOR"
+    },
+    {
+        "type": "switch",
+        "name": "feed_sensor",
+        "pin": 13,
+        "debounce": 100,
+        "event": "FEED_SENSOR"
     }
 ]

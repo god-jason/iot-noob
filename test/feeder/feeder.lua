@@ -1525,31 +1525,11 @@ end
 -- 打开
 function feeder.open()
 
-    -- 主动注册限位开关
+    -- 主动注册限位开关回调
     -- 通过components.json创建的组件，事件转发效率太低了
-    require("components").create({
-        type = "switch",
-        name = "forward_limit",
-        pin = 10,
-        debounce = 100,
-        callback = on_forward_limit
-    })
-
-    require("components").create({
-        type = "switch",
-        name = "backward_limit",
-        pin = 11,
-        debounce = 100,
-        callback = on_backward_limit
-    })
-
-    require("components").create({
-        type = "switch",
-        name = "meg_sensor",
-        pin = 12,
-        debounce = 100,
-        callback = on_meg_sensor
-    })
+    components.forward_limit.callback = on_forward_limit
+    components.backward_limit.callback = on_backward_limit
+    components.meg_sensor.callback = on_meg_sensor
 
     -- 规整数据
     feeder.normalize()
