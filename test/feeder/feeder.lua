@@ -892,7 +892,6 @@ local function onFeedFinished(ctx)
 
     iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
 
-    
     -- 如果未结束，则下一轮，结束则汇总上传
     if current_food.ranks > #current_plans then
         log.info("本轮任务结束")
@@ -1430,8 +1429,127 @@ function feeder.update_status()
     end
 end
 
+local function on_forward_limit(level)
+    if not settings.device.forward_limit_enable then
+        return
+    end
+    log.info("FORWARD_LIMIT", level)
+
+    if level == 0 then
+        -- 后退抖动情况，不处理
+        if components.move_servo.running and components.move_servo.rounds < 0 then
+            return
+        end
+
+        -- 立即停止电机
+        components.move_servo:stop()
+
+        -- 到终点时，不能移动了
+        if sensor.position() < settings.total_length - (settings.correct.forward_detect or 50) then
+            if robot.executor then
+                robot.executor:pause()
+            end
+        else
+            if robot.executor then
+                robot.executor:interrupt()
+            end
+            sensor.set_position(settings.total_length)
+        end
+    else
+        if robot.executor and robot.executor.paused then
+            robot.executor:resume()
+        end
+    end
+end
+
+local function on_backward_limit(level)
+    if not settings.device.backward_limit_enable then
+        return
+    end
+    log.info("BACKWARD_LIMIT", level)
+
+    if level == 0 then
+        -- 前进抖动情况，不处理
+        if components.move_servo.running and components.move_servo.rounds > 0 then
+            return
+        end
+
+        -- 立即停止电机
+        components.move_servo:stop()
+
+        if sensor.position() > (settings.correct.backward_detect or 50) then
+            if robot.executor then
+                robot.executor:pause()
+            end
+        else
+            if robot.executor then
+                robot.executor:interrupt()
+            end
+            sensor.set_position(0) -- 位置清零
+        end
+    else
+        if robot.executor and robot.executor.paused then
+            robot.executor:resume()
+        end
+    end
+
+end
+
+local function on_meg_sensor(level)
+    if not settings.device.meg_sensor_enable then
+        return
+    end
+    log.info("MEG_SENSOR", level)
+
+    if level == 0 then
+        -- 前进抖动情况，不处理
+        if components.move_servo.running and components.move_servo.rounds > 0 then
+            return
+        end
+
+        -- 立即停止电机
+        components.move_servo:stop()
+
+        if robot.executor then
+            robot.executor:interrupt()
+        end
+
+        sensor.set_position(0) -- 位置清零
+        -- 如果未启用编码器，需要等VM停止，再清一次0
+        -- if not settings.encoder.enable then
+        --     iot.setTimeout(sensor.set_position, 1000, 0)
+        -- end
+    end
+end
+
 -- 打开
 function feeder.open()
+
+    -- 主动注册限位开关
+    -- 通过components.json创建的组件，事件转发效率太低了
+    require("components").create({
+        type = "switch",
+        name = "forward_limit",
+        pin = 10,
+        debounce = 100,
+        callback = on_forward_limit
+    })
+
+    require("components").create({
+        type = "switch",
+        name = "backward_limit",
+        pin = 11,
+        debounce = 100,
+        callback = on_backward_limit
+    })
+
+    require("components").create({
+        type = "switch",
+        name = "meg_sensor",
+        pin = 12,
+        debounce = 100,
+        callback = on_meg_sensor
+    })
 
     -- 规整数据
     feeder.normalize()

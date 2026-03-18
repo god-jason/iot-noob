@@ -31,10 +31,11 @@ end
 
 --- 创建组件
 function components.create(cmp)
-    log.info("create", iot.json_encode(cmp))
+    log.info("create", cmp.type, cmp.name)
 
     local fn = types[cmp.type]
     if not fn then
+        --log.error("未知类型组件")
         return false, "未知组件类型" .. cmp.type
     end
 

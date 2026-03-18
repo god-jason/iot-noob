@@ -79,27 +79,6 @@
     },
     {
         "type": "switch",
-        "name": "forward_limit",
-        "pin": 10,
-        "debounce": 100,
-        "event": "FORWARD_LIMIT"
-    },
-    {
-        "type": "switch",
-        "name": "backward_limit",
-        "pin": 11,
-        "debounce": 100,
-        "event": "BACKWARD_LIMIT"
-    },
-    {
-        "type": "switch",
-        "name": "meg_sensor",
-        "pin": 12,
-        "debounce": 100,
-        "event": "MEG_SENSOR"
-    },
-    {
-        "type": "switch",
         "name": "feed_sensor",
         "pin": 13,
         "debounce": 100,
