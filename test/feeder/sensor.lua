@@ -204,7 +204,7 @@ end
 iot.setInterval(sensor.save, 24 * 3600)
 
 -- 100ms向单片机询问一次数据
-iot.setInterval(sensor.query_status, 500)
+iot.setInterval(sensor.query_status, 200)
 
 
 return sensor
