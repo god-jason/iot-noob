@@ -1199,6 +1199,12 @@ function feeder.smart(v)
     if v == nil then
         return options.smart
     end
+
+    if not v then
+        -- 关闭智能，还原下料速度为初始
+        feeder.weight_per_round = settings.feed.weight_per_round or 10
+    end
+    
     options.smart = v
     configs.save("robot", options)
 end
@@ -1524,6 +1530,8 @@ end
 
 -- 打开
 function feeder.open()
+    -- 初始下料速度
+    feeder.weight_per_round = settings.feed.weight_per_round or 10
 
     -- 主动注册限位开关回调
     -- 通过components.json创建的组件，事件转发效率太低了
