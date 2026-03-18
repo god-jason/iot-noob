@@ -574,7 +574,6 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 type = "feed_end"
             })
 
-
         elseif point.type == "bamboo" then
             -- 毛竹避障
 
@@ -845,8 +844,12 @@ local function feedLog()
     return msg
 end
 
-local function onFeedError(ctx)
-    
+local function onFeedError(err)
+    log.error("投喂任务执行错误：", err)
+    -- iot.emit("error", err)
+
+    -- TODO 退出投喂，报故障
+    robot.state("idle")
 end
 
 local function onFeedFinished(ctx)
@@ -885,10 +888,11 @@ local function onFeedFinished(ctx)
         -- log.info("weight_per_round", weight_per_round)           
     end
 
-    iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
-
     iot.emit("log", "投喂结束：\r\n" .. planLog())
 
+    iot.emit("log", "###投喂结束 日志：\r\n" .. feedLog())
+
+    
     -- 如果未结束，则下一轮，结束则汇总上传
     if current_food.ranks > #current_plans then
         log.info("本轮任务结束")
@@ -1072,16 +1076,20 @@ function feeder.feed_check()
 
         if wait_times < 6 then
             wait_times = wait_times + 1
-            log.info("等待下一轮")
+            log.error("重量不足，等待下一轮")
+
             return false, "重量不足"
         else
+            log.error("超过6次，结束投喂")
+
             -- 结束任务了
             robot.state("idle")
 
             -- 异常了
             feeder.error = true
 
-            log.info("超过6次，结束投喂")
+            iot.emit("log", "重量不足，结束投喂")
+
             return false, "重量不足，结束投喂"
         end
         -- end
@@ -1142,7 +1150,8 @@ function feeder.feed_rank()
 
     return true, {
         tasks = tasks,
-        on_finish = onFeedFinished
+        on_finish = onFeedFinished,
+        on_error = onFeedError
     }
 end
 
@@ -1209,15 +1218,12 @@ function feeder.start()
                         return
                     end
 
-                    -- 直接进入投喂模式
-                    robot.state("feed")
-
                     -- 启动计划
                     local ret, info = robot.plan("feed", {
                         food = i
                     })
                     if not ret then
-                        log.info(tag, "投喂失败", info)
+                        log.error("定时投喂启动失败：", info)
                         iot.emit("log", "定时投喂启动失败：" .. info)
                     end
                 end)
@@ -1269,8 +1275,12 @@ function feeder.start()
 end
 
 function feeder.stop()
+
     -- 停止定时任务
     schedule.clear()
+
+    -- 进入待机状态
+    robot.state("standby")
 end
 
 -- 电子秤自动修正
