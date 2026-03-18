@@ -802,8 +802,8 @@ local function feedLog()
             msg = msg .. "[" .. task.executed .. "]\r\n"
         end
 
-        if task.stage ~= nil then
-            msg = msg .. " " .. task.stage
+        if task.pool ~= nil then
+            msg = msg .. " " .. task.pool
         end
 
         msg = msg .. " [" .. (vm_names[task.type] or task.type) .. "]"
@@ -843,6 +843,10 @@ local function feedLog()
         msg = msg .. "\r\n"
     end
     return msg
+end
+
+local function onFeedError(ctx)
+    
 end
 
 local function onFeedFinished(ctx)
@@ -946,6 +950,9 @@ local function onFeedFinished(ctx)
     if options.smart and current_correct then
         if sensor.weight() < (settings.device.auto_tare_threshold or 150) then
             auto_tare = true
+
+            -- 状态未切换，不能进入下一轮投喂了
+            feeder.next(os.time() + 9999999)
 
             -- 清理料桶
             robot.plan("auto_tare", {}, {
@@ -1223,7 +1230,7 @@ function feeder.start()
         schedule.clock(settings.weight.auto_tare_time or "03:00", function()
             if sensor.weight() < (settings.weight.auto_tare_threshold or 300) then
 
-                if robot.state_name() ~= "charge" or robot.state_name() ~= "move" then
+                if robot.state_name() ~= "charge" and robot.state_name() ~= "move" then
                     return
                 end
                 if components.move_servo.running then

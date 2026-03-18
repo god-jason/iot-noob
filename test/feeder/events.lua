@@ -109,7 +109,7 @@ end)
 iot.on("FEED_BUTTON", function(state)
     log.info("FEED_BUTTON", state)
     iot.emit("log", "按钮操作：一键投喂")
-    if robot.state_name() ~= "move" then
+    if robot.state_name() ~= "feed" then
         robot.plan("feed")
     end
 end)

@@ -430,13 +430,13 @@ function vm.resume(task, ctx, executor)
     if ctx.move_task then
         if task.type ~= "move" then
             -- 恢复行走
-            vm.move(task, ctx, executor)
+            vm.move(ctx.move_task, ctx, executor)
         end
     end
     if ctx.feed_task then
         if task.type ~= "feed" then
             -- 恢复投喂
-            vm.feed(task, ctx, executor)
+            vm.feed(ctx.feed_task, ctx, executor)
         end
     end
 

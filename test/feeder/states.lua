@@ -13,20 +13,20 @@ local function check_limits()
         if components.move_servo.rounds > 0 then
             if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
                 components.move_servo:stop()
-                if sensor.position() > settings.total_length - (settings.correct.forward_detect or 50) then
+                if sensor.position() > settings.total_length - (settings.correct.forward_detect or 100) then
                     sensor.set_position(settings.total_length)
                 end
             end
         else
             if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
                 components.move_servo:stop()
-                if sensor.position() < (settings.correct.backward_detect or 50) then
+                if sensor.position() < (settings.correct.backward_detect or 80) then
                     sensor.set_position(0)
                 end
             end
             if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
                 components.move_servo:stop()
-                if sensor.position() < (settings.correct.backward_detect or 50) then
+                if sensor.position() < (settings.correct.backward_detect or 80) then
                     sensor.set_position(0)
                 end
             end
@@ -144,9 +144,11 @@ states.feed = {
         -- 检查下一轮任务
         if os.time() > feeder.next() then
             log.info("投喂间隔到，准备下一轮投喂")
+            iot.emit("log", "投喂间隔到，准备下一轮投喂")
 
             if robot.executor.job == "feed" or robot.executor.job == "feed_rank" then
                 log.error("上一轮投喂还没结束")
+                iot.emit("error", "上一轮投喂还没结束")
                 feeder.next(os.time() + 1 * 60 * 1000) -- 顺延1分钟
             else
                 local ret, info = robot.plan("feed_rank")
