@@ -130,9 +130,9 @@ function vm.move_end(task, ctx, executor)
     end
 
     -- 编码器启用，任务未结束，开启位置补偿
-    if settings.encoder.enable and executor and not executor.paused and not executor.stoped then
+    if settings.encoder.enable and settings.encoder.correct and executor and not executor.paused and not executor.stoped then
         local diff = ctx.move_task.start_position + ctx.move_task.distance - sensor.position()
-        local d = 10
+        local d = settings.encoder.correct_distance or 20
 
         if (ctx.move_task.distance > 0 and diff > d) or (ctx.move_task.distance < 0 and diff < -d) then
             task.error = "行走不到位，还差" .. diff .. "cm"
