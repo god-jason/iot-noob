@@ -68,11 +68,11 @@ function ModbusMasterDevice:get(key)
         -- 直接判断返回值就行了 FF00 0000
         ret, data = points.parseBit(point, data, point.address)
     elseif point.register == 3 or point.register == 4 then
-        local feagure = points.feagure(point.type)
-        if not feagure then
+        local feature = points.feature(point.type)
+        if not feature then
             return false, "找不到类型"
         end
-        ret, data = self.master:read(self.slave, point.register, point.address, feagure.word)
+        ret, data = self.master:read(self.slave, point.register, point.address, feature.word)
         if not ret then
             return false, data
         end

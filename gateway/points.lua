@@ -5,7 +5,7 @@ local points = {}
 local log = iot.logger("points")
 
 -- 数据点类型
-local feagures = {
+local features = {
     bool = {
         byte = 1,
         word = 1,
@@ -156,8 +156,8 @@ end
 ---点位信息
 -- @param type string 点位类型
 -- @return table
-function points.feagure(type)
-    return feagures[type]
+function points.feature(type)
+    return features[type]
 end
 
 ---解析位数据
@@ -187,8 +187,8 @@ end
 -- @return any
 function points.parseWord(point, data, address)
     -- log.info("parseWord", point.name, point.address, #data, address)
-    local feagure = feagures[point.type]
-    if not feagure then
+    local feature = features[point.type]
+    if not feature then
         log.error("parseWord unkown type", point.type)
         return false, "未知数据类型" .. point.type
     end
@@ -201,7 +201,7 @@ function points.parseWord(point, data, address)
 
     -- 解码数据
     local be = point.le and "<" or ">"
-    local pk = feagure.pack
+    local pk = feature.pack
     local buf = string.sub(data, cursor)
     local _, value = iot.unpack(buf, be .. pk)
 
@@ -231,8 +231,8 @@ end
 -- @return boolean
 -- @return any
 function points.parse(point, data, address)
-    local feagure = feagures[point.type]
-    if not feagure then
+    local feature = features[point.type]
+    if not feature then
         log.error("parse unkown type", point.type)
         return false, "未知数据类型" .. point.type
     end
@@ -245,7 +245,7 @@ function points.parse(point, data, address)
 
     -- 解码数据
     local be = point.le and "<" or ">"
-    local pk = feagure.pack
+    local pk = feature.pack
     local buf = string.sub(data, cursor)
     local _, value = iot.unpack(buf, be .. pk)
 
@@ -275,8 +275,8 @@ end
 -- @return boolean 成功与否
 -- @return string|nil
 function points.encode(point, value)
-    local feagure = feagures[point.type]
-    if not feagure then
+    local feature = features[point.type]
+    if not feature then
         log.error("encode unkown type", point.type)
         return false, "未知类型" .. point.type
     end
@@ -298,7 +298,7 @@ function points.encode(point, value)
     end
 
     local be = point.le and "<" or ">"
-    local pk = feagure.pack
+    local pk = feature.pack
     local data = iot.pack(be .. pk, value)
     return true, data
 end

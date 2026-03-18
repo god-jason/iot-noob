@@ -209,13 +209,13 @@ function ModbusMapper:load()
         local last = begin
         for i = 2, #(self.holding_registers), 1 do
 
-            local feagure = points.feagure(last.type)
-            if feagure then
-                if self.holding_registers[i].address > last.address + feagure.word + sep * 2 then
+            local feature = points.feature(last.type)
+            if feature then
+                if self.holding_registers[i].address > last.address + feature.word + sep * 2 then
                     table.insert(self.pollers, {
                         register = 3,
                         address = begin.address,
-                        length = last.address - begin.address + feagure.word
+                        length = last.address - begin.address + feature.word
                     })
                     begin = self.holding_registers[i]
                 end
@@ -224,12 +224,12 @@ function ModbusMapper:load()
             last = self.holding_registers[i]
         end
 
-        local feagure = points.feagure(last.type)
-        if feagure then
+        local feature = points.feature(last.type)
+        if feature then
             table.insert(self.pollers, {
                 register = 3,
                 address = begin.address,
-                length = last.address - begin.address + feagure.word
+                length = last.address - begin.address + feature.word
             })
         end
     end
@@ -238,13 +238,13 @@ function ModbusMapper:load()
         local last = begin
         for i = 2, #(self.input_registers), 1 do
 
-            local feagure = points.feagure(last.type)
-            if feagure then
-                if self.input_registers[i].address > last.address + feagure.word + sep * 2 then
+            local feature = points.feature(last.type)
+            if feature then
+                if self.input_registers[i].address > last.address + feature.word + sep * 2 then
                     table.insert(self.pollers, {
                         register = 4,
                         address = begin.address,
-                        length = last.address - begin.address + feagure.word
+                        length = last.address - begin.address + feature.word
                     })
                     begin = self.input_registers[i]
                 end
@@ -253,12 +253,12 @@ function ModbusMapper:load()
             last = self.input_registers[i]
         end
 
-        local feagure = points.feagure(last.type)
-        if feagure then
+        local feature = points.feature(last.type)
+        if feature then
             table.insert(self.pollers, {
                 register = 4,
                 address = begin.address,
-                length = last.address - begin.address + feagure.word
+                length = last.address - begin.address + feature.word
             })
         end
     end
