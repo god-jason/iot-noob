@@ -104,7 +104,7 @@ function Serial:pipe(peer)
             self.uart:wait(1000)
             local ret, data = self.uart:read()
             if ret and #data > 0 and self.peer ~= nil then
-                log.info("serial write to peer", data:toHex())
+                log.info("write to peer", data:toHex())
                 self.peer:write(data)
             end
         end
@@ -117,7 +117,7 @@ function Serial:pipe(peer)
             if self.peer ~= nil then
                 local ret, data = self.peer:read()
                 if ret and #data > 0 then
-                    log.info("serial read from peer", data:toHex())
+                    log.info("read from peer", data:toHex())
                     self.uart:write(data)
                 end
             end

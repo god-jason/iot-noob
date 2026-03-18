@@ -540,7 +540,6 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 -- 减去刹车距离
                 local rpm = feeder.calc_move_rpm(plan[point.pool].move_speed)
                 brake = feeder.calc_brake_distance(rpm)
-                log.info("brake", brake)
                 distance = distance - brake
             end
 
@@ -560,19 +559,21 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 type = "move_end"
             })
 
-            -- 行走投喂，未等待，需要在行走结束后执行
-            table.insert(tasks, {
-                type = "feed_end"
-            })
-
             -- 刹车
             if stop then
                 table.insert(tasks, {
                     pool = point.pool,
                     name = "刹车",
-                    type = "brake"
+                    type = "brake",
+                    position = next_point.position
                 })
             end
+
+            -- 行走投喂，未等待，需要在行走结束后执行
+            table.insert(tasks, {
+                type = "feed_end"
+            })
+
 
         elseif point.type == "bamboo" then
             -- 毛竹避障
@@ -603,6 +604,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 type = "move",
                 speed = settings.device.bamboo_move_speed or 3,
                 distance = distance,
+                position = next_point.position,
                 rounds = feeder.calc_move_rounds(distance),
                 wait = true
             })
@@ -653,7 +655,8 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 table.insert(tasks, {
                     pool = point.pool,
                     name = "刹车",
-                    type = "brake"
+                    type = "brake",
+                    position = next_point.position
                 })
 
             else
@@ -686,6 +689,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                     speed = settings.feed.move_speed,
                     rounds = rounds,
                     distance = distance,
+                    position = 80,
                     wait = true
                 })
                 table.insert(tasks, {
@@ -1126,7 +1130,7 @@ function feeder.feed_rank()
     end
 
     -- 记录下次启动时间
-    next_feed_time = os.time() + current_food.interval * 60
+    next_feed_time = os.time() + (current_food.interval or 5) * 60
     log.info("下次投喂时间", os.date("%Y-%m-%d %H:%M:%S", next_feed_time))
 
     return true, {

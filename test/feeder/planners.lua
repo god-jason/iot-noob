@@ -50,13 +50,14 @@ local function home_tasks(data)
                 speed = 2, -- 2档走出
                 distance = charge_distance,
                 rounds = feeder.calc_move_rounds(charge_distance),
+                position = settings.charge_position + charge_distance,
                 wait = true
             })
             table.insert(tasks, {
                 type = "move_end"
             })
             table.insert(tasks, {
-                type = "brake"
+                type = "brake" -- TODO 此处没有计算刹车距离，以及目标位置
             })
 
             table.insert(tasks, {
@@ -81,6 +82,7 @@ local function home_tasks(data)
             speed = settings.feed.move_speed,
             rounds = rounds,
             distance = distance,
+            position = 80,
             wait = true
         })
         table.insert(tasks, {
@@ -158,6 +160,7 @@ planner.register("move_forward", function(data)
         type = "move", -- 前进到终点
         speed = settings.feed.move_speed,
         distance = distance,
+        position = settings.total_length - brake,
         rounds = rounds,
         wait = true
     })
@@ -167,7 +170,8 @@ planner.register("move_forward", function(data)
 
     table.insert(tasks, {
         name = "刹车",
-        type = "brake"
+        type = "brake",
+        position = settings.total_length
     })
 
     -- 终点锁机
@@ -257,7 +261,8 @@ planner.register("charge", function(data)
         -- 刹车
         table.insert(tasks, {
             name = "刹车",
-            type = "brake"
+            type = "brake",
+            position = settings.charge_position
         })
 
         -- 充电锁机
@@ -307,6 +312,7 @@ planner.register("move", function(data)
         type = "move", -- 前进到终点
         speed = settings.feed.move_speed,
         distance = distance,
+        position = settings.total_length - brake,
         rounds = rounds,
         wait = true
     })
@@ -316,7 +322,8 @@ planner.register("move", function(data)
 
     table.insert(tasks, {
         name = "刹车",
-        type = "brake"
+        type = "brake",
+        position = settings.total_length
     })
 
     -- 终点锁机
@@ -350,6 +357,7 @@ planner.register("move", function(data)
         speed = settings.feed.move_speed,
         rounds = rounds,
         distance = distance,
+        position = 80,
         wait = true
     })
     table.insert(tasks, {
@@ -396,6 +404,7 @@ planner.register("force_move", function(data)
         type = "move", -- 前进到终点
         speed = data.speed or 5,
         distance = data.distance,
+        position = sensor.position() + data.distance - brake,
         rounds = rounds,
         force = true, -- 强制移动
         wait = true
@@ -406,7 +415,8 @@ planner.register("force_move", function(data)
 
     table.insert(tasks, {
         name = "刹车",
-        type = "brake"
+        type = "brake",
+        position = sensor.position() + data.distance,
     })
 
     return true, {
@@ -445,7 +455,7 @@ planner.register("dry", function(data)
         name = "begin"
     })
 
-    --log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
+    -- log.info("drydrydry", settings.functions.vibrator, settings.dry.vibrator_time)
 
     -- 震动
     if settings.functions.vibrator and settings.dry.vibrator_time and settings.dry.vibrator_time > 0 then
@@ -541,7 +551,7 @@ planner.register("auto_tare", function(data)
     table.insert(tasks, {
         type = "tare",
         wait = true,
-        time = 5000-- 去皮需要5s稳定时间
+        time = 5000 -- 去皮需要5s稳定时间
     })
 
     return true, {
