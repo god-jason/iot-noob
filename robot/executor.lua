@@ -128,7 +128,7 @@ function Executor:execute(cursor)
                 if ret then
                     -- 被中断
                     log.info(self.job, "break")
-                    break
+                    -- break
                     -- TODO 恢复时，要计算等待时间
                 end
             end
@@ -166,7 +166,12 @@ function Executor:execute(cursor)
         end
     else
         if self.on_finish ~= nil then
-            self.on_finish(self.context)
+            local ret, info = utils.call(function()
+                self.on_finish(self.context)
+            end)
+            if not ret then
+                log.error(self.job, "on_finish error", info)
+            end
         end
     end
 
