@@ -162,11 +162,11 @@ end
 -- @param name 状态名
 function FSM:switch(name, ...)
     if not name then
-        return false, "空状态"
+        return false, "不能是空状态"
     end
 
     if self.state_name == name then
-        return false, "同名状态"
+        return false, "已经进入状态" .. name
     end
 
     -- 加载新状态

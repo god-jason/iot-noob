@@ -80,7 +80,6 @@ end
 function robot.kill(name)
     if robot.executor and robot.executor.job == name then
         robot.executor:stop()
-        return true
     end
     -- 找到分支任务
     for k, v in pairs(robot.executors) do

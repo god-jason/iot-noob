@@ -336,13 +336,14 @@ local function master_task()
     -- 主设备使用配置ID
     master.device.id = options.id
 
-    local ticks = 9999999 -- 保证连上平台就上报一次数据    
+    local all_interval = 600 -- 10分钟传一次全部数据
+    local ticks = all_interval - 30 -- 开机30秒，先全部传一次
 
     while true do
 
         -- 上报数据
         ticks = ticks + 1
-        if ticks > 600 then -- 10分钟上传一次全部数据
+        if ticks > all_interval then
             ticks = 0
 
             -- 上传网关设备数据

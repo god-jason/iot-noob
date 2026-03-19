@@ -182,12 +182,14 @@ function actions.calibrate(data)
     return true
 end
 
+-- 清理错误
 function actions.clear_error(data)
-    
-    -- robot.idle()
-    robot.state("idle")
-
-    return true
+    if robot.state_name() == "error" then
+        robot.state("idle")
+        return true
+    else
+        return false, "不在错误状态"    
+    end
 end
 
 -- 强制前进

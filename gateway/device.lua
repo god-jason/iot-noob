@@ -90,6 +90,9 @@ end
 -- @param value any
 function Device:put_value(key, value)
     log.info("put_value", self.id, key, value)
+    if type(key) == "table" then
+        return self:put_values(key)
+    end
 
     local has = false
 

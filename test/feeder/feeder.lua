@@ -846,7 +846,7 @@ end
 
 local function onFeedError(err)
     log.error("投喂任务执行错误：", err)
-    
+
     -- 退出投喂，报故障
     robot.state("error", err)
 end
@@ -1188,8 +1188,11 @@ function feeder.auto(v)
 
     if v then
         feeder.start()
+        robot.state("idle")
     else
         feeder.stop()
+        robot.stop()
+        robot.state("standby")
     end
 end
 
@@ -1289,7 +1292,7 @@ function feeder.start()
     end
 
     -- 进入待机状态
-    robot.state("idle")
+    -- robot.state("idle")
 end
 
 function feeder.stop()
@@ -1298,7 +1301,7 @@ function feeder.stop()
     schedule.clear()
 
     -- 进入待机状态
-    robot.state("standby")
+    --robot.state("standby")
 end
 
 -- 电子秤自动修正
@@ -1557,6 +1560,9 @@ function feeder.open()
 
     -- 启动定时任务
     feeder.start()
+
+    -- 空闲状态
+    robot.state("idle")
 
     -- 自动修正
     iot.start(feeder.auto_correct)

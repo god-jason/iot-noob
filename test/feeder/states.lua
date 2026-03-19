@@ -42,24 +42,28 @@ states.standby = {
 states.error = {
     name = "错误",
     enter = function(ctx, err)
+        master.device:put_values({
+            error = true,
+            error_string = err or "未知错误"
+        })
+
         -- 关闭所有任务
         robot.stop()
-
-        master.device:put_value("error_string", err)
-        iot.emit("report")
+        feeder.stop()
 
         -- TODO 上报平台
-
+        iot.emit("report")
     end,
     leave = function()
+        master.device:put_values({
+            error = false,
+            error_string = ""
+        })
         -- 启动任务
-        robot.start()
-
-        master.device:put_value("error_string", "")
-        iot.emit("report")
+        feeder.start()
 
         -- TODO 上报平台
-
+        iot.emit("report")
     end
 }
 
@@ -73,6 +77,12 @@ states.init = {
         components.move_servo:unlock()
         components.feed_servo:unlock()
         -- components.fan:close()
+
+        -- 清空服务器错误缓存
+        master.device:put_values({
+            error = false,
+            error_string = ""
+        })
     end
 }
 
