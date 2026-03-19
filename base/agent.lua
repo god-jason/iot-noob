@@ -52,6 +52,8 @@ local watcher = 0
 -- 观察
 function commands.watch(data)
     log.info("查看")
+    iot.emit("report")
+    
     watcher = watcher + 1
 
     agent.watching = true

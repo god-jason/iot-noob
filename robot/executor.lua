@@ -168,7 +168,7 @@ function Executor:execute(cursor)
     -- end
 
     -- 正常结束
-    if self.current == #self.tasks then
+    if self.current >= #self.tasks then
         if self.on_finish ~= nil then
             local ret, info = utils.call(function()
                 self.on_finish(self.context)
