@@ -77,7 +77,7 @@ function vm.move(task, ctx, executor)
     if not settings.encoder.enable then
         iot.start(function()
             local start = mcu.ticks()
-            
+
             iot.sleep(100)
             while task == ctx.move_task and not executor.stoped and not executor.paused do
 
@@ -175,7 +175,7 @@ function vm.move_end(task, ctx, executor)
         end
 
     end
-    
+
     -- 最终位置回写
     if not settings.encoder.enable then
         if task.position then
@@ -206,7 +206,7 @@ end
 -- 刹车
 function vm.brake(task, ctx, executor)
     components.move_servo:brake()
-    
+
     -- 位置回写
     if not settings.encoder.enable then
         if task.position then
@@ -273,6 +273,13 @@ function vm.zero(task, ctx, executor)
 
     -- 位置清零失败
     iot.emit("log", "位置清零失败")
+
+    -- 不能再喂了  停止任务
+    -- error("位置清零失败")
+    robot.state("error")
+    executor:stop()
+
+    -- TODO 上报平台
 end
 
 -- 投喂
