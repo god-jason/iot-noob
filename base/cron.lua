@@ -203,7 +203,7 @@ end
 local next_time
 
 function cron.execute()
-    log.info("execute()")
+    log.info("execute 检查定时任务")
 
     -- 找到下一个执行时间点，但后
     local now = os.time()
@@ -238,16 +238,25 @@ function cron.execute()
 
     -- 下次唤醒
     if next ~= nil and next > now then
+        log.info("下次唤醒时间", os.date("%Y-%m-%d %H:%M:%S", next))
 
         -- 每10分钟唤醒一次，避免NTP时间同步之后错误，导致长时间等待
-        if next - now > 600 then
-            next = now + 600
-        end
+        -- if next - now > 600 then
+        --     next = now + 600
+        -- end
+
+        -- 改递减，避免next不一致
+        -- while next - now > 600 do
+        --     next = next - 600
+        -- end
+
+        -- 可以简化为
+        -- next = now + (next - now) % 600
 
         -- 避免重复
         if not next_time or next_time ~= next then
             next_time = next
-            log.info("wait", (next - now))
+            log.info("wait", (next - now))            
             iot.setTimeout(cron.execute, (next - now) * 1000 + 100) -- 加100ms，避免唤醒时间早于目标时间
         end
     end
@@ -338,5 +347,9 @@ function cron.clock(time, callback)
 
     return cron.start(crontab, callback)
 end
+
+-- 每小时强制执行一次，避免出现定时器启动失败的问题
+-- iot.setInterval(cron.execute, 3600)
+iot.setInterval(cron.execute, 600) -- 改10分钟
 
 return cron

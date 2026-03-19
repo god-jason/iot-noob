@@ -201,7 +201,8 @@ function sensor.save()
 end
 
 -- 每天保存一次修正值
-iot.setInterval(sensor.save, 24 * 3600)
+-- iot.setInterval(sensor.save, 24 * 3600)
+cron.clock("00:00", sensor.save)
 
 -- 100ms向单片机询问一次数据
 iot.setInterval(sensor.query_status, 200)

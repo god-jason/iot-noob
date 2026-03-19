@@ -48,8 +48,9 @@ end
 -- @param timeout integer 超时
 -- @return interger 定时器ID
 function iot.setInterval(func, timeout, ...)
-    if timeout < 1 then
-        timeout = 1
+    -- 太快会死机
+    if timeout < 10 then
+        timeout = 10
     end
     return sys.timerLoopStart(func, math.ceil(timeout), ...)
 end

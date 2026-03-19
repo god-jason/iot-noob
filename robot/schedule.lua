@@ -39,10 +39,11 @@ function schedule.open()
     end
 
     -- 24个小时，同步一次时间
-    iot.setInterval(socket.sntp, 24 * 3600)
+    -- iot.setInterval(socket.sntp, 24 * 3600)
+    cron.clock("01:00", socket.sntp) -- 同步时间提前了，会再次重复执行
 
     -- TODO 加载定时任务
-    
+
     return true
 end
 

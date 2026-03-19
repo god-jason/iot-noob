@@ -138,7 +138,7 @@ function master.open()
     device:put_value("imsi", mobile.imsi())
     device:put_value("iccid", mobile.iccid())
 
-    iot.setInterval(master.update_status, 10000)
+    iot.setInterval(master.update_status, 30000)
 end
 
 --- 关闭网关
