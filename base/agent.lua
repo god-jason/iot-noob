@@ -52,7 +52,7 @@ local watcher = 0
 -- 观察
 function commands.watch(data)
     log.info("查看")
-    iot.emit("report")
+    iot.emit("report", true)
     
     watcher = watcher + 1
 
