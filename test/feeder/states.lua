@@ -46,6 +46,7 @@ states.error = {
         robot.stop()
 
         master.device:put_value("error_string", err)
+        iot.emit("report")
 
         -- TODO 上报平台
 
@@ -55,6 +56,7 @@ states.error = {
         robot.start()
 
         master.device:put_value("error_string", "")
+        iot.emit("report")
 
         -- TODO 上报平台
 
