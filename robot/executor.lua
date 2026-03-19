@@ -41,14 +41,22 @@ end
 
 --- 暂停
 function Executor:pause()
+    if self.paused or self.stoped or self.current >= #self.tasks then
+        return
+    end
+
     self.paused = true
-    iot.emit("executor_" .. self.id .. "_break")
+    self:interrupt()
 end
 
 --- 停止
 function Executor:stop()
+    if self.stoped or self.current >= #self.tasks then
+        return
+    end
+
     self.stoped = true
-    iot.emit("executor_" .. self.id .. "_break")
+    self:interrupt()
 end
 
 --- 中断当前任务等待
@@ -124,7 +132,8 @@ function Executor:execute(cursor)
 
             -- 任务等待
             if ret == true and wait and wait > 0 then
-                ret = iot.wait("executor_" .. self.id .. "_break", wait)
+                ret = self:wait(wait)
+                --ret = iot.wait("executor_" .. self.id .. "_break", wait)
                 if ret then
                     -- 被中断
                     log.info(self.job, "break")
@@ -189,8 +198,12 @@ end
 
 --- 恢复
 function Executor:resume()
+    if not self.paused or self.current < #self.tasks then
+        return false, "不是暂停的任务"
+    end
     self.paused = false
     iot.start(Executor.execute, self, self.current)
+    return true
 end
 
 --- 启动
