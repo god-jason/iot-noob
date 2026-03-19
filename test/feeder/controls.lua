@@ -236,8 +236,8 @@ function vm.zero(task, ctx, executor)
     local distance = -math.abs(task.distance or 100)
     local rounds = feeder.calc_move_rounds(distance)
 
-    -- 至多清零3次
-    for i = 1, 3, 1 do
+    -- 至多清零5次
+    for i = 1, 5, 1 do
         -- 已经有后接近信号了
         if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
             components.move_servo:stop()
@@ -269,17 +269,16 @@ function vm.zero(task, ctx, executor)
 
     -- 3次都失败，则直接置零
     components.move_servo:stop()
-    sensor.set_position(0)
+    -- sensor.set_position(0)
 
     -- 位置清零失败
     iot.emit("log", "位置清零失败")
 
     -- 不能再喂了  停止任务
-    -- error("位置清零失败")
-    robot.state("error")
+    robot.state("error", "位置清零失败")
     executor:stop()
-
-    -- TODO 上报平台
+    
+    -- error("位置清零失败")
 end
 
 -- 投喂

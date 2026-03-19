@@ -183,8 +183,7 @@ function actions.calibrate(data)
 end
 
 function actions.clear_error(data)
-    -- TODO 清理错误状态
-
+    
     -- robot.idle()
     robot.state("idle")
 
@@ -248,6 +247,7 @@ end
 
 -- 重启设备
 function actions.reboot(data)
+    robot.state("idle")
     sensor.save()
     rtos.reboot()
     return true
@@ -262,7 +262,7 @@ function actions.reboot_drv(data)
 
     -- 重置状态
     iot.setTimeout(function()
-        robot.idle()
+        robot.state("idle")
     end, 10000)
 end
 
@@ -293,6 +293,7 @@ end
 
 -- 重置设备
 function actions.reset(data)
+    robot.state("idle")
     sensor.save()
     settings.reset()
     return true

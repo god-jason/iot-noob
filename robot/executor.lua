@@ -160,11 +160,15 @@ function Executor:execute(cursor)
     self.stoped = true
     self.end_time = os.date("%X") -- 记录当前 时分秒
 
-    if self.current < #self.tasks then
-        if self.on_error then
-            self.on_error("被中止")
-        end
-    else
+    -- 异常结束
+    -- if self.current < #self.tasks then
+    --     if self.on_error then
+    --         self.on_error("被中止")
+    --     end
+    -- end
+
+    -- 正常结束
+    if self.current == #self.tasks then
         if self.on_finish ~= nil then
             local ret, info = utils.call(function()
                 self.on_finish(self.context)

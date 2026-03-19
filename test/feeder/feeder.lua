@@ -846,10 +846,9 @@ end
 
 local function onFeedError(err)
     log.error("投喂任务执行错误：", err)
-    -- iot.emit("error", err)
-
-    -- TODO 退出投喂，报故障
-    robot.state("idle")
+    
+    -- 退出投喂，报故障
+    robot.state("error", err)
 end
 
 local function onFeedFinished(ctx)
@@ -1204,9 +1203,23 @@ function feeder.smart(v)
         -- 关闭智能，还原下料速度为初始
         feeder.weight_per_round = settings.feed.weight_per_round or 10
     end
-    
+
     options.smart = v
     configs.save("robot", options)
+end
+
+-- 开启烘干
+function feeder.dry(val)
+    if val == true then
+        -- 开启风干
+        settings.dry.enable = true
+        settings.save("dry")
+        --robot.plan("dry") -- 直接开启风干
+    elseif val == false then
+        -- 关闭风干
+        settings.dry.enable = false
+        robot.kill("dry")
+    end
 end
 
 function feeder.start()

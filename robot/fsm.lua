@@ -62,6 +62,8 @@ function FSM:execute()
 
         -- 执行状态离开和进入
         if self.next_state then
+            -- log.info(self.name, "enter", self.next_state)
+
             -- 执行离开
             if self.state and self.state.leave then
                 log.info(self.name, "leave state", self.state_name, self.state.name)
@@ -83,7 +85,7 @@ function FSM:execute()
                 log.info(self.name, "enter state", self.state_name, self.state.name)
 
                 -- state.enter(self)
-                local ret, info = utils.call(self.state.enter, self.context)
+                local ret, info = utils.call(self.state.enter, self.context, table.unpack(self.next_args))
                 if ret == false then
                     log.error(self.name, self.state_name, "执行enter错误", info)
                 end
@@ -138,14 +140,14 @@ end
 
 --- 启动状态机
 -- @param name 状态名
-function FSM:start(name)
+function FSM:start(name, ...)
     if self.running then
         log.error(self.name, self.state_name, "已经在执行")
         return false, "已经在执行"
     end
 
     -- 修改状态
-    local ret, info = self:switch(name)
+    local ret, info = self:switch(name, ...)
     if not ret then
         return ret, info
     end
@@ -158,7 +160,7 @@ end
 
 --- 切换状态
 -- @param name 状态名
-function FSM:switch(name)
+function FSM:switch(name, ...)
     if not name then
         return false, "空状态"
     end
@@ -174,6 +176,7 @@ function FSM:switch(name)
     end
 
     self.next_state = name
+    self.next_args = {...}
     iot.emit("fsm_" .. self.id .. "_break", "切换状态")
 
     return true

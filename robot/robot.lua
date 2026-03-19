@@ -103,8 +103,10 @@ function robot.stop()
     robot.executors = {}
 end
 
-function robot.state(name)
-    return robot.fsm:switch(name)
+function robot.state(name, ...)
+    log.info("切换状态", name, ...)
+    -- log.info(self.name, "enter", self.next_state)
+    return robot.fsm:switch(name, ...)
 end
 
 function robot.state_name()

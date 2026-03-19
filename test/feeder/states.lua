@@ -5,6 +5,7 @@ local battery = require("battery")
 local settings = require("settings")
 local feeder = require("feeder")
 local sensor = require("sensor")
+local master = require("master")
 
 local states = {}
 
@@ -36,6 +37,28 @@ end
 
 states.standby = {
     name = "维护"
+}
+
+states.error = {
+    name = "错误",
+    enter = function(ctx, err)
+        -- 关闭所有任务
+        robot.stop()
+
+        master.device:put_value("error_string", err)
+
+        -- TODO 上报平台
+
+    end,
+    leave = function()
+        -- 启动任务
+        robot.start()
+
+        master.device:put_value("error_string", "")
+
+        -- TODO 上报平台
+
+    end
 }
 
 states.init = {
