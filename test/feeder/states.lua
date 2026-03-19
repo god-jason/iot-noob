@@ -184,7 +184,7 @@ states.feed = {
             if robot.executor.job == "feed" or robot.executor.job == "feed_rank" then
                 log.error("上一轮投喂还没结束")
                 iot.emit("error", "上一轮投喂还没结束")
-                feeder.next(os.time() + 1 * 60 * 1000) -- 顺延1分钟
+                feeder.next(os.time() + 60) -- 顺延1分钟
             else
                 local ret, info = robot.plan("feed_rank")
                 -- local ret, info = feeder.feed_rank()
