@@ -34,8 +34,34 @@ local function find_device(data)
     return devices[data.device_id]
 end
 
+-- 上报设备数据
+local function report_device_values(dev, all)
+    if not client then
+        log.error("平台未连接")
+        return
+    end
+
+    local has_data = false
+    local data = {}
+
+    local values = all and dev:values() or dev:modified_values(true)
+    for k, v in pairs(values) do
+        data[k] = v.value
+        has_data = true
+    end
+
+    if has_data then
+        client:publish("device/" .. dev.id .. "/values", data)
+    end
+end
+
 -- 上报设备在线状态
 local function report_device_status(dev)
+    if not client then
+        log.error("平台未连接")
+        return
+    end
+
     local now = os.time()
 
     local st = ""
@@ -54,36 +80,25 @@ local function report_device_status(dev)
     end
 end
 
--- 上报设备数据
-local function report_device_values(dev, all)
-    local has_data = false
-    local data = {}
-
-    local values = all and dev:values() or dev:modified_values(true)
-    for k, v in pairs(values) do
-        data[k] = v.value
-        has_data = true
-    end
-
-    if has_data then
-        client:publish("device/" .. dev.id .. "/values", data)
-    end
+-- 上报所有设备
+function cloud.report_values(all)
+    report_device_values(master.device, all)
 end
 
--- 上报所有设备状态
-local function report_devices_status()
+-- 上报所有设备
+function cloud.report_devices_values(all)
     for id, dev in pairs(devices) do
         if dev.values and not dev.inline then
-            report_device_status(dev)
+            report_device_values(dev, all)
         end
     end
 end
 
--- 上报所有设备
-local function report_devices_values(all)
+-- 上报所有设备状态
+function cloud.report_devices_status()
     for id, dev in pairs(devices) do
         if dev.values and not dev.inline then
-            report_device_values(dev, all)
+            report_device_status(dev)
         end
     end
 end
@@ -164,7 +179,7 @@ local function on_device_sync(topic, data)
         end
 
         -- 上传数据
-        report_device_values(dev)
+        cloud.report_values()
     else
         data.error = "设备不存在"
     end
@@ -267,6 +282,36 @@ local function register()
     client:publish("device/" .. options.id .. "/register", info)
 end
 
+--- 发布消息
+-- @param topic string 主题
+-- @param payload string|table|nil 数据，支持string,table
+-- @param qos integer|nil 质量
+function cloud.publish(topic, payload, qos)
+    if not client then
+        log.error("平台未连接")
+        return
+    end
+    client:publish(topic, payload, qos)
+end
+
+-- 上报错误
+function cloud.report_error(err)
+    if not client then
+        log.error("平台未连接")
+        return
+    end
+    client:publish("device/" .. options.id .. "/error", err)
+end
+
+-- 清除错误
+function cloud.clear_error()
+    if not client then
+        log.error("平台未连接")
+        return
+    end
+    client:publish("device/" .. options.id .. "/error/clear", nil)
+end
+
 local function master_task()
     -- 等待网络就绪
     iot.wait("IP_READY")
@@ -312,7 +357,7 @@ local function master_task()
 
     -- 上传指令
     iot.on("report", function(all)
-        report_device_values(master.device, all)
+        cloud.report_values(all)
     end)
 
     iot.emit("MASTER_READY")
@@ -347,15 +392,15 @@ local function master_task()
             ticks = 0
 
             -- 上传网关设备数据
-            report_device_values(master.device, true)
-            report_devices_values(true)
+            cloud.report_values(true)
+            cloud.report_devices_values(true)
         else
-            report_device_values(master.device)
-            report_devices_values()
+            cloud.report_values()
+            cloud.report_devices_values()
         end
 
         -- 子设备状态
-        report_devices_status()
+        cloud.report_devices_status()
 
         -- 正在查看时，1秒上传一次
         if agent.watching then

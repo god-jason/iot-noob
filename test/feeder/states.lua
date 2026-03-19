@@ -6,6 +6,7 @@ local settings = require("settings")
 local feeder = require("feeder")
 local sensor = require("sensor")
 local master = require("master")
+local cloud = require("cloud")
 
 local states = {}
 
@@ -51,8 +52,9 @@ states.error = {
         robot.stop()
         feeder.stop()
 
-        -- TODO 上报平台
+        -- 上报平台
         iot.emit("report")
+        cloud.report_error(err)
     end,
     leave = function()
         master.device:put_values({
@@ -62,8 +64,9 @@ states.error = {
         -- 启动任务
         feeder.start()
 
-        -- TODO 上报平台
+        -- 上报平台
         iot.emit("report")
+        cloud.clear_error()
     end
 }
 
