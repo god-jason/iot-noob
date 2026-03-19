@@ -200,10 +200,16 @@ local function calc_next(job, now)
     log.info(job.crontab, "next is", iot.json_encode(os.date("%Y-%m-%d %H:%M:%S", next)))
 end
 
-local next_time
+local next_timer
 
 function cron.execute()
     log.info("execute 检查定时任务")
+
+    -- 清空上一个定时器，避免无法启动
+    if next_timer then
+        log.info("execute 删除上个定时器")
+        iot.clearTimeout(next_timer)
+    end
 
     -- 找到下一个执行时间点，但后
     local now = os.time()
@@ -246,19 +252,22 @@ function cron.execute()
         -- end
 
         -- 改递减，避免next不一致
-        -- while next - now > 600 do
-        --     next = next - 600
-        -- end
+        while next - now > 600 do
+            next = next - 600
+        end
 
         -- 可以简化为
         -- next = now + (next - now) % 600
 
         -- 避免重复
-        if not next_time or next_time ~= next then
-            next_time = next
-            log.info("wait", (next - now))            
-            iot.setTimeout(cron.execute, (next - now) * 1000 + 100) -- 加100ms，避免唤醒时间早于目标时间
-        end
+        -- if not next_time or next_time ~= next then
+        -- next_time = next
+        log.info("wait", (next - now))
+        -- 启动定时器
+        next_timer = iot.setTimeout(function()
+            next_timer = nil
+            cron.execute()
+        end, (next - now) * 1000 + 100) -- 加100ms，避免唤醒时间早于目标时间
     end
 end
 
@@ -320,7 +329,6 @@ function cron.stop(id)
     end
 end
 
-
 --- 创建时钟格式的计划任务
 -- @param time 时间字符串: 06:00 或 06:00:00
 -- @param callback function
@@ -342,7 +350,7 @@ function cron.clock(time, callback)
         return false, "时间超出范围: " .. time
     end
 
-    --local crontab = string.format("%d %d %d * * *", s, m, h)
+    -- local crontab = string.format("%d %d %d * * *", s, m, h)
     local crontab = s .. " " .. m .. " " .. h .. " * * *"
 
     return cron.start(crontab, callback)
@@ -350,6 +358,6 @@ end
 
 -- 每小时强制执行一次，避免出现定时器启动失败的问题
 -- iot.setInterval(cron.execute, 3600)
-iot.setInterval(cron.execute, 600) -- 改10分钟
+-- iot.setInterval(cron.execute, 600) -- 改10分钟
 
 return cron
