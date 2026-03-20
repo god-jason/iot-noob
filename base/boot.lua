@@ -12,7 +12,7 @@ local boots = {}
 --- 注册模块
 -- @param name string
 -- @param mod table
-function boot.register(name, mod)
+function boot.register(name, mod, ...)
 
     if type(mod) ~= "table" then
         log.error(name, "不是模块")
@@ -22,7 +22,7 @@ function boot.register(name, mod)
     modules[name] = {
         open = mod.open,
         close = mod.close,
-        deps = mod.deps or {},
+        deps = mod.deps or {...},
         opened = false,
         visiting = false
     }

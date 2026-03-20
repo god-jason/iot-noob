@@ -7,11 +7,13 @@ _G.devices = _devices
 
 --- 注册设备
 function devices.register(id, device)
+    iot.emit("DEVICE_REGISTER", id, device)
     _devices[id] = device
 end
 
 --- 反注册设备
 function devices.unregister(id)
+    iot.emit("DEVICE_UNREGISTER", id)
     _devices[id] = nil
 end
 

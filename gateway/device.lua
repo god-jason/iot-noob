@@ -17,6 +17,8 @@ function Device:new(obj)
     dev._thresholds = {} -- 变化阈值
     dev._updated = 0 -- 数据更新时间
     dev._handlers = {}
+    dev._children = {} -- 内联子设备
+    dev._children_change = {}
     return dev
 end
 
@@ -36,11 +38,25 @@ end
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
-    local v = self._values[key]
-    if not v then
-        return false, "不存在"
+    -- 查找内联设备
+    for k, dev in pairs(self._children) do
+        local val = dev._values[key]
+        if val ~= nil then
+            local ret, value = dev:get(key)
+            if ret then
+                return ret, value
+            end
+        end
     end
-    return true, v.value
+
+    -- 查网关变量
+    local val = self._values[key]
+    if val ~= nil then
+        return true, val.value
+    end
+
+    -- 找不到
+    return false, "值不存在"
 end
 
 ---  写值（具体协议需要继承实现）
@@ -48,6 +64,14 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
+    -- 查找内联设备
+    for k, dev in pairs(self._children) do
+        local val = dev._values[key]
+        if val ~= nil then
+            return dev:set(key, value)
+        end
+    end
+
     self._values[key] = {
         value = value,
         time = os.time()
@@ -59,28 +83,85 @@ end
 ---  轮询
 -- @return boolean, error
 function Device:poll()
+    -- 轮询内联设备
+    for k, dev in pairs(self._children) do
+        dev:poll()
+    end
     return true
 end
 
+--- 添加子设备
+function Device:attach_children(dev)
+    -- 订阅子设备变化
+    local cancel = dev:on("change", function(values)
+        self:emit("change", values)
+    end)
+
+    for i, v in ipairs(self._children) do
+        -- 替换
+        if v.id == dev.id then
+            self._children[i] = dev
+            self._children_change[i]()
+            self._children_change[i] = cancel
+            return
+        end
+    end
+
+    table.insert(self._children, dev)
+    table.insert(self._children_change, cancel)
+end
+
+--- 删除子设备
+function Device:detach_children(id)
+    for i, v in ipairs(self._children) do
+        -- 替换
+        if v.id == id then
+            self._children_change[i]()
+
+            table.remove(self._children, i)
+            table.remove(self._children_change, i)
+            return
+        end
+    end
+end
+
+-- 设备变化阈值
 function Device:set_threshold(key, threshold)
     self._thresholds[key] = threshold
 end
 
----  变量
+---  全部变量
 -- @return table k->{value->any, time->int}
 function Device:values()
-    return self._values
+    local values = {}
+    for id, dev in pairs(self._children) do
+        for k, v in pairs(dev._values) do
+            values[k] = v
+        end
+    end
+    for k, v in pairs(self._values) do
+        values[k] = v
+    end
+    return values
 end
 
 ---  变化的变量
 -- @param clear boolean 清空变化
 -- @return table k->{value->any, time->int}
 function Device:modified_values(clear)
-    local ret = self._modified_values
+    local values = {}
+    for id, dev in pairs(self._children) do
+        for k, v in pairs(dev:modified_values(clear)) do
+            values[k] = v
+        end
+    end
+    for k, v in pairs(self._modified_values) do
+        values[k] = v
+    end
     if clear then
         self._modified_values = {}
     end
-    return ret
+    return values
 end
 
 --- 读取值
@@ -103,7 +184,7 @@ function Device:put_value(key, value)
         return self:put_values(key)
     end
 
-    local has = false
+    local has_change = false
 
     local val = {
         value = value,
@@ -120,12 +201,12 @@ function Device:put_value(key, value)
                 log.info(key, v.value, value, "change under thresold")
             else
                 self._modified_values[key] = val
-                has = true
+                has_change = true
             end
         end
     else
         self._modified_values[key] = val
-        has = true
+        has_change = true
     end
 
     self._values[key] = val
@@ -134,7 +215,7 @@ function Device:put_value(key, value)
     self._updated = os.time()
 
     -- 监听变化
-    if has then
+    if has_change then
         -- self.watcher:dispatch(key, value)
         self:emit("change", {
             [key] = value
@@ -245,7 +326,11 @@ function Device:emit(name, ...)
     end
     -- 依次回调
     for i, v in ipairs(list) do
-        utils.call(v.callback, ...)
+        -- utils.call(v.callback, ...) -- 日志会太多
+        local ret, info = pcall(v.callback, ...)
+        if not ret then
+            log.error(info)
+        end
     end
     -- 删除once
     for i = #list, 1, -1 do

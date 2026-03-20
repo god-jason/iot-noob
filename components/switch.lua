@@ -47,7 +47,10 @@ function Switch:init()
 
             -- 回调
             if type(self.callback) == "function" then
-                self.callback(level)
+                local ok, err = pcall(self.callback, level)
+                if not ok then
+                    log.error("switch callback error:", err)
+                end
             end
 
             -- 发送统一事件

@@ -86,7 +86,7 @@ local function on_data(id, len)
 
             -- 挂载新页面
             if type(current_page.enter) == "function" then
-                ret, err = utils.call(current_page.enter)
+                ret, err = utils.pcall(current_page.enter)
                 if ret == false then
                     log.error("handle page enter error", err)
                 end
@@ -94,7 +94,8 @@ local function on_data(id, len)
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                ret, err = utils.call(current_page.tick)
+                -- ret, err = utils.pcall(current_page.tick)
+                ret, err = pcall(current_page.tick)
                 if ret == false then
                     log.error("handle page tick error", err)
                 end
@@ -125,7 +126,8 @@ function tjc.open()
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                local ret, err = utils.call(current_page.tick)
+                ---local ret, err = utils.call(current_page.tick)
+                local ret, err = pcall(current_page.tick)
                 if ret == false then
                     log.error("handle page tick error", err)
                 end

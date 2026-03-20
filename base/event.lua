@@ -71,7 +71,11 @@ function Event:emit(name, ...)
     end
     -- 依次回调
     for i, v in ipairs(list) do
-        utils.call(v.callback, ...)
+        --utils.call(v.callback, ...) -- 日志会太多
+        local ret, info = pcall(v.callback, ...)
+        if not ret then
+            log.error(info)
+        end
     end
     -- 删除once
     for i = #list, 1, -1 do

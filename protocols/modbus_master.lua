@@ -389,7 +389,8 @@ function ModbusMaster:_polling()
         for _, dev in pairs(self.devices) do
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
-            local ret, info = utils.call(function()
+            -- local ret, info = utils.call(function()
+            local ret, info = pcall(function()
                 return dev:poll()
             end)
             if not ret then
