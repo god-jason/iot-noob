@@ -35,9 +35,9 @@ function master.open()
     end)
 
     -- 订阅删除子设备
-    -- iot.on("DEVICE_UNREGISTER", function(id)
-    --     device:detach_children(id)
-    -- end)
+    iot.on("DEVICE_UNREGISTER", function(id)
+        device:detach_children(id)
+    end)
 
     device:put_values({
         bsp = rtos.bsp(),

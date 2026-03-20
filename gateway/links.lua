@@ -1,5 +1,3 @@
-
-
 --- 所有连接
 -- @module links
 local links = {}
@@ -8,10 +6,12 @@ local _links = {}
 
 _G.links = _links
 
+local log = iot.logger("links")
+
 local settings = require("settings")
 local boot = require("boot")
-local log = iot.logger("links")
 local utils = require("utils")
+local protocols = require("protocols")
 
 local types = {}
 
@@ -43,6 +43,24 @@ function links.create(opts)
         return false, info
     end
 
+    -- 打开协议
+    if link.protocol and #link.protocol > 0 then
+        -- 创建协议
+        local ret, instanse = protocols.create(link, link.protocol, link.protocol_options or {})
+        if not ret then
+            return false, instanse
+        end
+
+        -- 打开协议
+        ret, info = utils.call(instanse.open, instanse)
+        if not ret then
+            return false, info
+        end
+
+        -- 协议的实例，比如Modbus主站
+        link.protocol_instance = instanse
+    end
+
     return true, link
 end
 
@@ -56,6 +74,7 @@ function links.open()
         local ret, info = links.create(v)
         if not ret then
             log.error(info)
+            iot.emit("error", "打开连接失败" .. info)
         else
             table.insert(lnks, info)
         end
@@ -67,9 +86,14 @@ end
 --- 关闭连接
 function links.close()
     for i, s in pairs(_links) do
-        if type(s) == "table" then
-            utils.call(s.close, s)
+        if s.protocol_instance then
+            utils.call(function()
+                s.protocol_instance:close()
+            end)
         end
+        utils.call(function()
+            s:close()
+        end)
     end
 end
 
