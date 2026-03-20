@@ -15,6 +15,8 @@ function Button:new(opts)
         name = opts.name, -- 名称
         event = opts.event, -- 事件
         reverse = opts.reverse or false, -- 是否反转信号
+        rising = opts.rising or false, -- 上升沿触发
+        falling = opts.falling or false, -- 下降沿触发
         debounce = opts.debounce or 50, -- 防抖时间（毫秒）
         state = false, -- 按钮当前状态（true=按下，false=松开）
         press_start_time = nil, -- 按下开始时间
@@ -28,6 +30,8 @@ end
 function Button:init()
 
     self.gpio = iot.gpio(self.pin, {
+        rising = self.rising,
+        falling = self.falling,
         debounce = self.debounce,
         callback = function(level, id)
             -- 反转信号（如果设置了反转）
