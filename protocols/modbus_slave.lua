@@ -1,13 +1,10 @@
 --- Modbus 协议实现
 -- @module modbus_slave_device
-local ModbusSlaveDevice = {}
-ModbusSlaveDevice.__index = ModbusSlaveDevice
+local ModbusSlaveDevice = require("utils").class(require("device"))
 
 local log = iot.logger("modbus_slave")
 
 local Request = require("request")
-local Device = require("device")
-setmetatable(ModbusSlaveDevice, Device) -- 继承Device
 
 local database = require("database")
 local devices = require("devices")
@@ -21,14 +18,12 @@ local modbus = require("modbus")
 -- @param obj table 设备参数
 -- @param slave Modbus 主站实例
 -- @return Device 实例
-function ModbusSlaveDevice:new(obj, slave)
-    local dev = setmetatable(Device:new(obj), self) -- 继承Device
-    dev.slave = slave
-    dev.coils = {}
-    dev.discrete_inputs = {}
-    dev.holding_registers = {}
-    dev.input_registers = {}
-    return dev
+function ModbusSlaveDevice:init()
+    --self.slave = slave
+    self.coils = {}
+    self.discrete_inputs = {}
+    self.holding_registers = {}
+    self.input_registers = {}
 end
 
 ---打开设备
@@ -358,7 +353,8 @@ function ModbusSlave:open()
     self.devices = {}
     for _, d in ipairs(ds) do
         log.info("open device", iot.json_encode(d))
-        local dev = ModbusSlaveDevice:new(d, self)
+        local dev = ModbusSlaveDevice:new(d)
+        -- dev.slave = self.slave
         dev:open() -- 设备也要打开
 
         self.devices[d.slave] = dev

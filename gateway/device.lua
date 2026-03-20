@@ -1,23 +1,22 @@
 --- 设备类定义
 -- 所有协议实现的子设备必须继承Device，并实现标准接口
 -- @module device
-local Device = {}
-Device.__index = Device
+local Device = require("utils").class(require("event"))
 
-local utils = require("utils")
-local log = iot.logger("device")
+local log = iot.logger("Device")
 
 --- 创建设备实例
 -- @param obj table 设备
 -- @return Device 设备实例
-function Device:new(obj)
-    local dev = setmetatable(obj or {}, self)
-    dev._values = {}
-    dev._modified_values = {}
-    dev._thresholds = {} -- 变化阈值
-    dev._updated = 0 -- 数据更新时间
-    dev._handlers = {}
-    return dev
+function Device:init()
+    log.info("Device:init")
+    self._values = {}
+    self._modified_values = {}
+    self._thresholds = {} -- 变化阈值
+    self._updated = 0 -- 数据更新时间
+    self._handlers = {}
+    self._children = {} -- 内联子设备
+    self._children_change = {}
 end
 
 ---  打开
@@ -36,6 +35,18 @@ end
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
+    -- 查找内联设备
+    for k, dev in pairs(self._children) do
+        local val = dev._values[key]
+        if val ~= nil then
+            local ret, value = dev:get(key)
+            if ret then
+                return ret, value
+            end
+        end
+    end
+
+    -- 查网关变量
     local val = self._values[key]
     if val ~= nil then
         return true, val.value
@@ -50,10 +61,20 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
+    -- 查找内联设备
+    for k, dev in pairs(self._children) do
+        local val = dev._values[key]
+        if val ~= nil then
+            return dev:set(key, value)
+        end
+    end
+
+    -- 基础处理
     self._values[key] = {
         value = value,
         time = os.time()
     }
+
     -- self.put_value(key, value)
     return true
 end
@@ -61,18 +82,57 @@ end
 ---  轮询
 -- @return boolean, error
 function Device:poll()
+    -- 轮询内联设备
+    for k, dev in pairs(self._children) do
+        dev:poll()
+    end
     return true
 end
 
--- 设备变化阈值
-function Device:set_threshold(key, threshold)
-    self._thresholds[key] = threshold
+--- 添加子设备
+function Device:attach_children(dev)
+    -- 订阅子设备变化
+    local cancel = dev:on("change", function(values)
+        self:emit("change", values)
+    end)
+
+    for i, v in ipairs(self._children) do
+        -- 替换
+        if v.id == dev.id then
+            self._children[i] = dev
+            self._children_change[i]()
+            self._children_change[i] = cancel
+            return
+        end
+    end
+
+    table.insert(self._children, dev)
+    table.insert(self._children_change, cancel)
+end
+
+--- 删除子设备
+function Device:detach_children(id)
+    for i, v in ipairs(self._children) do
+        -- 替换
+        if v.id == id then
+            self._children_change[i]()
+
+            table.remove(self._children, i)
+            table.remove(self._children_change, i)
+            return
+        end
+    end
 end
 
 ---  全部变量
 -- @return table k->{value->any, time->int}
 function Device:values()
     local values = {}
+    for id, dev in pairs(self._children) do
+        for k, v in pairs(dev._values) do
+            values[k] = v
+        end
+    end
     for k, v in pairs(self._values) do
         values[k] = v
     end
@@ -84,6 +144,11 @@ end
 -- @return table k->{value->any, time->int}
 function Device:modified_values(clear)
     local values = {}
+    for id, dev in pairs(self._children) do
+        for k, v in pairs(dev:modified_values(clear)) do
+            values[k] = v
+        end
+    end
     for k, v in pairs(self._modified_values) do
         values[k] = v
     end
@@ -91,6 +156,11 @@ function Device:modified_values(clear)
         self._modified_values = {}
     end
     return values
+end
+
+-- 设备变化阈值
+function Device:set_threshold(key, threshold)
+    self._thresholds[key] = threshold
 end
 
 --- 读取值
@@ -193,79 +263,6 @@ function Device:put_values(values)
     if has then
         -- self.watcher:dispatch()
         self:emit("change", change)
-    end
-end
-
---- 订阅消息
--- @param name 名称
--- @param fn 回调
-function Device:on(name, fn)
-    if not self._handlers[name] then
-        self._handlers[name] = {}
-    end
-    table.insert(self._handlers[name], {
-        callback = fn
-    })
-    return function()
-        self:off(name, fn)
-    end
-end
-
---- 单次订阅
--- @param name 名称
--- @param fn 回调
-function Device:once(name, fn)
-    if not self._handlers[name] then
-        self._handlers[name] = {}
-    end
-    table.insert(self._handlers[name], {
-        once = true,
-        callback = fn
-    })
-    return function()
-        self:off(name, fn)
-    end
-end
-
---- 取消订阅
--- @param name 名称
--- @param fn 回调，如果为空，则取消其全部订阅
-function Device:off(name, fn)
-    if not fn then
-        self._handlers[name] = nil
-        return
-    end
-
-    local list = self._handlers[name]
-    if list then
-        for i = #list, 1, -1 do
-            if list[i].callback == fn then
-                table.remove(list, i)
-            end
-        end
-    end
-end
-
---- 发送消息
--- @param name 名称
-function Device:emit(name, ...)
-    local list = self._handlers[name]
-    if not list then
-        return
-    end
-    -- 依次回调
-    for i, v in ipairs(list) do
-        -- utils.call(v.callback, ...) -- 日志会太多
-        local ret, info = pcall(v.callback, ...)
-        if not ret then
-            log.error(info)
-        end
-    end
-    -- 删除once
-    for i = #list, 1, -1 do
-        if list[i].once then
-            table.remove(list, i)
-        end
     end
 end
 

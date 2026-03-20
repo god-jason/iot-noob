@@ -8,46 +8,16 @@ local settings = require("settings")
 local Device = require("device")
 local boot = require("boot")
 
-local MasterDevice = {}
-MasterDevice.__index = MasterDevice
-setmetatable(MasterDevice, Device)
+local MasterDevice = require("utils").class(require("device"))
 
 --- 创建设备实例
 -- @param obj table 设备
 -- @return Device 设备实例
-function MasterDevice:new(obj)
-    local dev = setmetatable(Device:new(obj), self)
-    dev._children = {} -- 内联子设备
-    dev._children_change = {}
-    return dev
+function MasterDevice:init()
+    log.info("MasterDevice:init")
 end
 
----  读值（具体协议需要继承实现）
--- @param key string
--- @return boolean, any|error
-function MasterDevice:get(key)
-    -- 查找内联设备
-    for k, dev in pairs(self._children) do
-        local val = dev._values[key]
-        if val ~= nil then
-            local ret, value = dev:get(key)
-            if ret then
-                return ret, value
-            end
-        end
-    end
-
-    -- 查网关变量
-    local val = self._values[key]
-    if val ~= nil then
-        return true, val.value
-    end
-
-    -- 找不到
-    return false, "值不存在"
-end
-
----  写值（具体协议需要继承实现）
+---  写值（重写Deivce:set，支持组件变量）
 -- @param key string
 -- @param value any
 -- @return boolean, error
@@ -60,7 +30,7 @@ function MasterDevice:set(key, value)
         end
     end
 
-    -- 组件绑定变量
+    -- 组件绑定变量（组件多的话，效率有点低，不过set应用场景不多，后期可以加索引）
     for k, cmp in ipairs(settings.components) do
         if cmp.bindings then
             for k, v in pairs(cmp.bindings) do
@@ -82,85 +52,6 @@ function MasterDevice:set(key, value)
     return true
 end
 
----  轮询
--- @return boolean, error
-function MasterDevice:poll()
-    -- 轮询内联设备
-    for k, dev in pairs(self._children) do
-        dev:poll()
-    end
-    return true
-end
-
---- 添加子设备
-function MasterDevice:attach_children(dev)
-    -- 订阅子设备变化
-    local cancel = dev:on("change", function(values)
-        self:emit("change", values)
-    end)
-
-    for i, v in ipairs(self._children) do
-        -- 替换
-        if v.id == dev.id then
-            self._children[i] = dev
-            self._children_change[i]()
-            self._children_change[i] = cancel
-            return
-        end
-    end
-
-    table.insert(self._children, dev)
-    table.insert(self._children_change, cancel)
-end
-
---- 删除子设备
-function MasterDevice:detach_children(id)
-    for i, v in ipairs(self._children) do
-        -- 替换
-        if v.id == id then
-            self._children_change[i]()
-
-            table.remove(self._children, i)
-            table.remove(self._children_change, i)
-            return
-        end
-    end
-end
-
----  全部变量
--- @return table k->{value->any, time->int}
-function MasterDevice:values()
-    local values = {}
-    for id, dev in pairs(self._children) do
-        for k, v in pairs(dev._values) do
-            values[k] = v
-        end
-    end
-    for k, v in pairs(self._values) do
-        values[k] = v
-    end
-    return values
-end
-
----  变化的变量
--- @param clear boolean 清空变化
--- @return table k->{value->any, time->int}
-function MasterDevice:modified_values(clear)
-    local values = {}
-    for id, dev in pairs(self._children) do
-        for k, v in pairs(dev:modified_values(clear)) do
-            values[k] = v
-        end
-    end
-    for k, v in pairs(self._modified_values) do
-        values[k] = v
-    end
-    if clear then
-        self._modified_values = {}
-    end
-    return values
-end
-
 local device = MasterDevice:new({})
 master.device = device
 -- devices.register("$master$", device)
@@ -180,6 +71,10 @@ end
 function master.open()
 
     -- 组件绑定 组件变量=>网关变量
+    -- bindings = {
+    --    state = forward_state,
+    --    disabled = forward_disabled
+    -- }
     for k, cmp in ipairs(settings.components) do
         if cmp.bindings and components[k] then
             components[k].on_change = function(key, value)

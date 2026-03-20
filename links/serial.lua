@@ -1,13 +1,8 @@
 --- 串口连接，继承Link
 -- @module serial
-local Serial = {}
-Serial.__index = Serial
+local Serial = require("utils").class(require("event"))
 
 local log = iot.logger("serial")
-
--- 继承Link
-local Link = require("link")
-setmetatable(Serial, Link)
 
 -- 注册连接类型
 local links = require("links")
@@ -16,21 +11,23 @@ links.register("serial", Serial)
 ---创建串口实例
 -- @param opts table
 -- @return table
-function Serial:new(opts)
-    local lnk = setmetatable(Link:new(), Serial)
-    lnk.id = opts.id or "serial-" .. opts.port
-    lnk.port = opts.port or 1
-    lnk.options = opts
-    return lnk
+function Serial:init()
 end
 
 --- 打开
 -- @return boolean 成功与否
 function Serial:open()
-    local ret, port = iot.uart(self.port, self.options)
+    local ret, port = iot.uart(self.port, self)
     if not ret then
         return false, port
     end
+
+    -- 监听数据
+    port:on_data(function(data)
+        log.info("serial data", self.port, data:toHex())
+        self:emit("data", data)
+    end)
+
     self.uart = port
     return true
 end
@@ -40,97 +37,17 @@ end
 -- @return boolean 成功与否
 function Serial:write(data)
     log.info("write", self.port, data:toHex())
-    if self.peer then
-        return false, "透传时不能写"
-    end
     return self.uart:write(data)
-end
-
---- 等待数据
--- @param timeout integer 超时 ms
--- @return boolean 成功与否
-function Serial:wait(timeout)
-    if self.peer then
-        if timeout ~= nil and timeout > 0 then
-            iot.sleep(timeout)
-            return false, "透传中"
-        end
-        iot.sleep(1000)
-        return false, "透传中"
-    end
-
-    return self.uart:wait(timeout)
-end
-
---- 读数据
--- @return boolean 成功与否
--- @return string|nil 数据
-function Serial:read()
-    if self.peer then
-        return false, "透传时不能读"
-    end
-
-    local ret, data = self.uart:read()
-    log.info("serial read", self.port, data:toHex())
-
-    if ret then
-        -- 转发到监听器
-        -- self.watcher:dispatch(data)
-        self:emit("data", data)
-    end
-    return ret, data
-end
-
---- 开启透传
--- @param peer Link 对等连接
-function Serial:pipe(peer)
-
-    -- 正在透传的，直接替换，不再启动新进程
-    if self.peer ~= nil then
-        self.peer = peer
-        return
-    end
-
-    self.peer = peer
-
-    -- 传空是关闭
-    if peer == nil then
-        return
-    end
-
-    -- 读取当前数据并转发
-    iot.start(function()
-        while self.peer ~= nil do
-            self.uart:wait(1000)
-            local ret, data = self.uart:read()
-            if ret and #data > 0 and self.peer ~= nil then
-                log.info("write to peer", data:toHex())
-                self.peer:write(data)
-            end
-        end
-    end)
-
-    -- 读取透传数据并转发
-    iot.start(function()
-        while self.peer ~= nil do
-            self.peer:wait(1000)
-            if self.peer ~= nil then
-                local ret, data = self.peer:read()
-                if ret and #data > 0 then
-                    log.info("read from peer", data:toHex())
-                    self.uart:write(data)
-                end
-            end
-        end
-    end)
 end
 
 --- 关闭串口
 function Serial:close()
+    -- 关闭协议
     if self.instanse ~= nil then
         self.instanse:close()
     end
     self.uart:close()
+    self:emit("close")
 end
 
 return Serial

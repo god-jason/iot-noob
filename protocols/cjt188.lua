@@ -1,14 +1,9 @@
 --- CJT188协议实现
 -- @module cjt188_device
-local Cjt188Device = {}
-Cjt188Device.__index = Cjt188Device
-
+local Cjt188Device = require("utils").class(require("device"))
 local log = iot.logger("cjt188")
 
 local Request = require("request")
-local Device = require("device")
--- setmetatable(Cjt188Device, {__index = Device}) -- 继承Device
-setmetatable(Cjt188Device, Device) -- 继承Device
 
 local database = require("database")
 local devices = require("devices")
@@ -175,16 +170,6 @@ local types = {
     }
 
 }
-
----创建设备
--- @param obj table 设备参数
--- @param master Cjt188Master 主站实例
--- @return Cjt188Device 实例
-function Cjt188Device:new(obj, master)
-    local dev = setmetatable(Device:new(obj), self) -- 继承Device
-    dev.master = master
-    return dev
-end
 
 ---打开设备
 function Cjt188Device:open()
@@ -538,7 +523,8 @@ function Cjt188Master:open()
     self.devices = {}
     for _, d in ipairs(ds) do
         log.info("open device", iot.json_encode(d))
-        local dev = Cjt188Device:new(d, self)
+        local dev = Cjt188Device:new(d)
+        dev.master = self
         dev:open()
 
         self.devices[d.id] = dev

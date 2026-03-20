@@ -1,15 +1,13 @@
 --- 事件机制（lua不能多重继承）
 -- @module Event
-local Event = {}
-Event.__index = Event
+local Event = require("utils").class()
 
-local utils = require("utils")
+local log = iot.logger("Event")
 
 --- 初始化
-function Event:new(obj)
-    local event = setmetatable(obj or {}, Event)
-    event._handlers = {}
-    return event
+function Event:init()
+    log.info("init")
+    self._handlers = {}
 end
 
 --- 订阅消息

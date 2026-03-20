@@ -242,15 +242,18 @@ function vm.zero(task, ctx, executor)
         if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
             components.move_servo:stop()
             sensor.set_position(0)
+            iot.emit("log", "后接近信号，清零成功")
             return
         end
         if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
             components.move_servo:stop()
             sensor.set_position(0)
+            iot.emit("log", "后磁感应信号，清零成功")
             return
         end
 
         log.info("第" .. i .. "次位置清零")
+        iot.emit("log", "第" .. i .. "次位置清零")
         -- agent.watch() -- 实时上传位置
 
         -- 向前推进

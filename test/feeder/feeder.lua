@@ -1471,11 +1471,13 @@ local function on_forward_limit(level)
             if robot.executor then
                 robot.executor:pause()
             end
+            iot.emit("log", "前接近信号，未到棚长，暂停")
         else
             if robot.executor then
                 robot.executor:interrupt()
             end
             sensor.set_position(settings.total_length)
+            iot.emit("log", "前接近信号，到棚长")
         end
     else
         if robot.executor and robot.executor.paused then
@@ -1503,11 +1505,13 @@ local function on_backward_limit(level)
             if robot.executor then
                 robot.executor:pause()
             end
+            iot.emit("log", "后接近信号，未到起点，暂停")
         else
             if robot.executor then
                 robot.executor:interrupt()
             end
             sensor.set_position(0) -- 位置清零
+            iot.emit("log", "后接近信号，到起点")
         end
     else
         if robot.executor and robot.executor.paused then
@@ -1537,6 +1541,8 @@ local function on_meg_sensor(level)
         end
 
         sensor.set_position(0) -- 位置清零
+        iot.emit("log", "后磁感应信号，到起点")
+
         -- 如果未启用编码器，需要等VM停止，再清一次0
         -- if not settings.encoder.enable then
         --     iot.setTimeout(sensor.set_position, 1000, 0)

@@ -1,14 +1,10 @@
 --- Modbus 协议实现
 -- @module modbus_master_device
-local ModbusMasterDevice = {}
-ModbusMasterDevice.__index = ModbusMasterDevice
+local ModbusMasterDevice = require("utils").class(require("device"))
 
 local log = iot.logger("modbus_master")
 
 local Request = require("request")
-local Device = require("device")
-setmetatable(ModbusMasterDevice, Device) -- 继承Device
-
 local database = require("database")
 local devices = require("devices")
 local protocols = require("protocols")
@@ -17,15 +13,6 @@ local model = require("model")
 local utils = require("utils")
 local modbus = require("modbus")
 
----创建设备
--- @param obj table 设备参数
--- @param master Modbus 主站实例
--- @return Device 实例
-function ModbusMasterDevice:new(obj, master)
-    local dev = setmetatable(Device:new(obj), self) -- 继承Device
-    dev.master = master
-    return dev
-end
 
 ---打开设备
 function ModbusMasterDevice:open()
@@ -356,7 +343,8 @@ function ModbusMaster:open()
     self.devices = {}
     for _, d in ipairs(ds) do
         log.info("open device", iot.json_encode(d))
-        local dev = ModbusMasterDevice:new(d, self)
+        local dev = ModbusMasterDevice:new(d)
+        dev.master = self
         dev:open() -- 设备也要打开
 
         self.devices[d.id] = dev

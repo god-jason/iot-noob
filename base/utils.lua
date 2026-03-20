@@ -2,24 +2,42 @@
 -- @module utils
 local utils = {}
 
+-- 递归调用 init（从根到当前类）
+local function call_init_chain(cls, obj)
+    if cls.__parent then
+        call_init_chain(cls.__parent, obj)
+    end
+
+    -- 原始类的 init（避免子类覆盖）
+    local init = rawget(cls, "init")
+    if init then
+        init(obj)
+    end
+end
+
 --- 定义类
 -- @param parent 父类（可选）
 -- @return 类
 function utils.class(parent)
-    local clazz = {}
-    clazz.__index = clazz
-    clazz.__parent = parent
+    local cls = {}
+    cls.__index = cls
+    cls.__parent = parent
+    cls.super = parent
 
-    function clazz:new(obj)
-        -- 继承父类实例
-        if parent and parent.new then
-            obj = parent:new(obj)
-        end
-        -- 设置meta
-        return setmetatable(obj or {}, self)
+    if parent then
+        setmetatable(cls, {
+            __index = parent
+        })
     end
 
-    return clazz
+    function cls:new(obj)
+        obj = setmetatable(obj or {}, self)
+        -- 调用整个继承链的 init
+        call_init_chain(self, obj)
+        return obj
+    end
+
+    return cls
 end
 
 --- 混合

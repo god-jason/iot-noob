@@ -529,6 +529,7 @@ UART.__index = UART
 function UART:close()
     uart.close(self.id)
 end
+
 --- 写入
 -- @param data string 数据
 -- @return boolean 成功与否
@@ -536,6 +537,7 @@ function UART:write(data)
     local len = uart.write(self.id, data)
     return len > 0, len
 end
+
 --- 读取
 -- @return boolean 成功与否
 -- @return string 数据
@@ -544,15 +546,11 @@ function UART:read()
     local data = uart.read(self.id)
     return data ~= nil and #data > 0, data
 end
---- 等待
--- @param timeout integer 超时
--- @return boolean 成功与否
--- @return interger 数据长度
-function UART:wait(timeout)
-    if self.data_len > 0 then
-        return true, self.data_len
-    end
-    return sys.waitUntil("uart_receive_" .. self.id, timeout)
+
+--- 注册回调
+-- @return function 数据回调
+function UART:on_data(cb)
+    self._on_data = cb
 end
 
 --- 创建UART对象
@@ -594,14 +592,9 @@ function iot.uart(id, opts)
     }, UART)
 
     uart.on(id, "receive", function(id2, len)
-        obj.data_len = obj.data_len + len
-        sys.publish("uart_receive_" .. id2, obj.data_len)
-
         -- 如果有回调，wait之后不能再read了
-        if obj.on_data then
-            obj.data_len = 0
-            local data = uart.read(id2)
-            obj.on_data(data)
+        if obj._on_data then
+            pcall(obj._on_data, uart.read(id2))
         end
     end)
 
