@@ -313,22 +313,13 @@ function cloud.clear_error()
 end
 
 local function master_task()
-    -- 网络灯闪烁
-    if components.led_net then
-        components.led_net:blink()
-    end
 
     -- 等待网络就绪
     iot.wait("IP_READY")
 
-    -- 常亮网络灯
+    -- 常亮网络灯（放这里不合适）
     if components.led_net then
         components.led_net:on()
-    end
-
-    -- 平台灯闪烁
-    if components.led_cloud then
-        components.led_cloud:blink()
     end
 
     -- 加载配置
@@ -347,6 +338,22 @@ local function master_task()
 
     -- 连接云平台
     client = MqttClient:new(options)
+
+    client:on_connect(function()        
+        -- 平台灯闪烁
+        if components.led_cloud then
+            components.led_cloud:on()
+        end
+    end)
+
+    client:on_disconnect(function()        
+        -- 平台灯闪烁
+        if components.led_cloud then
+            components.led_cloud:blink()
+        end
+    end)
+
+    -- 打开
     local ret, err = client:open()
 
     if not ret then
@@ -355,11 +362,6 @@ local function master_task()
     end
 
     log.info("平台连接成功")
-
-    -- 常亮平台灯
-    if components.led_cloud then
-        components.led_cloud:on()
-    end
 
     -- 上传日志
     iot.on("log", function(data)

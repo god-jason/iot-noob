@@ -198,7 +198,7 @@ end
 
 --- 恢复
 function Executor:resume()
-    if not self.paused or self.current < #self.tasks then
+    if not self.paused or self.current > #self.tasks then
         return false, "不是暂停的任务"
     end
     self.paused = false

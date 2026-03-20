@@ -1499,7 +1499,7 @@ local function on_backward_limit(level)
         -- 立即停止电机
         components.move_servo:stop()
 
-        if sensor.position() > (settings.correct.backward_detect or 50) then
+        if sensor.position() > (settings.correct.backward_detect or 80) then
             if robot.executor then
                 robot.executor:pause()
             end
