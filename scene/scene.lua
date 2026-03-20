@@ -179,11 +179,12 @@ function Scene:check()
             end
 
             -- 条件对比
-            local value = device:get_value(cond.key)
-            if value == nil then
-                log.error("device:", cond.device, " value:", cond.key, " is nil")
-                return false
+            local ret, value = device:get_value(cond.key)
+            if not ret then
+                return false, value
             end
+
+            -- TODO 以下只能判断数据关系了
             if type(value) ~= "number" then
                 log.error("device:", cond.device, " value:", cond.key, " is not a number")
                 return false

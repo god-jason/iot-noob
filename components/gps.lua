@@ -12,8 +12,14 @@ local function parse_latlng(raw, dir)
         return nil
     end
 
-    local deg = tonumber(string.sub(raw, 1, 2))
-    local min = tonumber(string.sub(raw, 3))
+    local dot = raw:find("%.")
+    if not dot then
+        return nil
+    end
+
+    local deg_len = dot - 3
+    local deg = tonumber(raw:sub(1, deg_len))
+    local min = tonumber(raw:sub(deg_len + 1))
 
     local val = deg + min / 60
 

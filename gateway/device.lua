@@ -35,7 +35,11 @@ end
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
-    return true, self._values[key]
+    local v = self._values[key]
+    if not v then
+        return false, "不存在"
+    end
+    return true, v.value
 end
 
 ---  写值
@@ -43,7 +47,8 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
-    self._values[key] = value
+    -- self._values[key] = value
+    self.put_value(key, value)
     return true
 end
 
@@ -80,9 +85,9 @@ end
 function Device:get_value(key)
     local v = self._values[key]
     if not v then
-        return nil
+        return false, "值不存在"
     end
-    return v.value
+    return true, v.value
 end
 
 ---  修改值（用于采集）
@@ -133,7 +138,7 @@ function Device:put_value(key, value)
     end
 end
 
----  修改多值（用于采集）
+---  修改多值（用于采集） !!! 不能随意覆盖，否则会引起mirrors change死循环
 -- @param values any
 function Device:put_values(values)
     local has = false

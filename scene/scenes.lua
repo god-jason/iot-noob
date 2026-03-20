@@ -47,9 +47,10 @@ function scenes.close()
     for i, s in pairs(_scenes) do
         s:close()
     end
+    _scenes = {}
 end
 
-scenes.deps = {"master"}
+scenes.deps = {"devices", "master"}
 
 boot.register("scenes", scenes)
 

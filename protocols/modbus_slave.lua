@@ -43,6 +43,8 @@ end
 -- @return boolean 成功与否
 function ModbusSlaveDevice:set(key, value)
     log.info("set", key, value, self.id)
+    self._values[key] = value
+
     local point = self.mapper:find(key)
     if not point then
         return false, "找不到点位" .. key

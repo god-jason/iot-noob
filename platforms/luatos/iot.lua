@@ -40,7 +40,12 @@ function iot.setTimeout(func, timeout, ...)
     if timeout < 1 then
         timeout = 1
     end
-    return sys.timerStart(func, math.ceil(timeout), ...)
+    return sys.timerStart(function()
+        local ret, info = pcall(func, ...)
+        if not ret then
+            log.error(info)
+        end
+    end, math.ceil(timeout), ...)
 end
 
 --- 循环定时任务
@@ -52,7 +57,12 @@ function iot.setInterval(func, timeout, ...)
     if timeout < 10 then
         timeout = 10
     end
-    return sys.timerLoopStart(func, math.ceil(timeout), ...)
+    return sys.timerLoopStart(function()
+        local ret, info = pcall(func, ...)
+        if not ret then
+            log.error(info)
+        end
+    end, math.ceil(timeout), ...)
 end
 
 --- 清空定时任务
@@ -73,7 +83,12 @@ end
 -- @return interger 任务ID
 function iot.start(func, ...)
     -- TODO 这里返回是协程对象，不是线程ID
-    return sys.taskInit(func, ...)
+    return sys.taskInit(function()
+        local ret, info = pcall(func, ...)
+        if not ret then
+            log.error(info)
+        end
+    end)
 end
 
 --- 关闭协程
@@ -111,33 +126,48 @@ end
 -- @param topic string 消息
 -- @param func function 回调
 function iot.on(topic, func)
-    sys.subscribe(topic, func)
+    local fn = function()
+        local ret, info = pcall(func, ...)
+        if not ret then
+            log.error(info)
+        end
+    end
+    sys.subscribe(topic, fn)
+
+    -- 取消订阅
+    return function()
+        sys.unsubscribe(topic, fn)
+    end
 end
 
 --- 消息订阅（单次）
 -- @param topic string 消息
 -- @param func function 回调
 function iot.once(topic, func)
-    local fn
-    fn = function()
-        func()
+
+    local cancel
+    local fn = function()
+        local ret, info = pcall(func, ...)
+        if not ret then
+            log.error(info)
+        end
+        cancel()
+    end
+
+    cancel = function()
         sys.unsubscribe(topic, fn)
     end
-    sys.subscribe(topic, fn)
-end
 
---- 取消订阅
--- @param topic string 消息
--- @param func function 回调
-function iot.off(topic, func)
-    sys.unsubscribe(topic, func)
+    sys.subscribe(topic, fn)
+
+    return cancel
 end
 
 --- 发布消息
 -- @param topic string 消息
 -- @param arg1 any 参数
 function iot.emit(topic, ...)
-    --log.info("iot", "emit", topic, ...)
+    -- log.info("iot", "emit", topic, ...)
     sys.publish(topic, ...)
 end
 
@@ -479,7 +509,7 @@ function iot.gpio(id, opts)
         -- 输入模式
         gpio.setup(id, opts.callback, pull, when)
         if opts.debounce and opts.debounce > 0 then
-            gpio.debounce(id, opts.debounce, 1) --改为延迟模式
+            gpio.debounce(id, opts.debounce, 1) -- 改为延迟模式
         end
     end
 
@@ -553,7 +583,7 @@ function iot.uart(id, opts)
     local ret = uart.setup(id, baud_rate, data_bits, stop_bits, partiy, bit_order, buff_size, rs485_gpio, rs485_level,
         rs485_delay)
     if ret ~= 0 then
-        return false, "UART打开失败"..id
+        return false, "UART打开失败" .. id
     end
 
     local obj = setmetatable({
@@ -632,7 +662,7 @@ function iot.i2c(id, opts)
 
     local ret = i2c.setup(id, opts.fast and i2c.FAST or i2c.SLOW)
     if ret ~= 1 then
-        return false, "I2C打开失败"..id
+        return false, "I2C打开失败" .. id
     end
     -- 返回对象实例
     return true, setmetatable({
@@ -690,7 +720,7 @@ function iot.spi(id, opts)
 
     local dev = spi.deviceSetup(id, cs, CPHA, CPOL, dataw, bandrate, bitdict, ms, mode)
     if dev == nil then
-        return false, "SPI打开失败"..id
+        return false, "SPI打开失败" .. id
     end
     -- 返回对象实例
     return true, setmetatable({
@@ -721,7 +751,7 @@ function iot.adc(id, opts)
     opts = opts or {}
     local ret = adc.open(id)
     if not ret then
-        return false, "ADC打开失败"..id
+        return false, "ADC打开失败" .. id
     end
     return true, setmetatable({
         id = id
@@ -762,10 +792,10 @@ end
 -- @return PWM
 function iot.pwm(id, opts)
     opts = opts or {}
-    --pwm.stop(id) -- 先停止之前的输出
+    -- pwm.stop(id) -- 先停止之前的输出
     local ret = pwm.setup(id, opts.freq or 1000, opts.duty or 50, opts.count or 0)
     if not ret then
-        return false, "PWM打开失败" ..id
+        return false, "PWM打开失败" .. id
     end
     return true, setmetatable({
         id = id
@@ -830,7 +860,7 @@ function iot.can(id, opts)
     opts = opts or {}
     local ret = can.init(id, opts.buffer_size or 128)
     if not ret then
-        return false, "CAN初始化失败"..id
+        return false, "CAN初始化失败" .. id
     end
 
     can.on(id, function(id2, tp, param)
