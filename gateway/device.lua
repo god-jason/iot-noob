@@ -17,8 +17,6 @@ function Device:new(obj)
     dev._thresholds = {} -- 变化阈值
     dev._updated = 0 -- 数据更新时间
     dev._handlers = {}
-    dev._children = {} -- 内联子设备
-    dev._children_change = {}
     return dev
 end
 
@@ -38,18 +36,6 @@ end
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
-    -- 查找内联设备
-    for k, dev in pairs(self._children) do
-        local val = dev._values[key]
-        if val ~= nil then
-            local ret, value = dev:get(key)
-            if ret then
-                return ret, value
-            end
-        end
-    end
-
-    -- 查网关变量
     local val = self._values[key]
     if val ~= nil then
         return true, val.value
@@ -64,14 +50,6 @@ end
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
-    -- 查找内联设备
-    for k, dev in pairs(self._children) do
-        local val = dev._values[key]
-        if val ~= nil then
-            return dev:set(key, value)
-        end
-    end
-
     self._values[key] = {
         value = value,
         time = os.time()
@@ -83,46 +61,7 @@ end
 ---  轮询
 -- @return boolean, error
 function Device:poll()
-    -- 轮询内联设备
-    for k, dev in pairs(self._children) do
-        dev:poll()
-    end
     return true
-end
-
---- 添加子设备
-function Device:attach_children(dev)
-    -- 订阅子设备变化
-    local cancel = dev:on("change", function(values)
-        self:emit("change", values)
-    end)
-
-    for i, v in ipairs(self._children) do
-        -- 替换
-        if v.id == dev.id then
-            self._children[i] = dev
-            self._children_change[i]()
-            self._children_change[i] = cancel
-            return
-        end
-    end
-
-    table.insert(self._children, dev)
-    table.insert(self._children_change, cancel)
-end
-
---- 删除子设备
-function Device:detach_children(id)
-    for i, v in ipairs(self._children) do
-        -- 替换
-        if v.id == id then
-            self._children_change[i]()
-
-            table.remove(self._children, i)
-            table.remove(self._children_change, i)
-            return
-        end
-    end
 end
 
 -- 设备变化阈值
@@ -134,11 +73,6 @@ end
 -- @return table k->{value->any, time->int}
 function Device:values()
     local values = {}
-    for id, dev in pairs(self._children) do
-        for k, v in pairs(dev._values) do
-            values[k] = v
-        end
-    end
     for k, v in pairs(self._values) do
         values[k] = v
     end
@@ -150,11 +84,6 @@ end
 -- @return table k->{value->any, time->int}
 function Device:modified_values(clear)
     local values = {}
-    for id, dev in pairs(self._children) do
-        for k, v in pairs(dev:modified_values(clear)) do
-            values[k] = v
-        end
-    end
     for k, v in pairs(self._modified_values) do
         values[k] = v
     end

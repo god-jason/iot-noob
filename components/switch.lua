@@ -65,6 +65,10 @@ function Switch:init()
             if self.event then
                 iot.emit(self.event, level)
             end
+
+            if self.on_change then
+                pcall(self.on_change, "state", self.state)
+            end
         end
     })
 end
@@ -83,12 +87,27 @@ end
 function Switch:enable()
     log.info("enable", self.pin, self.name)
     self.disabled = false
+
+    if self.on_change then
+        pcall(self.on_change, "disabled", false)
+    end
 end
 
 --- 禁用
 function Switch:disable()
     log.info("disable", self.pin, self.name)
     self.disabled = true
+
+    if self.on_change then
+        pcall(self.on_change, "disabled", true)
+    end
+end
+
+--- 设置值
+function Switch:set(key, value)
+    if key == "disabled" then
+        self.disabled = value == true
+    end
 end
 
 return Switch

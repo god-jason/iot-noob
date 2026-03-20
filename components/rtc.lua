@@ -89,6 +89,10 @@ function RTC:read()
     -- 发布消息
     iot.emit("RTC_OK", tm)
 
+    if self.on_change then
+        pcall(self.on_change, "time", os.date("%Y-%m-%d %H:%M:%S", os.time(tm))) -- 转为日期串
+    end
+
     return true, tm
 end
 

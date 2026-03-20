@@ -57,6 +57,12 @@ function Stepper:start(rpm, rounds)
     self.rounds = rounds
     self.running = true
 
+    if self.on_change then
+        pcall(self.on_change, "rpm", rpm)
+        pcall(self.on_change, "rounds", rounds)
+        pcall(self.on_change, "running", true)
+    end
+
     -- 方向
     if rounds >= 0 then
         self.dir_pin:set(self.reverse and 0 or 1)
@@ -155,6 +161,12 @@ function Stepper:stop()
         self.last = 0
         self.running = false
         self:unlock()
+
+        if self.on_change then
+            pcall(self.on_change, "rpm", 0)
+            pcall(self.on_change, "rounds", 0)
+            pcall(self.on_change, "running", false)
+        end
     end
 end
 
@@ -162,12 +174,20 @@ end
 function Stepper:lock()
     log.info(self.pwm_id, "lock")
     self.en_pin:set(0)
+
+    if self.on_change then
+        pcall(self.on_change, "lock", true)
+    end
 end
 
 --- 解锁
 function Stepper:unlock()
     log.info(self.pwm_id, "unlock")
     self.en_pin:set(1)
+
+    if self.on_change then
+        pcall(self.on_change, "lock", false)
+    end
 end
 
 -- TODO 放参数里

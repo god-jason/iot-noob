@@ -47,7 +47,7 @@ end
 
 --- 设置角度
 -- @param angle 角度
-function Servo:set(angle)
+function Servo:angle(angle)
     angle = math.max(self.min_angle, math.min(self.max_angle, angle))
 
     local duty = self:angle_to_duty(angle)
@@ -55,6 +55,17 @@ function Servo:set(angle)
     self.pwm:setDuty(duty)
 
     self.current_angle = angle
+
+    if self.on_change then
+        pcall(self.on_change, "angle", angle)
+    end
+end
+
+--- 设置值
+function Servo:set(key, value)
+    if key == "angle" then
+        self:angle(value)
+    end
 end
 
 --- 停止

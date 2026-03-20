@@ -2,7 +2,8 @@
 -- @module settings
 local settings = {}
 
-local log = iot.logger("setting")
+local log = iot.logger("settings")
+
 local configs = require("configs")
 local boot = require("boot")
 
@@ -67,6 +68,8 @@ end
 
 --- 加载配置
 function settings.open()
+    log.info("load", iot.json_encode(options.names))
+
     -- 加载配置
     options = configs.load_default("settings", options)
 

@@ -22,18 +22,20 @@ end
 function Led:on()
     self.gpio:set(1)
     self.blinking = false
+
+    if self.on_change then
+        pcall(self.on_change, "state", true)
+    end
 end
 
 --- 灭
 function Led:off()
     self.gpio:set(0)
     self.blinking = false
-end
 
---- 开关
-function Led:set(onOff)
-    self.gpio:set(onOff and 1 or 0)
-    self.blinking = false
+    if self.on_change then
+        pcall(self.on_change, "state", false)
+    end
 end
 
 --- 闪烁
@@ -49,8 +51,11 @@ function Led:blink(on, off)
     end
 
     iot.start(function()
-
         self.blinking = true
+
+        if self.on_change then
+            pcall(self.on_change, "blinking", self.blinking)
+        end
 
         while self.blinking do
 
@@ -67,7 +72,25 @@ function Led:blink(on, off)
         end
 
         log.info("blink finish", self.pin)
+
+        if self.on_change then
+            pcall(self.on_change, "blinking", self.blinking)
+        end
     end)
+
+    if self.on_change then
+        pcall(self.on_change, "state", true)
+    end
+end
+
+--- 开关
+function Led:set(key, value)
+    if key == "state" then
+        self.gpio:set((value == true or value == 1) and 1 or 0)
+        self.blinking = false
+    elseif key == "blink" then
+        self:blink(value)
+    end
 end
 
 return Led

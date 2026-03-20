@@ -65,6 +65,10 @@ function Buzzer:off()
         self.pwm:stop()
         self.pwm = nil
     end
+
+    if self.on_change then
+        pcall(self.on_change, "ringing", self.ringing)
+    end
 end
 
 --- 异步响铃，支持间隔
@@ -98,13 +102,25 @@ function Buzzer:ring(times, on_ms, off_ms)
         end
 
         self.ringing = false
+
+        if self.on_change then
+            pcall(self.on_change, "ringing", self.ringing)
+        end
     end)
+
+    if self.on_change then
+        pcall(self.on_change, "ringing", self.ringing)
+    end
 end
 
 --- 停止
 function Buzzer:stop()
     self:off()
     self.ringing = false
+
+    if self.on_change then
+        pcall(self.on_change, "ringing", self.ringing)
+    end
 end
 
 --- 设置 PWM 音量（占空比）
@@ -120,6 +136,13 @@ function Buzzer:setFreq(freq)
     self.freq = freq
     if self.pwm then
         self.pwm:setFreq(self.freq)
+    end
+end
+
+--- 设置值
+function Buzzer:set(key, value)
+    if key == "ring" then
+        self:ring(key, value)
     end
 end
 

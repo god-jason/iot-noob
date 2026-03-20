@@ -15,8 +15,6 @@ function Button:new(opts)
         name = opts.name, -- 名称
         event = opts.event, -- 事件
         reverse = opts.reverse or false, -- 是否反转信号
-        rising = opts.rising or false, -- 上升沿触发
-        falling = opts.falling or false, -- 下降沿触发
         debounce = opts.debounce or 50, -- 防抖时间（毫秒）
         state = false, -- 按钮当前状态（true=按下，false=松开）
         press_start_time = nil, -- 按下开始时间
@@ -28,10 +26,8 @@ end
 
 --- 初始化按钮
 function Button:init()
-    
+
     self.gpio = iot.gpio(self.pin, {
-        rising = self.rising,
-        falling = self.falling,
         debounce = self.debounce,
         callback = function(level, id)
             -- 反转信号（如果设置了反转）
@@ -49,7 +45,7 @@ function Button:init()
             if self.state then
                 -- 按钮被按下，记录时间
                 self.press_start_time = mcu.ticks()
-            else
+            elseif self.press_start_time then
                 -- 按钮被松开，判断是否是长按
                 local press_duration = mcu.ticks() - self.press_start_time
                 if press_duration >= self.long_press_threshold then
@@ -63,6 +59,7 @@ function Button:init()
                         name = self.name
                     })
                 end
+                self.press_start_time = nil
             end
 
             -- 广播统一事件
@@ -77,6 +74,10 @@ function Button:init()
             if self.event then
                 iot.emit(self.event, self.state)
             end
+
+            if self.on_change then
+                pcall(self.on_change, "state", self.state)
+            end
         end
     })
 end
@@ -90,12 +91,27 @@ end
 function Button:enable()
     log.info("enable", self.pin, self.name)
     self.disabled = false
+
+    if self.on_change then
+        pcall(self.on_change, "disabled", false)
+    end
 end
 
 --- 禁用按钮
 function Button:disable()
     log.info("disable", self.pin, self.name)
     self.disabled = true
+
+    if self.on_change then
+        pcall(self.on_change, "disabled", true)
+    end
+end
+
+--- 设置值
+function Button:set(key, value)
+    if key == "disabled" then
+        self.disabled = value == true
+    end
 end
 
 return Button

@@ -7,7 +7,7 @@ _G.devices = _devices
 
 --- 注册设备
 function devices.register(id, device)
-    iot.emit("DEVICE_REGISTER", id, device)
+    iot.emit("DEVICE_REGISTER", device)
     _devices[id] = device
 end
 

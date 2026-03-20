@@ -52,6 +52,10 @@ function Fan:open(level)
         self:speed(level)
     end
 
+    if self.on_change then
+        pcall(self.on_change, "running", true)
+    end
+
     return ret
 end
 
@@ -100,6 +104,10 @@ function Fan:speed(level, immediate)
 
     self.last_duty = duty
 
+    if self.on_change then
+        pcall(self.on_change, "level", level)
+    end
+
     return true
 end
 
@@ -112,6 +120,17 @@ function Fan:close()
     if self.pwm then
         self.pwm:stop()
         self.pwm = nil
+    end
+
+    if self.on_change then
+        pcall(self.on_change, "running", false)
+    end
+end
+
+--- 设置值
+function Fan:set(key, value)
+    if key == "run" then
+        self:speed(value)
     end
 end
 
