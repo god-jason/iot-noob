@@ -5,7 +5,11 @@ Request.__index = Request
 
 --local binary = require("binary")
 
+local utils = require("utils")
+
 local log = iot.logger("request")
+
+local inc = utils.increment()
 
 --- 创建询问器
 -- abc
@@ -14,9 +18,13 @@ local log = iot.logger("request")
 -- @return Request
 function Request:new(link, timeout)
     local request = setmetatable({}, self) -- 继承连接
+    request.id = inc()
     request.link = link
     request.timeout = timeout or 1000
     request.requesting = false
+    request.cancel = link:on("data", function(data)
+        iot.emit("REQUEST_DATA_"..request.id, data)
+    end)
     return request
 end
 
@@ -50,20 +58,13 @@ function Request:request(request, want_len)
     local buf = ""
     repeat
         -- 应该不是每次都要等待
-        local ret = self.link:wait(self.timeout)
+        local ret, data = iot.wait("REQUEST_DATA_"..request.id, self.timeout or 1000)
         if not ret then
             self.requesting = false
             return false, "读取超时"
         end
-
-        local r, d = self.link:read()
-        if not r then
-            self.requesting = false
-            return false, d
-        end
-        buf = buf .. d
+        buf = buf .. data
     until #buf >= want_len
-
     -- log.info("ask got", #buf, binary.encodeHex(buf))
 
     self.requesting = false

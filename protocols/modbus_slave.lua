@@ -19,7 +19,7 @@ local modbus = require("modbus")
 -- @param slave Modbus 主站实例
 -- @return Device 实例
 function ModbusSlaveDevice:init()
-    --self.slave = slave
+    -- self.slave = slave
     self.coils = {}
     self.discrete_inputs = {}
     self.holding_registers = {}
@@ -226,7 +226,7 @@ function ModbusSlaveDevice:write_register(data)
         end
     end
 
-    --return self:build_response(6, data:sub(3, 6))
+    -- return self:build_response(6, data:sub(3, 6))
     return data
 end
 
@@ -362,40 +362,37 @@ function ModbusSlave:open()
         devices.register(d.id, dev)
     end
 
-    -- 开启轮询
-    iot.start(ModbusSlave.process, self)
+    self.link:on("data", function(data)
+        self:process(data)
+    end)
 end
 
 --- 轮询
-function ModbusSlave:process()
+function ModbusSlave:process(data)
     -- 解析数据
-    while self.opened do
-        self.link:wait()
-        local ret, data = self.link:read()
 
-        local tid, pid, ln
+    local tid, pid, ln
 
-        if self.tcp then
-            _, tid, pid, ln = iot.unpack(data, "3>H")
-            data = data:sub(7)
-        end
+    if self.tcp then
+        _, tid, pid, ln = iot.unpack(data, "3>H")
+        data = data:sub(7)
+    end
 
-        -- TODO 如果长度不足，则等待内容
+    -- TODO 如果长度不足，则等待内容
 
-        local slave = string.byte(data, 1)
+    local slave = string.byte(data, 1)
 
-        -- 找到设备
-        local dev = self.devices[slave]
-        if dev then
-            local resp = dev:process(data)
-            if resp and #resp > 0 then
-                if self.tcp then
-                    -- 拼接头，删除尾crc16
-                    resp = iot.pack("3>H", tid, pid, #resp - 2) .. resp:sub(1, #resp - 2)
-                end
-
-                self.link:write(resp)
+    -- 找到设备
+    local dev = self.devices[slave]
+    if dev then
+        local resp = dev:process(data)
+        if resp and #resp > 0 then
+            if self.tcp then
+                -- 拼接头，删除尾crc16
+                resp = iot.pack("3>H", tid, pid, #resp - 2) .. resp:sub(1, #resp - 2)
             end
+
+            self.link:write(resp)
         end
     end
 end

@@ -33,10 +33,13 @@ function MasterDevice:set(key, value)
     -- 组件绑定变量（组件多的话，效率有点低，不过set应用场景不多，后期可以加索引）
     for k, cmp in ipairs(settings.components) do
         if cmp.bindings then
-            for k, v in pairs(cmp.bindings) do
-                if v == key and cmp.set then
-                    cmp:set(k, value)
-                    return true
+            local com = components[cmp.name]
+            if com and com.set then                
+                for k, v in pairs(cmp.bindings) do
+                    if v == key then
+                        com:set(k, value)
+                        return true
+                    end
                 end
             end
         end
@@ -76,8 +79,8 @@ function master.open()
     --    disabled = forward_disabled
     -- }
     for k, cmp in ipairs(settings.components) do
-        if cmp.bindings and components[k] then
-            components[k].on_change = function(key, value)
+        if cmp.bindings and components[cmp.name] then
+            components[cmp.name].on_change = function(key, value)
                 local key2 = cmp.bindings[key]
                 device:put_value(key2, value)
             end
