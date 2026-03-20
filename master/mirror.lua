@@ -25,7 +25,6 @@ function Mirror:init()
                 self.dev2:set(k, v)
             end
         end)
-
     end)
 
     -- 订阅设备2的变化
@@ -34,7 +33,7 @@ function Mirror:init()
         self.dev1:put_values(values)
 
         -- 回写外设的寄存器
-        pcall(function()
+        iot.start(function()
             for k, v in pairs(values) do
                 self.dev1:set(k, v)
             end

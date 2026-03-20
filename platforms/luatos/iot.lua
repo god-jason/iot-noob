@@ -40,7 +40,7 @@ function iot.setTimeout(func, timeout, ...)
     if timeout < 1 then
         timeout = 1
     end
-    return sys.timerStart(function()
+    return sys.timerStart(function(...)
         local ret, info = pcall(func, ...)
         if not ret then
             log.error(info)
@@ -57,7 +57,7 @@ function iot.setInterval(func, timeout, ...)
     if timeout < 10 then
         timeout = 10
     end
-    return sys.timerLoopStart(function()
+    return sys.timerLoopStart(function(...)
         local ret, info = pcall(func, ...)
         if not ret then
             log.error(info)
@@ -83,12 +83,12 @@ end
 -- @return interger 任务ID
 function iot.start(func, ...)
     -- TODO 这里返回是协程对象，不是线程ID
-    return sys.taskInit(function()
+    return sys.taskInit(function(...)
         local ret, info = pcall(func, ...)
         if not ret then
             log.error(info)
         end
-    end)
+    end, ...)
 end
 
 --- 关闭协程
@@ -126,7 +126,7 @@ end
 -- @param topic string 消息
 -- @param func function 回调
 function iot.on(topic, func)
-    local fn = function()
+    local fn = function(...)
         local ret, info = pcall(func, ...)
         if not ret then
             log.error(info)
@@ -146,7 +146,7 @@ end
 function iot.once(topic, func)
 
     local cancel
-    local fn = function()
+    local fn = function(...)
         local ret, info = pcall(func, ...)
         if not ret then
             log.error(info)
@@ -394,9 +394,10 @@ function iot.unpack(str, fmt, offset)
     return pack.unpack(str, fmt, offset)
 end
 
---- 重启
-function iot.reboot()
-    rtos.reboot()
+--- 重启（可以监听 REBOOT 消息， 在重启前保存数据）
+function iot.reboot(timeout)
+    iot.emit("REBOOT")
+    iot.setTimeout(rtos.reboot, timeout or 2000)
 end
 
 --- 创建SOCKET

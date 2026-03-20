@@ -22,12 +22,6 @@ function MasterDevice:open()
 end
 
 function MasterDevice:get(key)
-    -- 查网关变量
-    local val = self._values[key]
-    if val ~= nil then
-        return true, val.value
-    end
-
     -- 查找内联设备
     for k, dev in pairs(devices.devices()) do
         if dev.get and dev.inline then
@@ -41,20 +35,17 @@ function MasterDevice:get(key)
         end
     end
 
-    -- 找不到
-    return false, "unkown key"
-end
-
-function MasterDevice:set(key, value)
     -- 查网关变量
     local val = self._values[key]
     if val ~= nil then
-        self._values[key] = {
-            value = value,
-            timestamp = os.time()
-        }
-        return true
+        return true, val.value
     end
+
+    -- 找不到
+    return false, "值不存在"
+end
+
+function MasterDevice:set(key, value)
 
     -- 查找内联设备
     for k, dev in pairs(devices.devices()) do
@@ -66,7 +57,14 @@ function MasterDevice:set(key, value)
         end
     end
 
-    return false, "unkown key"
+    -- 查网关变量
+    -- local val = self._values[key]
+    -- if val ~= nil then
+    self._values[key] = {
+        value = value,
+        timestamp = os.time()
+    }
+    return true
 end
 
 function MasterDevice:poll()

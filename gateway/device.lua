@@ -31,7 +31,8 @@ end
 function Device:close()
     return true
 end
----  读值
+
+---  读值（具体协议需要继承实现）
 -- @param key string
 -- @return boolean, any|error
 function Device:get(key)
@@ -42,13 +43,16 @@ function Device:get(key)
     return true, v.value
 end
 
----  写值
+---  写值（具体协议需要继承实现）
 -- @param key string
 -- @param value any
 -- @return boolean, error
 function Device:set(key, value)
-    -- self._values[key] = value
-    self.put_value(key, value)
+    self._values[key] = {
+        value = value,
+        time = os.time()
+    }
+    -- self.put_value(key, value)
     return true
 end
 
@@ -142,6 +146,8 @@ end
 -- @param values any
 function Device:put_values(values)
     local has = false
+    local change = {}
+
     for key, value in pairs(values) do
         local val = {
             value = value,
@@ -163,6 +169,7 @@ function Device:put_values(values)
             end
         else
             self._modified_values[key] = val
+            change[key] = value
             has = true
         end
 
@@ -175,10 +182,9 @@ function Device:put_values(values)
     -- 监听变化
     if has then
         -- self.watcher:dispatch()
-        self:emit("change", values)
+        self:emit("change", change)
     end
 end
-
 
 --- 订阅消息
 -- @param name 名称
@@ -248,6 +254,5 @@ function Device:emit(name, ...)
         end
     end
 end
-
 
 return Device
