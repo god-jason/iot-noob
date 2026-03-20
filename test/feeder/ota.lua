@@ -9,7 +9,7 @@ local function fota_cb(ret)
     log.info("fota", ret)
     if ret == 0 then
         log.info("升级包下载成功,重启模块")
-        rtos.reboot()
+        iot.reboot()
     end
 end
 

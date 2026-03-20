@@ -250,8 +250,7 @@ end
 -- 重启设备
 function actions.reboot(data)
     robot.state("idle")
-    sensor.save()
-    rtos.reboot()
+    iot.reboot()
     return true
 end
 
@@ -282,7 +281,6 @@ end
 -- 固件升级
 function actions.upgrade(data)
     iot.emit("FOTA", "固件升级")
-    sensor.save()
     return true
 end
 
@@ -296,7 +294,7 @@ end
 -- 重置设备
 function actions.reset(data)
     robot.state("idle")
-    sensor.save()
     settings.reset()
+    iot.reboot() -- 重置之后，需要重启
     return true
 end

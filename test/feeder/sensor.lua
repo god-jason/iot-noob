@@ -66,7 +66,6 @@ function sensor.add_position(v)
     _position = _position + v
 end
 
-
 -- 处理单片机消息
 local handlers = {}
 function handlers.status(data)
@@ -172,7 +171,7 @@ end
 function sensor.correct(target, step)
     if sensor.weight() < target then
         correct = correct + step
-        --加过头了
+        -- 加过头了
         if sensor.weight() > target then
             correct = target - weight
         end
@@ -185,10 +184,9 @@ function sensor.correct(target, step)
     end
 end
 
-
 -- 初始化KV数据库
 fskv.init()
-    
+
 -- 读取修正值
 correct = fskv.get("correct") or 0
 _position = fskv.get("position") or 0
@@ -200,12 +198,14 @@ function sensor.save()
     fskv.set("correct", correct)
 end
 
+-- 重启前保存值
+iot.on("REBOOT", sensor.save)
+
 -- 每天保存一次修正值
 -- iot.setInterval(sensor.save, 24 * 3600)
 cron.clock("00:00", sensor.save)
 
 -- 100ms向单片机询问一次数据
 iot.setInterval(sensor.query_status, 200)
-
 
 return sensor
