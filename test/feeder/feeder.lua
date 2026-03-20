@@ -1455,7 +1455,7 @@ local function on_forward_limit(level)
     if not settings.device.forward_limit_enable then
         return
     end
-    log.info("FORWARD_LIMIT", level)
+    --log.info("FORWARD_LIMIT", level)
 
     if level == 0 then
         -- 后退抖动情况，不处理
@@ -1488,7 +1488,7 @@ local function on_backward_limit(level)
     if not settings.device.backward_limit_enable then
         return
     end
-    log.info("BACKWARD_LIMIT", level)
+    --log.info("BACKWARD_LIMIT", level)
 
     if level == 0 then
         -- 前进抖动情况，不处理
@@ -1521,7 +1521,7 @@ local function on_meg_sensor(level)
     if not settings.device.meg_sensor_enable then
         return
     end
-    log.info("MEG_SENSOR", level)
+    -- log.info("MEG_SENSOR", level)
 
     if level == 0 then
         -- 前进抖动情况，不处理

@@ -39,7 +39,7 @@ function Switch:init()
 
             self.state = (level == 1)
 
-            log.info("switch", id, level, self.name, self.event)
+            -- log.info("switch", id, level, self.name, self.event)
 
             if self.disabled then
                 return
