@@ -558,12 +558,20 @@ function iot.uart(id, opts)
 
     local obj = setmetatable({
         id = id,
-        data_len = 0
+        data_len = 0,
+        on_data = opts.on_data
     }, UART)
 
     uart.on(id, "receive", function(id2, len)
         obj.data_len = obj.data_len + len
-        sys.publish("uart_receive_" .. id2, len)
+        sys.publish("uart_receive_" .. id2, obj.data_len)
+
+        -- 如果有回调，wait之后不能再read了
+        if obj.on_data then
+            obj.data_len = 0
+            local data = uart.read(id2)
+            obj.on_data(data)
+        end
     end)
 
     -- 返回对象实例
