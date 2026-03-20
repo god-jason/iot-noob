@@ -28,13 +28,16 @@ function master.open()
 
     -- 订阅添加子设备
     iot.on("DEVICE_REGISTER", function(id, device)
-        device:attach_children(device)
+        -- 只绑定内联设备
+        if device.inline then
+            device:attach_children(device)    
+        end
     end)
 
     -- 订阅删除子设备
-    iot.on("DEVICE_UNREGISTER", function(id)
-        device:detach_children(id)
-    end)
+    -- iot.on("DEVICE_UNREGISTER", function(id)
+    --     device:detach_children(id)
+    -- end)
 
     device:put_values({
         bsp = rtos.bsp(),
