@@ -417,7 +417,13 @@ function feeder.plan(plans, weights, ranks, board_times, single)
     -- 起始点，静置称重
     if options.smart then
 
-        if settings.device.weigt_distance and settings.device.weigh_distance > 1 then
+        if settings.device.weigh_distance and settings.device.weigh_distance > 1 then
+            
+            table.insert(tasks, {
+                type = "wait",
+                time = 2000
+            })
+            
             rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
             table.insert(tasks, {
                 name = "称重距离",
@@ -429,7 +435,7 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                 wait = true
             })
 
-            table.insert({
+            table.insert(tasks, {
                 type = "brake"
             })
         end
@@ -725,7 +731,12 @@ function feeder.plan(plans, weights, ranks, board_times, single)
             -- 静置称重
             if options.smart then
 
-                if settings.device.weigt_distance and settings.device.weigh_distance > 1 then
+                if settings.device.weigh_distance and settings.device.weigh_distance > 1 then
+                    table.insert(tasks, {
+                        type = "wait",
+                        time = 2000
+                    })
+
                     rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
                     table.insert(tasks, {
                         name = "称重距离",
@@ -737,13 +748,12 @@ function feeder.plan(plans, weights, ranks, board_times, single)
                         wait = true
                     })
 
-                    table.insert({
+                    table.insert(tasks, {
                         type = "brake"
                     })
                 end
 
                 table.insert(tasks, {
-                    pool = 0,
                     type = "wait",
                     time = 10000
                 })

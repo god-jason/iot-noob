@@ -12,6 +12,7 @@ local states = {}
 
 local function check_limits()
     if components.move_servo.running then
+        -- 前进时，距离接近终点
         if components.move_servo.rounds > 0 then
             if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
                 components.move_servo:stop()
@@ -19,7 +20,8 @@ local function check_limits()
                     sensor.set_position(settings.total_length)
                 end
             end
-        else
+        elseif components.move_servo.rounds < 0 then
+            -- 后退时，
             if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
                 components.move_servo:stop()
                 if sensor.position() < (settings.correct.backward_detect or 80) then
@@ -132,8 +134,9 @@ states.move = {
         robot.kill("dry")
     end,
     tick = function()
+
         -- 检查限位开关
-        check_limits()
+        -- check_limits()
     end
 }
 
@@ -205,8 +208,8 @@ states.feed = {
             return
         end
 
-        -- 检查限位开关
-        check_limits()
+        -- 检查限位开关，如果限位开关开法弹起，会出错
+        -- check_limits()
     end
 }
 

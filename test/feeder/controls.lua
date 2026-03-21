@@ -38,20 +38,20 @@ function vm.move(task, ctx, executor)
     task.start_position = sensor.position() -- 记录起始位置
 
     -- 如果限位开关已经触发，则不执行了，直接到move_end
-    if task.distance > 0 then
-        -- 到终点时，不能移动了
-        if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
-            return
-        end
-    else
-        -- 到起点时，不能移动了
-        if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
-            return
-        end
-        if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
-            return
-        end
-    end
+    -- if task.distance > 0 then
+    --     -- 到终点时，不能移动了
+    --     if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
+    --         return
+    --     end
+    -- else
+    --     -- 到起点时，不能移动了
+    --     if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+    --         return
+    --     end
+    --     if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+    --         return
+    --     end
+    -- end
 
     -- local tm = control.move(task.speed, task.rounds)
 
@@ -78,7 +78,9 @@ function vm.move(task, ctx, executor)
         iot.start(function()
             local start = mcu.ticks()
 
+            -- 1s后再计算
             iot.sleep(100)
+
             while task == ctx.move_task and not executor.stoped and not executor.paused do
 
                 -- 计算用时
@@ -97,8 +99,39 @@ function vm.move(task, ctx, executor)
                 end
 
                 iot.sleep(100)
+
             end
         end)
+    else
+        -- 检查限位开关
+        iot.setTimeout(function()
+            if task == ctx.move_task and not executor.stoped and not executor.paused then
+
+                if task.distance > 0 then
+
+                    -- 向前行走，开关没有松开
+                    if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "后接近开关故障")
+                        return
+                    end
+                    if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "后磁感应开关故障")
+                        return
+                    end
+
+                else
+                    -- 向后行走，开关没有松开
+                    if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "前接近开关故障")
+                        return
+                    end
+                end
+
+            end
+        end, 1000)
     end
 
     -- 主动上报数据
@@ -280,7 +313,7 @@ function vm.zero(task, ctx, executor)
     -- 不能再喂了  停止任务
     robot.state("error", "位置清零失败")
     executor:stop()
-    
+
     -- error("位置清零失败")
 end
 
