@@ -46,6 +46,7 @@ function Executor:pause()
     end
 
     self.paused = true
+    self.pause_time = os.time()
     self:interrupt()
 end
 

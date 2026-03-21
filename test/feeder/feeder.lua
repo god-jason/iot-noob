@@ -416,6 +416,24 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
     -- 起始点，静置称重
     if options.smart then
+
+        if settings.device.weigt_distance and settings.device.weigh_distance > 1 then
+            rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
+            table.insert(tasks, {
+                name = "称重距离",
+                type = "move",
+                speed = 1,
+                rounds = rounds,
+                distance = settings.device.weigh_distance,
+                position = settings.device.weigh_distance,
+                wait = true
+            })
+
+            table.insert({
+                type = "brake"
+            })
+        end
+
         table.insert(tasks, {
             pool = 0,
             type = "wait",
@@ -706,6 +724,24 @@ function feeder.plan(plans, weights, ranks, board_times, single)
 
             -- 静置称重
             if options.smart then
+
+                if settings.device.weigt_distance and settings.device.weigh_distance > 1 then
+                    rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
+                    table.insert(tasks, {
+                        name = "称重距离",
+                        type = "move",
+                        speed = 1,
+                        rounds = rounds,
+                        distance = settings.device.weigh_distance,
+                        position = settings.device.weigh_distance,
+                        wait = true
+                    })
+
+                    table.insert({
+                        type = "brake"
+                    })
+                end
+
                 table.insert(tasks, {
                     pool = 0,
                     type = "wait",
@@ -1217,7 +1253,7 @@ function feeder.dry(val)
         -- 开启风干
         settings.dry.enable = true
         settings.save("dry")
-        --robot.plan("dry") -- 直接开启风干
+        -- robot.plan("dry") -- 直接开启风干
     elseif val == false then
         -- 关闭风干
         settings.dry.enable = false
@@ -1301,7 +1337,7 @@ function feeder.stop()
     schedule.clear()
 
     -- 进入待机状态
-    --robot.state("standby")
+    -- robot.state("standby")
 end
 
 -- 电子秤自动修正
@@ -1455,7 +1491,7 @@ local function on_forward_limit(level)
     if not settings.device.forward_limit_enable then
         return
     end
-    --log.info("FORWARD_LIMIT", level)
+    -- log.info("FORWARD_LIMIT", level)
 
     if level == 0 then
         -- 后退抖动情况，不处理
@@ -1490,7 +1526,7 @@ local function on_backward_limit(level)
     if not settings.device.backward_limit_enable then
         return
     end
-    --log.info("BACKWARD_LIMIT", level)
+    -- log.info("BACKWARD_LIMIT", level)
 
     if level == 0 then
         -- 前进抖动情况，不处理

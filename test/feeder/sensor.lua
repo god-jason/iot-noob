@@ -59,6 +59,16 @@ function sensor.set_position(p)
         end
         -- 编码器 每圈100脉冲
         ticks = p / math.pi / 8 * settings.encoder.pulse
+
+        -- 向编码器设置值
+        uart.write(uart_id, json.encode({
+            type = "set",
+            ticks = ticks
+        }))
+        uart.write(uart_id, json.encode({
+            type = "set",
+            ticks = ticks
+        }))
     end
 end
 
@@ -83,6 +93,14 @@ function handlers.status(data)
             _position = -_position
         end
     end
+end
+
+function handlers.init(data)
+    if settings.encoder.enable then
+        -- 向编码器回写值
+        sensor.set_position(_position)
+    end
+    iot.emit("error", "单片机重启了")
 end
 
 local cache = ""
@@ -160,11 +178,11 @@ function sensor.calibrate(weight)
     }))
 end
 
+
 -- 问重量
+local query_cmd = iot.json_encode({type = "status"})
 function sensor.query_status()
-    uart.write(uart_id, json.encode({
-        type = "status"
-    }))
+    uart.write(uart_id, query_cmd)
 end
 
 -- 自动校正重量到目标值

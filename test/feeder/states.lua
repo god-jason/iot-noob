@@ -198,6 +198,13 @@ states.feed = {
             end
         end
 
+        -- 任务暂停超过10分钟，要报警
+        if robot.executor.paused and os.time() - robot.executor.pause_time > 600 then
+            robot.executor:stop() -- 停止投喂任务
+            robot.state("error", "接近开关故障")
+            return
+        end
+
         -- 检查限位开关
         check_limits()
     end
