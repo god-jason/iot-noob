@@ -102,37 +102,38 @@ function vm.move(task, ctx, executor)
 
             end
         end)
-    else
-        -- 检查限位开关
-        iot.setTimeout(function()
-            if task == ctx.move_task and not executor.stoped and not executor.paused then
+    end
 
-                if task.distance > 0 then
+    -- 检查限位开关
+    iot.setTimeout(function()
+        if task == ctx.move_task and not executor.stoped and not executor.paused then
 
-                    -- 向前行走，开关没有松开
-                    if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
-                        executor:stop()
-                        robot.state("error", "后接近开关故障")
-                        return
-                    end
-                    if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
-                        executor:stop()
-                        robot.state("error", "后磁感应开关故障")
-                        return
-                    end
+            if task.distance > 0 then
 
-                else
-                    -- 向后行走，开关没有松开
-                    if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
-                        executor:stop()
-                        robot.state("error", "前接近开关故障")
-                        return
-                    end
+                -- 向前行走，开关没有松开
+                if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+                    executor:stop()
+                    robot.state("error", "后接近开关故障")
+                    return
+                end
+                if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+                    executor:stop()
+                    robot.state("error", "后磁感应开关故障")
+                    return
                 end
 
+            else
+                -- 向后行走，开关没有松开
+                if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
+                    executor:stop()
+                    robot.state("error", "前接近开关故障")
+                    return
+                end
             end
-        end, 1000)
-    end
+
+        end
+
+    end, 3000) -- 3s后再计算
 
     -- 主动上报数据
     iot.emit("report")
@@ -269,21 +270,10 @@ function vm.zero(task, ctx, executor)
     local distance = -math.abs(task.distance or 100)
     local rounds = feeder.calc_move_rounds(distance)
 
+    local success = false
+
     -- 至多清零5次
     for i = 1, 5, 1 do
-        -- 已经有后接近信号了
-        if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
-            components.move_servo:stop()
-            sensor.set_position(0)
-            iot.emit("log", "后接近信号，清零成功")
-            return
-        end
-        if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
-            components.move_servo:stop()
-            sensor.set_position(0)
-            iot.emit("log", "后磁感应信号，清零成功")
-            return
-        end
 
         log.info("第" .. i .. "次位置清零")
         iot.emit("log", "第" .. i .. "次位置清零")
@@ -295,6 +285,18 @@ function vm.zero(task, ctx, executor)
         -- 调用执行器的等待（反向调用了，有点怪）
         local ret = executor:wait(tm)
         if ret then
+            -- 已经有后接近信号了
+            if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+                iot.emit("log", "后接近信号，清零成功")
+                success = true
+                break
+            end
+            if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+                iot.emit("log", "后磁感应信号，清零成功")
+                success = true
+                break
+            end
+
             -- 外部触发，结束任务，可能是到起点了，也可能是被取消了
             return
         end
@@ -303,18 +305,49 @@ function vm.zero(task, ctx, executor)
         iot.emit("report")
     end
 
-    -- 3次都失败，则直接置零
+    -- 停止运行
     components.move_servo:stop()
-    -- sensor.set_position(0)
 
-    -- 位置清零失败
-    iot.emit("log", "位置清零失败")
+    if not success then
+        -- 3次都失败，则直接置零
 
-    -- 不能再喂了  停止任务
-    robot.state("error", "位置清零失败")
-    executor:stop()
+        -- 位置清零失败
+        iot.emit("log", "位置清零失败")
 
-    -- error("位置清零失败")
+        -- 不能再喂了  停止任务
+        robot.state("error", "位置清零失败")
+        executor:stop()
+
+        -- error("位置清零失败")
+        return
+    end
+
+    log.info("清零完成", settings.device.weigh_distance)
+
+    -- 前进几cm，让后接近信号关闭
+    if settings.device.weigh_distance and settings.device.weigh_distance > 1 then
+        log.info("向前移动到称重位置")
+
+        -- 先静止
+        local ret = executor:wait(1000)
+        if ret then
+            return
+        end
+
+        -- 前移
+        local rpm = feeder.calc_move_rpm(1)
+        local distance = settings.device.weigh_distance
+        local rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
+
+        local tm = components.move_servo:start(rpm, rounds)
+        local ret = executor:wait(tm)
+        if ret then
+            return
+        end
+
+        components.move_servo:brake()
+    end
+
 end
 
 -- 投喂
