@@ -35,7 +35,7 @@ sys.taskInit(function()
     require("boot").startup()
 
     -- 打印内存占用
-    while not RELEASE do
+    while DEBUG do
         sys.wait(5000)
         log.info("内存", rtos.meminfo())
     end

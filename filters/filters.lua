@@ -7,7 +7,6 @@ _G.filters = filters
 local log = iot.logger("filters")
 
 local boot = require("boot")
-local utils = require("utils")
 
 local types = {}
 

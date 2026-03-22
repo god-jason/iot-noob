@@ -10,7 +10,6 @@ local devices = require("devices")
 local protocols = require("protocols")
 local points = require("points")
 local model = require("model")
-local utils = require("utils")
 local modbus = require("modbus")
 
 
@@ -377,10 +376,10 @@ function ModbusMaster:_polling()
         for _, dev in pairs(self.devices) do
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
-            -- local ret, info = utils.call(function()
+            -- local ret, info = iot.xcall(function()
             local ret, info = xpcall(function()
                 return dev:poll()
-            end, utils.traceback)
+            end, iot.traceback)
             if not ret then
                 log.error("polling", dev.id, "error", info)
             end

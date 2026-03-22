@@ -9,14 +9,14 @@ local log = iot.logger("autoload")
 function autoload.load(name)
     log.trace("load", name)
 
-    if RELEASE then
+    if DEBUG then
+        require(name)
+    else
         -- 使用pcall 避免异常退出
         local ret, info = pcall(require, name)
         if not ret then
             log.error(name, info)
         end
-    else
-        require(name)
     end
     -- iot.sleep(500) -- 等待一段时间，避免日志输出太快，从而导致丢失
 end

@@ -77,7 +77,7 @@ function Executor:execute(cursor)
     -- 执行恢复指令
     if cursor > 1 and cursor <= #self.tasks then
         local task = self.tasks[cursor]
-        local ret, info = utils.call(vm.resume, task, self.context, self)
+        local ret, info = iot.xcall(vm.resume, task, self.context, self)
         log.info(self.job, "vm.resume", ret, info)
     end
 
@@ -96,7 +96,7 @@ function Executor:execute(cursor)
         -- 条件指令
         local cond = task._condition or task.condition
         if type(cond) == "function" then
-            local ret, info = utils.call(cond, self.context, self)
+            local ret, info = iot.xcall(cond, self.context, self)
             if not ret then
                 log.error(info)
                 -- 记录错误
@@ -119,7 +119,7 @@ function Executor:execute(cursor)
         local fn = vm[task.type]
         if type(fn) == "function" then
             -- fn(task)
-            local ret, wait = utils.call(fn, task, self.context, self)
+            local ret, wait = iot.xcall(fn, task, self.context, self)
             if ret == false then
                 log.error(wait)
                 -- 记录错误
@@ -156,14 +156,14 @@ function Executor:execute(cursor)
 
     -- 任务暂停
     if self.paused then
-        local ret, info = utils.call(vm.pause, {}, self.context, self)
+        local ret, info = iot.xcall(vm.pause, {}, self.context, self)
         log.info(self.job, "vm.pause", ret, info)
         return
     end
 
     -- 执行停止指令，用于结束动作
     -- vm.stop({}, self.context)
-    local ret, info = utils.call(vm.stop, {}, self.context, self)
+    local ret, info = iot.xcall(vm.stop, {}, self.context, self)
     log.info(self.job, "vm.stop", ret, info)
 
     -- 任务结束
@@ -180,7 +180,7 @@ function Executor:execute(cursor)
     -- 正常结束
     if self.current >= #self.tasks then
         if self.on_finish ~= nil then
-            local ret, info = utils.call(function()
+            local ret, info = iot.xcall(function()
                 self.on_finish(self.context)
             end)
             if not ret then

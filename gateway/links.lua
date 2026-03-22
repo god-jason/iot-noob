@@ -10,7 +10,6 @@ local log = iot.logger("links")
 
 local settings = require("settings")
 local boot = require("boot")
-local utils = require("utils")
 local protocols = require("protocols")
 
 local types = {}
@@ -52,7 +51,7 @@ function links.create(opts)
         end
 
         -- 打开协议
-        ret, info = utils.call(instanse.open, instanse)
+        ret, info = iot.xcall(instanse.open, instanse)
         if not ret then
             return false, info
         end
@@ -87,11 +86,11 @@ end
 function links.close()
     for i, s in pairs(_links) do
         if s.protocol_instance then
-            utils.call(function()
+            iot.xcall(function()
                 s.protocol_instance:close()
             end)
         end
-        utils.call(function()
+        iot.xcall(function()
             s:close()
         end)
     end

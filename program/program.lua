@@ -10,7 +10,6 @@ local agent = require("agent")
 local planner = require("planner")
 local robot = require("robot")
 local boot = require("boot")
-local utils = require("utils")
 
 -- 创建指令
 local function create_instruction(name, script)
@@ -31,7 +30,7 @@ local function create_instruction(name, script)
     end
 
     -- 返回闭包
-    ret, info = utils.call(ret)
+    ret, info = iot.xcall(ret)
     if not ret then
         -- log.info("closure instruction error", fn)
         return false, info
@@ -61,7 +60,7 @@ local function create_planner(name, script)
     end
 
     -- 返回闭包
-    ret, info = utils.call(ret)
+    ret, info = iot.xcall(ret)
     if not ret then
         -- log.info("closure planner error", fn)
         return ret, info

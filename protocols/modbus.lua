@@ -10,7 +10,6 @@ local protocols = require("protocols")
 local points = require("points")
 local binary = require("binary")
 local model = require("model")
-local utils = require("utils")
 
 --- Modbus CRC16
 -- @param data string

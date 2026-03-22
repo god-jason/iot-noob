@@ -4,8 +4,6 @@ local boot = {}
 
 local log = iot.logger("boot")
 
-local utils = require("utils")
-
 local modules = {}
 local boots = {}
 
@@ -59,7 +57,7 @@ function boot.open(name)
     mod.visiting = false
 
     log.info("启动", name)
-    local res, info = utils.call(mod.open)
+    local res, info = iot.xcall(mod.open)
     if res == false then
         return false, info
     end
@@ -85,7 +83,7 @@ function boot.close(name)
     end
 
     log.info("close", name)
-    local res, info = utils.call(mod.close)
+    local res, info = iot.xcall(mod.close)
     if res == false then
         log.error(info)
     end
@@ -104,7 +102,7 @@ function boot.startup()
             log.error("启动失败", info)
 
             -- 非发布时，关闭程序，抛出异常
-            -- if not RELEASE then
+            -- if DEBUG then
             --     boot.shutdown()
             -- end
 

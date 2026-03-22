@@ -11,7 +11,6 @@ local devices = require("devices")
 local protocols = require("protocols")
 local points = require("points")
 local model = require("model")
-local utils = require("utils")
 local modbus = require("modbus")
 
 ---创建设备

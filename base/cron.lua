@@ -4,8 +4,6 @@ local cron = {}
 
 local log = iot.logger("cron")
 
-local utils = require("utils")
-
 local increment = 1 -- 自增ID
 
 -- 所有任务

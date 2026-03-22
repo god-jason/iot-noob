@@ -4,10 +4,10 @@ VERSION = "1.0.69"
 PRODUCT_KEY = "GYV9vpPCVN1uraiaPVXfvfTNXKInE58K"
 
 -- 发行模式
-RELEASE = true
+DEBUG = false
 
-if RELEASE then
--- 避免VM重启
+if not DEBUG then
+    -- 避免VM重启
     COROUTINE_ERROR_ROLL_BACK = false
     COROUTINE_ERROR_RESTART = false
 end
@@ -45,9 +45,11 @@ sys.taskInit(function()
     require("boot").startup()
 
     -- 打印内存占用
-    while not RELEASE do
-        sys.wait(5000)
-        log.info("内存", rtos.meminfo())
+    if DEBUG then
+        while true do
+            sys.wait(5000)
+            log.info("内存", rtos.meminfo())
+        end
     end
 
     log.info("exit")

@@ -2,8 +2,6 @@
 -- @module agent
 local agent = {}
 
-local utils = require("utils")
-
 local log = iot.logger("agent")
 
 local commands = {}
@@ -43,7 +41,7 @@ function agent.execute(name, data)
         return false, "找不到命令：" .. name
     end
 
-    return utils.call(cmd, data)
+    return iot.xcall(cmd, data)
 end
 
 agent.watching = false

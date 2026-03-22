@@ -32,14 +32,46 @@ function iot.logger(tag)
     }
 end
 
-local function traceback(err)
-    if RELEASE then
+--- 添加异常调用栈，限xpcall用
+-- @param err string 错误
+-- @return string 添加错误堆栈信息
+function iot.traceback(err)
+    if DEBUG then
+        return debug.traceback(err, 2)
+    else
         log.error(debug.traceback())
         return err
-    else
-        return debug.traceback(err, 2)
     end
 end
+
+--- 安全调用
+-- @param func 函数
+-- @param boolean 成功与否
+-- @param any 结果 或 错误
+function iot.call(func, ...)
+    local ret, info = xpcall(func, iot.traceback, ...)
+    if not ret then
+        log.error(info)
+        iot.emit("error", info)
+        return false, info
+    end
+    return ret, info
+end
+
+--- 扩展安全调用，用于兼容布尔返回值的调用
+-- @param func 函数， 第一个返回值 代表成功与否，第二个返回值 代表结果 或 错误
+-- @param boolean 成功与否
+-- @param any 结果 或 错误
+function iot.xcall(func, ...)
+    local ret, res, info = xpcall(func, iot.traceback, ...)
+    if not ret then
+        log.error(res)
+        iot.emit("error", res)
+        return false, res
+    end
+    return res, info
+end
+
 
 --- 定时任务
 -- @param func function 回调
@@ -49,13 +81,7 @@ function iot.setTimeout(func, timeout, ...)
     if timeout < 1 then
         timeout = 1
     end
-    return sys.timerStart(function(...)
-        local ret, info = xpcall(func, traceback, ...)
-        if not ret then
-            log.error(info)
-            iot.emit("error", info)
-        end
-    end, math.ceil(timeout), ...)
+    return sys.timerStart(iot.call, math.ceil(timeout), func, ...)
 end
 
 --- 循环定时任务
@@ -67,13 +93,7 @@ function iot.setInterval(func, timeout, ...)
     if timeout < 10 then
         timeout = 10
     end
-    return sys.timerLoopStart(function(...)
-        local ret, info = xpcall(func, traceback, ...)
-        if not ret then
-            log.error(info)
-            iot.emit("error", info)
-        end
-    end, math.ceil(timeout), ...)
+    return sys.timerLoopStart(iot.call, math.ceil(timeout), func, ...)
 end
 
 --- 清空定时任务
@@ -94,13 +114,7 @@ end
 -- @return interger 任务ID
 function iot.start(func, ...)
     -- TODO 这里返回是协程对象，不是线程ID
-    return sys.taskInit(function(...)
-        local ret, info = xpcall(func, traceback, ...)
-        if not ret then
-            log.error(info)
-            iot.emit("error", info)
-        end
-    end, ...)
+    return sys.taskInit(iot.call, func, ...)
 end
 
 --- 关闭协程
@@ -139,11 +153,7 @@ end
 -- @param func function 回调
 function iot.on(topic, func)
     local fn = function(...)
-        local ret, info = xpcall(func, traceback, ...)
-        if not ret then
-            log.error(info)
-            iot.emit("error", info)
-        end
+        iot.call(func, ...)
     end
     sys.subscribe(topic, fn)
 
@@ -160,11 +170,7 @@ function iot.once(topic, func)
 
     local cancel
     local fn = function(...)
-        local ret, info = xpcall(func, traceback, ...)
-        if not ret then
-            log.error(info)
-            iot.emit("error", info)
-        end
+        iot.call(func, ...)
         cancel()
     end
 
@@ -607,11 +613,7 @@ function iot.uart(id, opts)
     uart.on(id, "receive", function(id2, len)
         -- 如果有回调，wait之后不能再read了
         if obj._on_data then
-            local ret, info = xpcall(obj._on_data, traceback, uart.read(id2))
-            if not ret then
-                log.error(info)
-                -- iot.emit("error", info) 可能太多了
-            end
+            iot.call(obj._on_data, uart.read(id2))
         end
     end)
 

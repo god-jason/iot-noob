@@ -4,7 +4,6 @@ local configs = {}
 
 local log = iot.logger("configs")
 
--- local utils = require("utils")
 
 local function luadb_config(name)
     -- 带后缀名，长度不能大于31

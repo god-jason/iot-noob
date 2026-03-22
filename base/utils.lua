@@ -108,28 +108,5 @@ function utils.is_array(t)
     return true
 end
 
-function utils.traceback(err)
-    -- 正式版只打印不上报
-    if RELEASE then
-        log.error(debug.traceback())
-        return err
-    else
-        return debug.traceback(err, 2)
-    end
-end
-
---- 安全调用
--- @param fn 函数， 第一个返回值 代表成功与否，第二个返回值 代表结果 或 错误
--- @param boolean 成功与否
--- @param any 结果 或 错误
-function utils.call(fn, ...)
-    local ret, res, info = xpcall(fn, utils.traceback, ...)
-    if not ret then
-        log.error(res)
-        iot.emit("error", res)
-        return false, res
-    end
-    return res, info
-end
 
 return utils
