@@ -76,9 +76,9 @@ states.init = {
     name = "初始化",
     enter = function()
         battery.charge(false)
-        components.led_power:on()
-        components.led_feed:on()
-        components.led_move:on()
+        components.led_power:turn_on()
+        components.led_feed:turn_on()
+        components.led_move:turn_on()
         components.move_servo:unlock()
         components.feed_servo:unlock()
         -- components.fan:close()
@@ -129,7 +129,7 @@ states.move = {
         end
     end,
     leave = function()
-        components.led_move:on()
+        components.led_move:turn_on()
 
         robot.kill("dry")
     end,
@@ -176,9 +176,9 @@ states.feed = {
         -- 投喂统计
         -- 关闭闪烁
         if feeder.error then
-            components.led_feed:off()
+            components.led_feed:turn_off()
         else
-            components.led_feed:on()
+            components.led_feed:turn_on()
         end
     end,
     tick = function()

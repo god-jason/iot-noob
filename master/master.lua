@@ -14,7 +14,7 @@ local MasterDevice = require("utils").class(require("device"))
 -- @param obj table 设备
 -- @return Device 设备实例
 function MasterDevice:init()
-    log.info("MasterDevice:init")
+    -- log.info("MasterDevice:init")
 end
 
 ---  写值（重写Deivce:set，支持组件变量）
@@ -22,6 +22,8 @@ end
 -- @param value any
 -- @return boolean, error
 function MasterDevice:set(key, value)
+    log.info("set", key, value)
+
     -- 查找内联设备
     for k, dev in pairs(self._children) do
         local val = dev._values[key]
@@ -34,11 +36,10 @@ function MasterDevice:set(key, value)
     for k, cmp in ipairs(settings.components) do
         if cmp.bindings then
             local com = components[cmp.name]
-            if com and com.set then                
+            if com and com.set then
                 for k, v in pairs(cmp.bindings) do
                     if v == key then
-                        com:set(k, value)
-                        return true
+                        return com:set(k, value)
                     end
                 end
             end
@@ -80,10 +81,20 @@ function master.open()
     -- }
     for k, cmp in ipairs(settings.components) do
         if cmp.bindings and components[cmp.name] then
-            components[cmp.name].on_change = function(key, value)
-                local key2 = cmp.bindings[key]
-                device:put_value(key2, value)
-            end
+            components[cmp.name].on("change", function(values)
+                local has = false
+                local vs = {}
+                for k, v in pairs(values) do
+                    local key = cmp.bindings[k]
+                    if key ~= nil then
+                        vs[key] = v
+                        has = true
+                    end
+                end
+                if has then
+                    device:put_values(vs)
+                end
+            end)
         end
     end
 

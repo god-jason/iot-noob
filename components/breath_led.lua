@@ -1,29 +1,22 @@
 --- 组件 呼吸灯
 -- @module BreathLed
-local BreathLed = {}
-BreathLed.__index = BreathLed
+local BreathLed = require("utils").class(require("component"))
 
 require("components").register("breath_led", BreathLed)
 
 local log = iot.logger("BreathLed")
 
 --- 初始化
-function BreathLed:new(opts)
-    opts = opts or {}
-    local led = setmetatable({
-        pin = opts.pin,
-        pwm_id = opts.pwm_id,
-        freq = opts.freq or 1000, -- PWM频率
-        duty_min = opts.duty_min or 0, -- 最暗
-        duty_max = opts.duty_max or 100, -- 最亮
-        step = opts.step or 1, -- 每次亮度变化步长
-        interval = opts.interval or 20, -- ms
-        pwm = nil,
-        running = false,
-        duty = 0
-    }, BreathLed)
-
-    return led
+function BreathLed:init()
+    self.pwm_id = self.pwm_id
+    self.freq = self.freq or 1000 -- PWM频率
+    self.duty_min = self.duty_min or 0 -- 最暗
+    self.duty_max = self.duty_max or 100 -- 最亮
+    self.step = self.step or 1 -- 每次亮度变化步长
+    self.interval = self.interval or 20 -- ms
+    self.pwm = nil
+    self.running = false
+    self.duty = 0
 end
 
 --- 打开PWM
@@ -71,6 +64,11 @@ function BreathLed:start()
     self.running = true
 
     iot.start(function()
+
+        self.emit("change", {
+            running = true
+        })
+
         local direction = 1 -- 1 亮起，-1 变暗
         while self.running do
             self.duty = self.duty + direction * self.step
@@ -86,6 +84,10 @@ function BreathLed:start()
             iot.sleep(self.interval)
         end
         log.info("呼吸灯停止", self.pin)
+
+        self.emit("change", {
+            running = false
+        })
     end)
 end
 
@@ -94,10 +96,30 @@ function BreathLed:stop()
     self.running = false
 end
 
---- 设置亮度区间
-function BreathLed:setRange(minDuty, maxDuty)
-    self.duty_min = minDuty or self.duty_min
-    self.duty_max = maxDuty or self.duty_max
+--- 设置
+function BreathLed:set(key, value)
+    if key == "run" then
+        if value then
+            self:start()
+        else
+            self:stop()
+        end
+    elseif key == "duty_min" then
+        self.duty_min = value
+    elseif key == "duty_max" then
+        self.duty_max = self.duty_max
+    else
+        return false, "未支持的组件参数"
+    end
+    return true
+end
+
+function BreathLed:get(key)
+    if key == "running" then
+        return true, self.running
+    else
+        return false, "未支持的组件参数"
+    end
 end
 
 return BreathLed

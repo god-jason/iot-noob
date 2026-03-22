@@ -1,36 +1,32 @@
 --- 组件 风机
 -- @module Fan
-local Fan = {}
-Fan.__index = Fan
+local Fan = require("utils").class(require("component"))
 
 require("components").register("fan", Fan)
 
 local Speeder = require("speeder")
-local log = iot.logger("fan")
+local log = iot.logger("Fan")
 
 --- 初始化
-function Fan:new(opts)
-    opts = opts or {}
-    local fan = setmetatable({
-        pwm_id = opts.pwm_id,
-        levels = opts.levels or 10,
-        freq = opts.freq or 10000,
-        duty_min = opts.duty_min or 0,
-        duty_max = opts.duty_max or 100,
-        smooth = opts.smooth or false,
-        smooth_step = opts.smooth_step or 2, -- 加速步长，百分比
-        smooth_interval = opts.smooth_interval or 10, -- 加速间隔ms
-        pin = opts.pin,
-        gpio = iot.gpio(opts.pin),
-        last_duty = 0, -- 上次速度
-        target_duty = 0
-    }, Fan)
-    fan.speeder = Speeder:new({
-        levels = fan.levels,
-        min = fan.duty_min,
-        max = fan.duty_max
+function Fan:init()
+    self.pwm_id = self.pwm_id
+    self.freq = self.freq or 10000
+    self.duty_min = self.duty_min or 0
+    self.duty_max = self.duty_max or 100
+    self.levels = self.levels or 10
+    self.smooth = self.smooth or false
+    self.smooth_step = self.smooth_step or 2 -- 加速步长，百分比
+    self.smooth_interval = self.smooth_interval or 10 -- 加速间隔ms
+    self.pin = self.pin
+    self.gpio = iot.gpio(self.pin)
+    self.last_duty = 0 -- 上次速度
+    self.target_duty = 0
+
+    self.speeder = Speeder:new({
+        levels = self.levels,
+        min = self.duty_min,
+        max = self.duty_max
     })
-    return fan
 end
 
 --- 打开
@@ -52,9 +48,9 @@ function Fan:open(level)
         self:speed(level)
     end
 
-    if self.on_change then
-        pcall(self.on_change, "running", true)
-    end
+    self:emit("change", {
+        running = true
+    })
 
     return ret
 end
@@ -104,9 +100,9 @@ function Fan:speed(level, immediate)
 
     self.last_duty = duty
 
-    if self.on_change then
-        pcall(self.on_change, "level", level)
-    end
+    self:emit("change", {
+        level = level
+    })
 
     return true
 end
@@ -122,16 +118,22 @@ function Fan:close()
         self.pwm = nil
     end
 
-    if self.on_change then
-        pcall(self.on_change, "running", false)
-    end
+    self:emit("change", {
+        running = false,
+        level = 0
+    })
 end
 
 --- 设置值
 function Fan:set(key, value)
     if key == "run" then
         self:speed(value)
+    elseif key == "smooth" then
+        self.smooth = value
+    else
+        return false, "Fan组件不支持变量：" .. key
     end
+    return true
 end
 
 return Fan

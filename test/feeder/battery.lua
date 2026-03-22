@@ -12,12 +12,12 @@ function battery.charge(onoff)
     log.info("charge", onoff)
     battery.charging = onoff
     if onoff then
-        components.charge:off()
+        components.charge:turn_off()
         components.led_power:blink()
         iot.emit("log", "开始充电")
     else
-        components.charge:on()
-        components.led_power:on()
+        components.charge:turn_on()
+        components.led_power:turn_on()
         iot.emit("log", "结束充电")
     end
 end
@@ -123,12 +123,12 @@ local function battery_task()
         -- 状态灯
         if battery.charging then
             if charge_current < 0.4 and vbat < battery_full then
-                components.led_power:off() -- 充电故障
+                components.led_power:turn_off() -- 充电故障
             else
                 components.led_power:blink() -- 充电中
             end
         else
-            components.led_power:on() -- 未充电
+            components.led_power:turn_on() -- 未充电
         end
 
         -- 电压过低，认为电池没电了（避免误判）
@@ -166,7 +166,7 @@ end
 
 function battery.open()
     -- 默认打开电源灯
-    components.led_power:on()
+    components.led_power:turn_on()
     
     iot.start(battery_task)
 end

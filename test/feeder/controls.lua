@@ -21,13 +21,13 @@ end
 -- 震动
 function vm.vibrator(task, ctx, executor)
     ctx.vibrator = true
-    components.vibrator:on()
+    components.vibrator:turn_on()
 end
 
 -- 震动停止
 function vm.vibrator_stop(task, ctx, executor)
     ctx.vibrator = false
-    components.vibrator:off()
+    components.vibrator:turn_off()
 end
 
 -- 移动
@@ -451,7 +451,7 @@ function vm.stop(task, ctx, executor)
     -- components.move_servo:stop()
     -- components.feed_servo:stop()
     -- components.fan:close()
-    -- components.vibrator:off()
+    -- components.vibrator:turn_off()
 
     if ctx.move_task then
         vm.move_stop(task, ctx, executor)
@@ -475,7 +475,7 @@ function vm.pause(task, ctx, executor)
     -- components.move_servo:stop()
     -- components.feed_servo:stop()
     -- components.fan:close()
-    -- components.vibrator:off()
+    -- components.vibrator:turn_off()
 
     if ctx.move_task then
         vm.move_stop(task, ctx, executor)
@@ -500,7 +500,7 @@ function vm.resume(task, ctx, executor)
         components.fan:speed(ctx.fan_level)
     end
     if ctx.vibrator then
-        components.vibrator:on()
+        components.vibrator:turn_on()
     end
     if ctx.move_task then
         if task.type ~= "move" then

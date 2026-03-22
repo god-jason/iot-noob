@@ -115,6 +115,7 @@ end
 function utils.call(fn, ...)
     local ret, res, info = pcall(fn, ...)
     if not ret then
+        log.error(res, debug.traceback())
         iot.emit("error", res)
         return false, res
     end

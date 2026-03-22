@@ -1,19 +1,15 @@
 --- 组件 变速器
 -- @module Speeder
-local Speeder = {}
-Speeder.__index = Speeder
+local Speeder = require("utils").class(require("component"))
 
 require("components").register("speeder", Speeder)
 
 --- 创建变速器
-function Speeder:new(opts)
-    opts = opts or {}
-    return setmetatable({
-        name = opts.name or "-",
-        levels = opts.levels or 10,
-        min = opts.min or 0,
-        max = opts.max or 100
-    }, Speeder)
+function Speeder:init()
+    self.name = self.name or "-"
+    self.levels = self.levels or 10
+    self.min = self.min or 0
+    self.max = self.max or 100
 end
 
 --- 计算变速值（脉冲频率，占空比等）

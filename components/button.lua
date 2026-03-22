@@ -1,33 +1,22 @@
 --- 组件 按钮
 -- @module Button
-local Button = {}
-Button.__index = Button
+local Button = require("utils").class(require("component"))
 
 require("components").register("button", Button)
 
-local log = iot.logger("button")
+local log = iot.logger("Button")
 
---- 构造函数
-function Button:new(opts)
-    opts = opts or {}
-    local button = setmetatable({
-        pin = opts.pin, -- 按钮连接的 GPIO 引脚
-        name = opts.name, -- 名称
-        event = opts.event, -- 事件
-        reverse = opts.reverse or false, -- 是否反转信号
-        rising = opts.rising or false, -- 上升沿触发
-        falling = opts.falling or false, -- 下降沿触发
-        debounce = opts.debounce or 50, -- 防抖时间（毫秒）
-        state = false, -- 按钮当前状态（true=按下，false=松开）
-        press_start_time = nil, -- 按下开始时间
-        long_press_threshold = opts.long_press_threshold or 3000 -- 长按时间阈值（默认3秒）
-    }, Button)
-    button:init()
-    return button
-end
-
---- 初始化按钮
 function Button:init()
+    self.pin = self.pin -- 按钮连接的 GPIO 引脚
+    self.name = self.name -- 名称
+    self.event = self.event -- 事件
+    self.reverse = self.reverse or false -- 是否反转信号
+    self.rising = self.rising or false -- 上升沿触发
+    self.falling = self.falling or false -- 下降沿触发
+    self.debounce = self.debounce or 50 -- 防抖时间（毫秒）
+    self.state = false -- 按钮当前状态（true=按下，false=松开）
+    self.press_start_time = nil -- 按下开始时间
+    self.long_press_threshold = self.long_press_threshold or 3000 -- 长按时间阈值（默认3秒）
 
     self.gpio = iot.gpio(self.pin, {
         rising = self.rising,
@@ -79,9 +68,9 @@ function Button:init()
                 iot.emit(self.event, self.state)
             end
 
-            if self.on_change then
-                pcall(self.on_change, "state", self.state)
-            end
+            self:emit("change", {
+                state = self.state
+            })
         end
     })
 end
@@ -96,9 +85,9 @@ function Button:enable()
     log.info("enable", self.pin, self.name)
     self.disabled = false
 
-    if self.on_change then
-        pcall(self.on_change, "disabled", false)
-    end
+    self:emit("change", {
+        disabled = self.disabled
+    })
 end
 
 --- 禁用按钮
@@ -106,15 +95,28 @@ function Button:disable()
     log.info("disable", self.pin, self.name)
     self.disabled = true
 
-    if self.on_change then
-        pcall(self.on_change, "disabled", true)
-    end
+    self:emit("change", {
+        disabled = self.disabled
+    })
 end
 
 --- 设置值
 function Button:set(key, value)
     if key == "disabled" then
         self.disabled = value == true
+    else
+        return false, "Button组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Button:get(key)
+    if key == "disabled" then
+        return true, self.disabled
+    elseif key == "state" then
+        return true, self.state
+    else
+        return false, "Button组件不支持变量：" .. key
     end
 end
 

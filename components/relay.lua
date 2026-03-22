@@ -1,42 +1,37 @@
 --- 组件 继电器
 -- @module Relay
-local Relay = {}
-Relay.__index = Relay
+local Relay = require("utils").class(require("component"))
 
 require("components").register("relay", Relay)
 
-local log = iot.logger("relay")
+local log = iot.logger("Relay")
 
 --- 初始化
-function Relay:new(opts)
-    opts = opts or {}
-    local relay = setmetatable({
-        pin = opts.pin,
-        reverse = opts.reverse or false,
-        gpio = iot.gpio(opts.pin),
-        state = false
-    }, Relay)
-    return relay
+function Relay:init()
+    self.pin = self.pin
+    self.reverse = self.reverse or false
+    self.gpio = iot.gpio(self.pin)
+    self.state = false
 end
 
 --- 通
-function Relay:on()
-    log.info(self.pin, "on")
+function Relay:turn_on()
+    log.info(self.pin, "turn_on")
     self.gpio:set(self.reverse and 0 or 1)
     self.state = true
-    if self.on_change then
-        pcall(self.on_change, "state", self.state)
-    end
+    self:emit("change", {
+        state = self.state
+    })
 end
 
 --- 断
-function Relay:off()
-    log.info(self.pin, "off")
+function Relay:turn_off()
+    log.info(self.pin, "turn_off")
     self.gpio:set(self.reverse and 1 or 0)
     self.state = false
-    if self.on_change then
-        pcall(self.on_change, "state", self.state)
-    end
+    self:emit("change", {
+        state = self.state
+    })
 end
 
 --- 翻转
@@ -44,9 +39,9 @@ function Relay:toggle()
     log.info(self.pin, "toggle")
     self.gpio:toggle()
     self.state = ~self.state
-    if self.on_change then
-        pcall(self.on_change, "state", self.state)
-    end
+    self:emit("change", {
+        state = self.state
+    })
 end
 
 --- 设置
@@ -54,12 +49,22 @@ function Relay:set(key, value)
     log.info(self.pin, "set", key, value)
 
     if key == "state" then
-        self.state = value == true or value == 1
-        if self.reverse then
-            self.gpio:set(self.state and 0 or 1)
+        if value then
+            self:turn_on()
         else
-            self.gpio:set(self.state and 1 or 0)
+            self:turn_off()
         end
+    else
+        return false, "Relay组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Relay:get(key)
+    if key == "state" then
+        return true, self.state
+    else
+        return false, "Relay组件不支持变量：" .. key
     end
 end
 

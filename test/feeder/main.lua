@@ -1,5 +1,5 @@
 PROJECT = "xiaopengxia"
-VERSION = "1.0.68"
+VERSION = "1.0.69"
 -- 合宙IoT平台产品Key, OTA升级用
 PRODUCT_KEY = "GYV9vpPCVN1uraiaPVXfvfTNXKInE58K"
 

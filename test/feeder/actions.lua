@@ -256,9 +256,9 @@ end
 
 -- 重启驱动器
 function actions.reboot_drv(data)
-    components.driver:on()
+    components.driver:turn_on()
     iot.setTimeout(function()
-        components.driver:off()
+        components.driver:turn_off()
     end, (data.timeout or 5) * 1000)
 
     -- 重置状态

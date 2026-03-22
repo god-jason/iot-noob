@@ -1,11 +1,10 @@
 --- 组件 步进电机
 -- @module Stepper
-local Stepper = {}
-Stepper.__index = Stepper
+local Stepper = require("utils").class(require("component"))
 
 require("components").register("stepper", Stepper)
 
-local log = iot.logger("stepper")
+local log = iot.logger("Stepper")
 
 --- 创建步进电机
 -- @param opts 参数
@@ -15,25 +14,17 @@ local log = iot.logger("stepper")
 --  opts.en integer 使能引脚
 --  opts.freq integer  基础频率(一周的脉冲数)
 --  opts.smooth boolean 平滑过渡 注意！！！开启平滑之后，正常行走脉冲会多发，需要手动停止或刹车
-function Stepper:new(opts)
-    opts = opts or {}
-    local stepper = setmetatable({
-        pwm_id = opts.pwm_id,
-        dir = opts.dir,
-        en = opts.en,
-        reverse = opts.reverse or false,
-        freq = opts.freq or 16000,
-        smooth = opts.smooth or false,
-        running = false,
-        rounds = 0,
-        last = 0
-    }, Stepper)
-    stepper:init()
-    return stepper
-end
+function Stepper:init(opts)
+    self.pwm_id = self.pwm_id
+    self.dir = self.dir
+    self.en = self.en
+    self.reverse = self.reverse or false
+    self.freq = self.freq or 16000
+    self.smooth = self.smooth or false
+    self.running = false
+    self.rounds = 0
+    self.last = 0
 
---- 初始化
-function Stepper:init()
     self.running = false
     self.dir_pin = iot.gpio(self.dir)
     self.en_pin = iot.gpio(self.en)
@@ -57,11 +48,11 @@ function Stepper:start(rpm, rounds)
     self.rounds = rounds
     self.running = true
 
-    if self.on_change then
-        pcall(self.on_change, "rpm", rpm)
-        pcall(self.on_change, "rounds", rounds)
-        pcall(self.on_change, "running", true)
-    end
+    self:emit("change", {
+        rpm = rpm,
+        rounds = rounds,
+        running = true
+    })
 
     -- 方向
     if rounds >= 0 then
@@ -162,11 +153,11 @@ function Stepper:stop()
         self.running = false
         self:unlock()
 
-        if self.on_change then
-            pcall(self.on_change, "rpm", 0)
-            pcall(self.on_change, "rounds", 0)
-            pcall(self.on_change, "running", false)
-        end
+        self:emit("change", {
+            rpm = 0,
+            rounds = 0,
+            running = false
+        })
     end
 end
 
@@ -175,9 +166,9 @@ function Stepper:lock()
     log.info(self.pwm_id, "lock")
     self.en_pin:set(0)
 
-    if self.on_change then
-        pcall(self.on_change, "lock", true)
-    end
+    self:emit("change", {
+        lock = true
+    })
 end
 
 --- 解锁
@@ -185,9 +176,9 @@ function Stepper:unlock()
     log.info(self.pwm_id, "unlock")
     self.en_pin:set(1)
 
-    if self.on_change then
-        pcall(self.on_change, "lock", false)
-    end
+    self:emit("change", {
+        lock = false
+    })
 end
 
 -- TODO 放参数里
@@ -287,6 +278,33 @@ function Stepper:calc_accelerate(start_rpm, finish_rpm)
     end
     return math.floor(steps * acc_interval), pulse / self.freq
 end
+
+--- 设置值
+function Stepper:set(key, value)
+    if key == "freq" then
+        self.freq = value
+    elseif key == "smooth" then
+        self.smooth = value
+    else
+        return false, "Stepper组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Stepper:get(key)
+    if key == "freq" then
+        return true, self.freq
+    elseif key == "smooth" then
+        return true, self.smooth
+    elseif key == "rounds" then
+        return true, self.rounds
+    elseif key == "running" then
+        return true, self.running
+    else
+        return false, "Stepper组件不支持变量：" .. key
+    end
+end
+
 
 return Stepper
 

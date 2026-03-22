@@ -1,29 +1,20 @@
 --- 组件 舵机
 -- @module Servo
-local Servo = {}
-Servo.__index = Servo
+local Servo = require("utils").class(require("component"))
 
 require("components").register("servo", Servo)
 
-local log = iot.logger("servo")
+local log = iot.logger("Servo")
 
 --- 创建舵机
-function Servo:new(opts)
-    opts = opts or {}
-    local servo = setmetatable({
-        pwm_id = opts.pwm_id,
-        freq = 50, -- 固定50Hz
-        min_angle = opts.min_angle or 0,
-        max_angle = opts.max_angle or 180,
-        min_pulse = opts.min_pulse or 0.5, -- ms
-        max_pulse = opts.max_pulse or 2.5 -- ms
-    }, Servo)
-    servo:init()
-    return servo
-end
-
---- 初始化
 function Servo:init()
+    self.pwm_id = self.pwm_id
+    self.freq = 50 -- 固定50Hz
+    self.min_angle = self.min_angle or 0
+    self.max_angle = self.max_angle or 180
+    self.min_pulse = self.min_pulse or 0.5 -- ms
+    self.max_pulse = self.max_pulse or 2.5 -- ms
+
     -- pwm.setup(self.pwm, self.freq, Servo:angle_to_duty(90)) -- 默认90° 7.5
     -- pwm.start(self.pwm)
     local ret, pwm = iot.pwm(self.pwm_id, {
@@ -33,8 +24,9 @@ function Servo:init()
     if ret then
         self.pwm = pwm
         pwm:start()
+    else
+        log.error("PWM打开失败", pwm)
     end
-    return ret
 end
 
 function Servo:angle_to_duty(angle)
@@ -56,16 +48,9 @@ function Servo:angle(angle)
 
     self.current_angle = angle
 
-    if self.on_change then
-        pcall(self.on_change, "angle", angle)
-    end
-end
-
---- 设置值
-function Servo:set(key, value)
-    if key == "angle" then
-        self:angle(value)
-    end
+    self:emit("change", {
+        angle = angle
+    })
 end
 
 --- 停止
@@ -73,5 +58,24 @@ function Servo:stop()
     -- pwm.stop(self.pwm)
     self.pwm:stop()
 end
+
+--- 设置值
+function Servo:set(key, value)
+    if key == "angle" then
+        self:angle(value)
+    else
+        return false, "Led组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Servo:get(key)
+    if key == "angle" then
+        return true, self.current_angle
+    else
+        return false, "Led组件不支持变量：" .. key
+    end
+end
+
 
 return Servo

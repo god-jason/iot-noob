@@ -1,11 +1,10 @@
 --- 组件 时钟芯片 PCF8563
 -- @module RTC
-local RTC = {}
-RTC.__index = RTC
+local RTC = require("utils").class(require("component"))
 
 require("components").register("rtc", RTC)
 
-local log = iot.logger("rtc")
+local log = iot.logger("RTC")
 
 local function bcd2dec(v)
     return (v >> 4) * 10 + (v & 0x0F)
@@ -89,9 +88,9 @@ function RTC:read()
     -- 发布消息
     iot.emit("RTC_OK", tm)
 
-    if self.on_change then
-        pcall(self.on_change, "time", os.date("%Y-%m-%d %H:%M:%S", os.time(tm))) -- 转为日期串
-    end
+    self:emit("change", {
+        time = os.date("%Y-%m-%d %H:%M:%S", os.time(tm))
+    })
 
     return true, tm
 end

@@ -1,31 +1,22 @@
 --- 组件 开关
 -- @module Switch
-local Switch = {}
-Switch.__index = Switch
+local Switch = require("utils").class(require("component"))
 
 require("components").register("switch", Switch)
 
-local log = iot.logger("switch")
+local log = iot.logger("Switch")
 
 --- 初始化
-function Switch:new(opts)
-    opts = opts or {}
-    local switch = setmetatable({
-        pin = opts.pin,
-        name = opts.name,
-        reverse = opts.reverse or false,
-        rising = opts.rising or false,
-        falling = opts.falling or false,
-        debounce = opts.debounce or 50,
-        state = false,
-        event = opts.event,
-        callback = opts.callback
-    }, Switch)
-    switch:init()
-    return switch
-end
-
 function Switch:init()
+    self.pin = self.pin
+    self.name = self.name
+    self.reverse = self.reverse or false
+    self.rising = self.rising or false
+    self.falling = self.falling or false
+    self.debounce = self.debounce or 50
+    self.state = false
+    self.event = self.event
+    self.callback = self.callback
 
     self.gpio = iot.gpio(self.pin, {
         rising = self.rising,
@@ -66,47 +57,32 @@ function Switch:init()
                 iot.emit(self.event, level)
             end
 
-            if self.on_change then
-                pcall(self.on_change, "state", self.state)
-            end
+            self:emit("change", {
+                state = self.state
+            })
         end
     })
 end
 
---- 直接获取GPIO真实状态
-function Switch:get()
-    return self.gpio:get()
-end
-
---- 状态
-function Switch:status()
-    return self.state
-end
-
---- 启用
-function Switch:enable()
-    log.info("enable", self.pin, self.name)
-    self.disabled = false
-
-    if self.on_change then
-        pcall(self.on_change, "disabled", false)
-    end
-end
-
---- 禁用
-function Switch:disable()
-    log.info("disable", self.pin, self.name)
-    self.disabled = true
-
-    if self.on_change then
-        pcall(self.on_change, "disabled", true)
-    end
-end
-
---- 设置值
+--- 设置
 function Switch:set(key, value)
+    log.info(self.pin, "set", key, value)
+
     if key == "disabled" then
         self.disabled = value == true
+    else
+        return false, "Switch组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Switch:get(key)
+    if key == "state" then
+        return true, self.state
+    elseif key == "disabled" then
+        return true, self.disabled
+    else
+        return false, "Switch组件不支持变量：" .. key
     end
 end
 

@@ -1424,8 +1424,8 @@ function feeder.update_status()
             forward_limit = components.forward_limit.gpio:get() == 0,
             backward_limit = components.backward_limit.gpio:get() == 0,
             meg_sensor = components.meg_sensor.gpio:get() == 0,
-            -- move_alarm = convert_down_gpio(limit.move_alarm:get(),)
-            -- feed_alarm = convert_down_gpio(limit.feed_alarm:get(),)
+            -- move_alarm = convert_down_gpio(limit.move_alarm.gpio:get(),)
+            -- feed_alarm = convert_down_gpio(limit.feed_alarm.gpio:get(),)
             weight_per_round = feeder.weight_per_round,
             auto = options.auto,
             smart = options.smart,

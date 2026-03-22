@@ -1,41 +1,39 @@
 --- 组件 指示灯
 -- @module Led
-local Led = {}
-Led.__index = Led
+local Led = require("utils").class(require("component"))
 
 require("components").register("led", Led)
 
-local log = iot.logger("led")
+local log = iot.logger("Led")
 
 --- 初始化
-function Led:new(opts)
-    opts = opts or {}
-    local led = setmetatable({
-        pin = opts.pin,
-        gpio = iot.gpio(opts.pin),
-        blinking = false
-    }, Led)
-    return led
+function Led:init()
+    self.pin = self.pin
+    self.gpio = iot.gpio(self.pin)
+    self.state = false
+    self.blinking = false
 end
 
 --- 亮
-function Led:on()
+function Led:turn_on()
     self.gpio:set(1)
+    self.state = true
     self.blinking = false
 
-    if self.on_change then
-        pcall(self.on_change, "state", true)
-    end
+    self:emit("change", {
+        state = state
+    })
 end
 
 --- 灭
-function Led:off()
+function Led:turn_off()
     self.gpio:set(0)
+    self.state = false
     self.blinking = false
 
-    if self.on_change then
-        pcall(self.on_change, "state", false)
-    end
+    self:emit("change", {
+        state = state
+    })
 end
 
 --- 闪烁
@@ -53,9 +51,9 @@ function Led:blink(on, off)
     iot.start(function()
         self.blinking = true
 
-        if self.on_change then
-            pcall(self.on_change, "blinking", self.blinking)
-        end
+        self:emit("change", {
+            blinking = self.blinking
+        })
 
         while self.blinking do
 
@@ -73,24 +71,34 @@ function Led:blink(on, off)
 
         log.info("blink finish", self.pin)
 
-        if self.on_change then
-            pcall(self.on_change, "blinking", self.blinking)
-        end
+        self:emit("change", {
+            blinking = self.blinking
+        })
     end)
 
-    if self.on_change then
-        pcall(self.on_change, "state", true)
-    end
+    self:emit("change", {
+        state = true
+    })
 end
 
 --- 开关
 function Led:set(key, value)
     if key == "state" then
-        self.gpio:set((value == true or value == 1) and 1 or 0)
-        self.blinking = false
+        if value then
+            self:turn_on()
+        else
+            self:turn_off()
+        end
     elseif key == "blink" then
         self:blink(value)
+    else
+        return false, "Led组件不支持变量：" .. key
     end
+    return true
+end
+
+function Led:get(key)
+    return false, "Led组件不支持变量：" .. key
 end
 
 return Led

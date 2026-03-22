@@ -1,27 +1,18 @@
 --- 组件 外部看门狗
 -- @module watch_dog
-local WatchDog = {}
-WatchDog.__index = WatchDog
+local WatchDog = require("utils").class(require("component"))
 
 require("components").register("watch_dog", WatchDog)
 
-local log = iot.logger("watch_dog")
+local log = iot.logger("WatchDog")
 
 --- 初始化
-function WatchDog:new(opts)
-    opts = opts or {}
-    local watch_dog = setmetatable({
-        pin = opts.pin,
-        interval = opts.interval or 30, -- 喂狗间隔，秒
-        high_time = opts.high_time or 400, -- 高电平持续时间，毫秒
-        close_time = opts.close_time or 700, -- 关闭时高电平持续时间，毫秒
-        timer = nil
-    }, WatchDog)
-    watch_dog:init()
-    return watch_dog
-end
-
-function WatchDog:init()
+function WatchDog:init(opts)
+    self.pin = self.pin
+    self.interval = self.interval or 30 -- 喂狗间隔，秒
+    self.high_time = self.high_time or 400 -- 高电平持续时间，毫秒
+    self.close_time = self.close_time or 700 -- 关闭时高电平持续时间，毫秒
+    self.timer = nil
     self.gpio = iot.gpio(self.pin)
     self.gpio:set(0)
 

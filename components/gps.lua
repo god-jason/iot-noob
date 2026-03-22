@@ -1,11 +1,10 @@
 --- GPS模组
 -- @module GPS
-local GPS = {}
-GPS.__index = GPS
+local GPS = require("utils").class(require("component"))
 
 require("components").register("gps", GPS)
 
-local log = iot.logger("gps")
+local log = iot.logger("GPS")
 
 local function parse_latlng(raw, dir)
     if not raw or raw == "" then

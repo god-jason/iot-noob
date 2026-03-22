@@ -1,35 +1,25 @@
 --- 组件 蜂鸣器
 -- @module Buzzer
-local Buzzer = {}
-Buzzer.__index = Buzzer
+local Buzzer = require("utils").class(require("component"))
 
 require("components").register("buzzer", Buzzer)
 
-local log = iot.logger("buzzer")
+local log = iot.logger("Buzzer")
 
 --- 实例化
-function Buzzer:new(opts)
-    opts = opts or {}
-    local buzzer = setmetatable({
-        pin = opts.pin, -- GPIO
-        pwm_id = opts.pwm_id, -- 如果使用 PWM 控制音量
-        freq = opts.freq or 2000, -- 默认频率 2kHz
-        duty = opts.duty or 50, -- 默认占空比（PWM）
-        pwm = nil,
-        ringing = false
-    }, Buzzer)
+function Buzzer:init()
+    self.pin = self.pin -- GPIO
+    self.pwm_id = self.pwm_id -- 如果使用 PWM 控制音量
+    self.freq = self.freq or 2000 -- 默认频率 2kHz
+    self.duty = self.duty or 50 -- 默认占空比（PWM）
+    self.pwm = nil
+    self.ringing = false
 
-    if opts.pin and opts.pin > 0 then
-        buzzer.gpio = iot.gpio(opts.pin)
-    end
-
-    return buzzer
+    self.gpio = iot.gpio(self.pin)
 end
 
 --- 打开蜂鸣器
-function Buzzer:on()
-    self:stop() -- 停止任何协程
-
+function Buzzer:turn_on()
     if self.gpio then
         self.gpio:set(1)
     end
@@ -54,9 +44,7 @@ function Buzzer:on()
 end
 
 --- 关闭蜂鸣器
-function Buzzer:off()
-    self:stop()
-
+function Buzzer:turn_off()
     if self.gpio then
         self.gpio:set(0)
     end
@@ -64,10 +52,6 @@ function Buzzer:off()
     if self.pwm then
         self.pwm:stop()
         self.pwm = nil
-    end
-
-    if self.on_change then
-        pcall(self.on_change, "ringing", self.ringing)
     end
 end
 
@@ -87,62 +71,62 @@ function Buzzer:ring(times, on_ms, off_ms)
     self.ringing = true
 
     iot.start(function()
+
+        self:emit("change", {
+            ringing = self.ringing
+        })
+
         for i = 1, times do
             if not self.ringing then
                 break
             end
-            self:on()
+            self:turn_on()
             iot.sleep(on_ms)
 
             if not self.ringing then
                 break
             end
-            self:off()
+            self:turn_off()
             iot.sleep(off_ms)
         end
 
+        self:turn_off()
         self.ringing = false
 
-        if self.on_change then
-            pcall(self.on_change, "ringing", self.ringing)
-        end
+        self:emit("change", {
+            ringing = self.ringing
+        })
     end)
-
-    if self.on_change then
-        pcall(self.on_change, "ringing", self.ringing)
-    end
 end
 
 --- 停止
 function Buzzer:stop()
-    self:off()
     self.ringing = false
-
-    if self.on_change then
-        pcall(self.on_change, "ringing", self.ringing)
-    end
-end
-
---- 设置 PWM 音量（占空比）
-function Buzzer:setDuty(duty)
-    self.duty = math.max(0, math.min(100, duty))
-    if self.pwm then
-        self.pwm:setDuty(self.duty)
-    end
-end
-
---- 设置频率
-function Buzzer:setFreq(freq)
-    self.freq = freq
-    if self.pwm then
-        self.pwm:setFreq(self.freq)
-    end
 end
 
 --- 设置值
 function Buzzer:set(key, value)
     if key == "ring" then
         self:ring(key, value)
+    elseif key == "duty" then
+        self.duty = value
+    elseif key == "freq" then
+        self.freq = value
+    else
+        return false, "Buzzer组件不支持变量：" .. key
+    end
+    return true
+end
+
+function Buzzer:get(key)
+    if key == "ringing" then
+        return true, self.ringing
+    elseif key == "duty" then
+        return true, self.duty
+    elseif key == "freq" then
+        return true, self.freq
+    else
+        return false, "Buzzer组件不支持变量：" .. key
     end
 end
 
