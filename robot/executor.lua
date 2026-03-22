@@ -119,7 +119,7 @@ function Executor:execute(cursor)
         local fn = vm[task.type]
         if type(fn) == "function" then
             -- fn(task)
-            local ret, wait = iot.call(fn, task, self.context, self)
+            local ret, wait = iot.xcall(fn, task, self.context, self)
             if ret == false then
                 -- 记录错误
                 task.error = wait

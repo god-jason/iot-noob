@@ -49,13 +49,12 @@ end
 -- @param boolean 成功与否
 -- @param any 结果 或 错误
 function iot.call(func, ...)
-    local ret, info = xpcall(func, iot.traceback, ...)
-    if not ret then
-        log.error(info)
-        iot.emit("error", info)
-        return false, info
+    local res = {xpcall(func, iot.traceback, ...)}
+    if not res[1] then
+        log.error(res[2])
+        iot.emit("error", res[2])
     end
-    return ret, info
+    return table.unpack(res)
 end
 
 --- 扩展安全调用，用于兼容布尔返回值的调用
@@ -63,18 +62,17 @@ end
 -- @param boolean 成功与否
 -- @param any 结果 或 错误
 function iot.xcall(func, ...)
-    local ret, res, info = xpcall(func, iot.traceback, ...)
-    if not ret then
-        log.error(res)
-        iot.emit("error", res)
-        return false, res
+    local res = {xpcall(func, iot.traceback, ...)}
+    if not res[1] then
+        log.error(res[2])
+        iot.emit("error", res[2])
+        return false, res[2]
     end
-    if res == false then
-        log.error(info)
+    if res[2] == false then
+        log.error(res[3])
     end
-    return res, info
+    return table.unpack(res, 2)
 end
-
 
 --- 定时任务
 -- @param func function 回调
