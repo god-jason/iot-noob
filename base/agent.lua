@@ -51,7 +51,7 @@ local watcher = 0
 function commands.watch(data)
     log.info("查看")
     iot.emit("report", true)
-    
+
     watcher = watcher + 1
 
     agent.watching = true
@@ -87,7 +87,7 @@ end
 
 -- 固件升级
 function commands.upgrade(data)
-    if data.url then
+    if data.url and #data.url > 0 then
         iot.upgrade(data.url)
     else
         -- 触发合宙的OTA升级，限制较多，KEY要匹配，模组要在IoT平台名下
@@ -95,6 +95,5 @@ function commands.upgrade(data)
     end
     return true
 end
-
 
 return agent
