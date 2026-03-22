@@ -314,15 +314,15 @@ end
 
 local function master_task()
 
-    if mobile.status() ~= 1 then
-        log.info("等待网络就绪")
-        -- 等待网络就绪
-        iot.wait("IP_READY")
-    end
+    -- if mobile.status() ~= 1 then
+    log.info("等待网络就绪")
+    -- 等待网络就绪
+    iot.wait("IP_READY")
+    -- end
 
     -- 常亮网络灯（放这里不合适）
     if components.led_net then
-        components.led_net:on()
+        components.led_net:turn_on()
     end
 
     -- 加载配置
@@ -345,7 +345,7 @@ local function master_task()
     client:on_connect(function()
         -- 平台灯闪烁
         if components.led_cloud then
-            components.led_cloud:on()
+            components.led_cloud:turn_on()
         end
     end)
 
