@@ -80,8 +80,9 @@ function master.open()
     --    disabled = forward_disabled
     -- }
     for k, cmp in ipairs(settings.components) do
-        if cmp.bindings and components[cmp.name] then
-            components[cmp.name].on("change", function(values)
+        local com = components[cmp.name]
+        if cmp.bindings and com and com.on then
+            com:on("change", function(values)
                 local has = false
                 local vs = {}
                 for k, v in pairs(values) do
