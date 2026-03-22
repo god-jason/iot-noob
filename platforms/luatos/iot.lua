@@ -33,7 +33,12 @@ function iot.logger(tag)
 end
 
 local function traceback(err)
-    return debug.traceback(err, 2)
+    if RELEASE then
+        log.error(debug.traceback())
+        return err
+    else
+        return debug.traceback(err, 2)
+    end
 end
 
 --- 定时任务
@@ -48,6 +53,7 @@ function iot.setTimeout(func, timeout, ...)
         local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
+            iot.emit("error", info)
         end
     end, math.ceil(timeout), ...)
 end
@@ -65,6 +71,7 @@ function iot.setInterval(func, timeout, ...)
         local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
+            iot.emit("error", info)
         end
     end, math.ceil(timeout), ...)
 end
@@ -91,6 +98,7 @@ function iot.start(func, ...)
         local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
+            iot.emit("error", info)
         end
     end, ...)
 end
@@ -134,6 +142,7 @@ function iot.on(topic, func)
         local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
+            iot.emit("error", info)
         end
     end
     sys.subscribe(topic, fn)
@@ -154,6 +163,7 @@ function iot.once(topic, func)
         local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
+            iot.emit("error", info)
         end
         cancel()
     end
@@ -591,8 +601,7 @@ function iot.uart(id, opts)
 
     local obj = setmetatable({
         id = id,
-        data_len = 0,
-        on_data = opts.on_data
+        data_len = 0
     }, UART)
 
     uart.on(id, "receive", function(id2, len)
@@ -601,6 +610,7 @@ function iot.uart(id, opts)
             local ret, info = xpcall(obj._on_data, traceback, uart.read(id2))
             if not ret then
                 log.error(info)
+                -- iot.emit("error", info) 可能太多了
             end
         end
     end)

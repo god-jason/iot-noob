@@ -222,16 +222,7 @@ function cron.execute()
             if job.next > now - 3600 then
                 for _, cb in pairs(job.callbacks) do
                     -- 异步执行(不知道有没有数量限制，会不会影响性能)
-                    iot.start(function()
-                        if RELEASE then
-                            local ret, info = utils.call(cb)
-                            if not ret then
-                                log.error(info)
-                            end
-                        else
-                            cb()
-                        end
-                    end)
+                    iot.start(cb)
                 end
             end
             calc_next(job, now)

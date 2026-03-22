@@ -109,7 +109,13 @@ function utils.is_array(t)
 end
 
 function utils.traceback(err)
-    return debug.traceback(err, 2)
+    -- 正式版只打印不上报
+    if RELEASE then
+        log.error(debug.traceback())
+        return err
+    else
+        return debug.traceback(err, 2)
+    end
 end
 
 --- 安全调用

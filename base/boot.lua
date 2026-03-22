@@ -104,9 +104,9 @@ function boot.startup()
             log.error("启动失败", info)
 
             -- 非发布时，关闭程序，抛出异常
-            if not RELEASE then
-                boot.shutdown()
-            end
+            -- if not RELEASE then
+            --     boot.shutdown()
+            -- end
 
             -- 发布时，要启动平台模块，至少实现重置和远程升级
         end
