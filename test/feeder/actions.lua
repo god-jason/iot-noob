@@ -188,7 +188,7 @@ function actions.clear_error(data)
         robot.state("idle")
         return true
     else
-        return false, "不在错误状态"    
+        return false, "不在错误状态"
     end
 end
 
@@ -247,12 +247,6 @@ function actions.home(data)
     return robot.plan("home", data)
 end
 
--- 重启设备
-function actions.reboot(data)
-    robot.state("idle")
-    iot.reboot()
-    return true
-end
 
 -- 重启驱动器
 function actions.reboot_drv(data)
@@ -278,23 +272,10 @@ function actions.charge2(data)
     return true
 end
 
--- 固件升级
-function actions.upgrade(data)
-    iot.emit("FOTA", "固件升级")
-    return true
-end
 
 -- 震动器启动
 function actions.vibrator(data)
     return robot.plan("vibrator", data, {
         branch = true -- 独立运行
     })
-end
-
--- 重置设备
-function actions.reset(data)
-    robot.state("idle")
-    settings.reset()
-    iot.reboot() -- 重置之后，需要重启
-    return true
 end

@@ -68,6 +68,12 @@ function commands.watch(data)
     return true
 end
 
+-- 重启设备
+function commands.reboot()
+    iot.reboot()
+    return true
+end
+
 -- 清除数据
 function commands.reset()
     -- 删除所有文件，恢复出厂设置
@@ -75,20 +81,20 @@ function commands.reset()
         log.info("remove", fn)
         os.remove(fn)
     end)
-    iot.setTimeout(iot.reboot, 1000)
+    iot.reboot()
     return true
 end
 
--- 重启设备
-function commands.reboot()
-    iot.setTimeout(iot.reboot, 2000)
-    return true
-end
-
--- 升级
+-- 固件升级
 function commands.upgrade(data)
-    iot.upgrade(data.url)
+    if data.url then
+        iot.upgrade(data.url)
+    else
+        -- 触发合宙的OTA升级，限制较多，KEY要匹配，模组要在IoT平台名下
+        iot.emit("FOTA", "固件升级")
+    end
     return true
 end
+
 
 return agent
