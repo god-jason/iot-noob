@@ -32,6 +32,10 @@ function iot.logger(tag)
     }
 end
 
+local function traceback(err)
+    return debug.traceback(err, 2)
+end
+
 --- 定时任务
 -- @param func function 回调
 -- @param timeout integer 超时
@@ -41,7 +45,7 @@ function iot.setTimeout(func, timeout, ...)
         timeout = 1
     end
     return sys.timerStart(function(...)
-        local ret, info = pcall(func, ...)
+        local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
         end
@@ -58,7 +62,7 @@ function iot.setInterval(func, timeout, ...)
         timeout = 10
     end
     return sys.timerLoopStart(function(...)
-        local ret, info = pcall(func, ...)
+        local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
         end
@@ -84,7 +88,7 @@ end
 function iot.start(func, ...)
     -- TODO 这里返回是协程对象，不是线程ID
     return sys.taskInit(function(...)
-        local ret, info = pcall(func, ...)
+        local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
         end
@@ -127,7 +131,7 @@ end
 -- @param func function 回调
 function iot.on(topic, func)
     local fn = function(...)
-        local ret, info = pcall(func, ...)
+        local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
         end
@@ -147,7 +151,7 @@ function iot.once(topic, func)
 
     local cancel
     local fn = function(...)
-        local ret, info = pcall(func, ...)
+        local ret, info = xpcall(func, traceback, ...)
         if not ret then
             log.error(info)
         end
@@ -594,7 +598,10 @@ function iot.uart(id, opts)
     uart.on(id, "receive", function(id2, len)
         -- 如果有回调，wait之后不能再read了
         if obj._on_data then
-            pcall(obj._on_data, uart.read(id2))
+            local ret, info = xpcall(obj._on_data, traceback, uart.read(id2))
+            if not ret then
+                log.error(info)
+            end
         end
     end)
 

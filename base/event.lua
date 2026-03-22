@@ -4,6 +4,8 @@ local Event = require("utils").class()
 
 local log = iot.logger("Event")
 
+local utils = require("utils")
+
 --- 初始化
 function Event:init()
     --log.info("init")
@@ -70,7 +72,7 @@ function Event:emit(name, ...)
     -- 依次回调
     for i, v in ipairs(list) do
         --utils.call(v.callback, ...) -- 日志会太多
-        local ret, info = pcall(v.callback, ...)
+        local ret, info = xpcall(v.callback, utils.traceback, ...)
         if not ret then
             log.error(info)
         end

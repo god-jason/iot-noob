@@ -184,7 +184,7 @@ function Scene:check()
                 return false, value
             end
 
-            -- TODO 以下只能判断数据关系了
+            -- TODO 以下只能判断数据关系
             if type(value) ~= "number" then
                 log.error("device:", cond.device, " value:", cond.key, " is not a number")
                 return false

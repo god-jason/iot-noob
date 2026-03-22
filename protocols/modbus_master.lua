@@ -378,9 +378,9 @@ function ModbusMaster:_polling()
 
             -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
             -- local ret, info = utils.call(function()
-            local ret, info = pcall(function()
+            local ret, info = xpcall(function()
                 return dev:poll()
-            end)
+            end, utils.traceback)
             if not ret then
                 log.error("polling", dev.id, "error", info)
             end

@@ -98,7 +98,7 @@ function FSM:execute()
         if self.state then
             if self.state.tick then
                 -- self.state.tick(self)
-                local ret, info = pcall(self.state.tick, self.context)
+                local ret, info = xpcall(self.state.tick, utils.traceback, self.context)
                 if ret == false then
                     log.error(self.name, self.state_name, "执行tick错误", info)
 

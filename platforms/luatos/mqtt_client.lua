@@ -42,7 +42,7 @@ local function find_callback(node, topics, index, topic, payload)
     -- 全部
     local sub = node.children["#"]
     if sub ~= nil then
-        --find_callback(sub, {}, 1, topic, payload)
+        -- find_callback(sub, {}, 1, topic, payload)
         for _, cb in ipairs(sub.callbacks) do
             cb(topic, payload)
         end
@@ -70,7 +70,8 @@ function MqttClient:open()
         return false, "缺少MQTT"
     end
 
-    log.info("connect", self.options.host, self.options.port, self.options.clientid, self.options.username, self.options.password)
+    log.info("connect", self.options.host, self.options.port, self.options.clientid, self.options.username,
+        self.options.password)
 
     -- 创建客户端
     self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
@@ -98,7 +99,7 @@ function MqttClient:open()
     -- 注册回调
     self.client:on(function(client, event, topic, payload)
         log.info("event", event, client, topic, payload)
-        
+
         if event == "recv" then
             table.insert(self.sub_queue, {
                 topic = topic,
@@ -139,9 +140,13 @@ function MqttClient:open()
                 local m = table.remove(self.sub_queue, 1)
                 -- 处理消息
                 local ts = string.split(m.topic, "/")
+                
                 if RELEASE then
                     -- 加入异常处理，避免异常崩溃
-                    local ret2, info = pcall(find_callback, self.sub_tree, ts, 1, m.topic, m.payload)
+                    local ret2, info = xpcall(find_callback, function(err)
+                        return debug.traceback(err, 2)
+                    end, self.sub_tree, ts, 1, m.topic, m.payload)
+
                     if not ret2 then
                         iot.emit("error", info)
                     end

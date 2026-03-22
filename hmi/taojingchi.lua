@@ -75,7 +75,7 @@ local function on_data(id, len)
 
             -- 卸载旧页面
             if type(current_page.leave) == "function" then
-                ret, err = utils.call(current_page.leave)
+                ret, err = xcall(current_page.leave, utils.traceback)
                 if ret == false then
                     log.error("handle page leave error", err)
                 end
@@ -86,7 +86,7 @@ local function on_data(id, len)
 
             -- 挂载新页面
             if type(current_page.enter) == "function" then
-                ret, err = utils.pcall(current_page.enter)
+                ret, err = xpcall(current_page.enter, utils.traceback)
                 if ret == false then
                     log.error("handle page enter error", err)
                 end
@@ -94,8 +94,7 @@ local function on_data(id, len)
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                -- ret, err = utils.pcall(current_page.tick)
-                ret, err = pcall(current_page.tick)
+                ret, err = xpcall(current_page.tick, utils.traceback)
                 if ret == false then
                     log.error("handle page tick error", err)
                 end
@@ -127,7 +126,7 @@ function tjc.open()
             -- 刷新新页面
             if type(current_page.tick) == "function" then
                 ---local ret, err = utils.call(current_page.tick)
-                local ret, err = pcall(current_page.tick)
+                local ret, err = xpcall(current_page.tick, utils.traceback)
                 if ret == false then
                     log.error("handle page tick error", err)
                 end

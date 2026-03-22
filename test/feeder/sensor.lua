@@ -4,6 +4,7 @@ local tag = "sensor"
 
 local settings = require "settings"
 local cron = require "cron"
+local utils = require "utils"
 
 -- 串口3接单片机
 local uart_id = 3
@@ -134,7 +135,7 @@ local function on_data(id, len)
             if handler then
                 -- response = handler(pkt)
                 -- 加入异常处理
-                local ret, response = pcall(handler, pkt)
+                local ret, response = xpcall(handler, utils.traceback, pkt)
                 if not ret then
                     log.info(response)
                 end
@@ -178,9 +179,10 @@ function sensor.calibrate(weight)
     }))
 end
 
-
 -- 问重量
-local query_cmd = iot.json_encode({type = "status"})
+local query_cmd = iot.json_encode({
+    type = "status"
+})
 function sensor.query_status()
     uart.write(uart_id, query_cmd)
 end

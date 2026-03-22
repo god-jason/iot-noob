@@ -4,6 +4,8 @@ local Switch = require("utils").class(require("component"))
 
 require("components").register("switch", Switch)
 
+local utils = require("utils")
+
 local log = iot.logger("Switch")
 
 --- 初始化
@@ -38,7 +40,7 @@ function Switch:init()
 
             -- 回调
             if type(self.callback) == "function" then
-                local ok, err = pcall(self.callback, level)
+                local ok, err = xpcall(self.callback, utils.traceback, level)
                 if not ok then
                     log.error("switch callback error:", err)
                 end
