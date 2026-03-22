@@ -324,28 +324,30 @@ function vm.zero(task, ctx, executor)
 
     log.info("清零完成", settings.device.weigh_distance)
 
-    -- 前进几cm，让后接近信号关闭
-    if settings.device.weigh_distance and settings.device.weigh_distance > 1 then
-        log.info("向前移动到称重位置")
+    -- 前进几cm，让后接近信号关闭，为了让称重准确
+    if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+        if settings.device.weigh_distance and settings.device.weigh_distance > 0.1 then
+            log.info("向前移动到称重位置")
 
-        -- 先静止
-        local ret = executor:wait(1000)
-        if ret then
-            return
+            -- 先静止
+            local ret = executor:wait(1000)
+            if ret then
+                return
+            end
+
+            -- 前移
+            local rpm = feeder.calc_move_rpm(0.5)
+            local distance = settings.device.weigh_distance
+            local rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
+
+            local tm = components.move_servo:start(rpm, rounds, true)
+            local ret = executor:wait(tm)
+            if ret then
+                return
+            end
+            --停止电机
+            components.move_servo:stop()
         end
-
-        -- 前移
-        local rpm = feeder.calc_move_rpm(1)
-        local distance = settings.device.weigh_distance
-        local rounds = feeder.calc_move_rounds(settings.device.weigh_distance)
-
-        local tm = components.move_servo:start(rpm, rounds)
-        local ret = executor:wait(tm)
-        if ret then
-            return
-        end
-
-        components.move_servo:brake()
     end
 
 end

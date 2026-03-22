@@ -21,6 +21,7 @@
     "bamboo_distance": 30,
     "bamboo_fan_level": 1,
     "bamboo_move_speed": 2,
+    "weigh_distance": 1,
     "feed_min": 300,
     "battery_volume": 13,
     "battery_full": 28,

@@ -75,6 +75,7 @@ function Event:emit(name, ...)
         local ret, info = xpcall(v.callback, utils.traceback, ...)
         if not ret then
             log.error(info)
+            --iot.emit("error", info)
         end
     end
     -- 删除once

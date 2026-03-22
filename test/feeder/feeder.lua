@@ -936,8 +936,11 @@ local function onFeedFinished(ctx)
                     -- TODO 产生报警 event，电话报警
                     iot.emit("error", "喂料未达标，电话报警")
 
-                    -- 投喂异常了
-                    feeder.error = true
+                    -- TODO 检查堵料
+
+                    -- 进入错误状态，不再投喂了
+                    robot.state("error", "喂料未达标，缺少"..total_lack.."g")
+                    return
                 end
             end
 
@@ -1083,9 +1086,6 @@ function feeder.feed_check()
             -- 结束任务了
             robot.state("idle")
 
-            -- 异常了
-            feeder.error = true
-
             iot.emit("log", "重量不足，结束投喂")
 
             return false, "重量不足，结束投喂"
@@ -1170,9 +1170,6 @@ function feeder.feed(data)
     current_weights = {0, 0, 0, 0}
     current_checked = false
     wait_times = 0
-
-    -- 重置错误状态
-    feeder.error = false
 
     -- 开始第一轮
     return feeder.feed_rank()

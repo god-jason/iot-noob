@@ -36,8 +36,9 @@ end
 --- 运行（转速，圈数）
 -- @param rpm number 转速
 -- @param rounds number 圈数
+-- @param no_accelerate boolean 不加速
 -- @return integer 需要等待时间ms
-function Stepper:start(rpm, rounds)
+function Stepper:start(rpm, rounds, no_accelerate)
     log.info(self.pwm_id, "启动 rpm", rpm, "rounds", rounds)
     -- if self.running then
     --     -- 电机驱动必须先把PWM停下，再修改频率才有效
@@ -71,7 +72,7 @@ function Stepper:start(rpm, rounds)
     local count = math.floor(self.freq * rounds)
 
     -- 加减速
-    if self.smooth then
+    if self.smooth and not no_accelerate then
         local tm, pulse = self:accelerate(self.last or 0, freq, count)
         count = count - pulse -- 要减去加速的脉冲数
 
