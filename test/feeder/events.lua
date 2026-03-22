@@ -37,3 +37,7 @@ iot.on("SETTING", function(name)
         feeder.start()
     end
 end)
+
+-- iot.on("IP_READY", function()
+--     log.info("IP_READY")
+-- end)

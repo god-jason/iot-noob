@@ -6,7 +6,7 @@ local log = iot.logger("Event")
 
 --- 初始化
 function Event:init()
-    log.info("init")
+    --log.info("init")
     self._handlers = {}
 end
 

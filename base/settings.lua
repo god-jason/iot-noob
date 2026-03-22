@@ -6,11 +6,12 @@ local log = iot.logger("settings")
 
 local configs = require("configs")
 local boot = require("boot")
+local yaml = require("yaml")
 
-local options = {
+local options = configs.load_default("settings", {
     names = {},
     versions = {}
-}
+})
 
 local defaults = {}
 
@@ -22,8 +23,11 @@ end
 
 --- 加载配置
 function settings.load(name)
-    settings[name] = configs.load_default(name, defaults[name] or {})
-    return true, settings[name]
+    local cfg = configs.load_default(name, defaults[name] or {})
+    -- log.info("load", name, yaml.encode(cfg))
+    -- log.info("load", name, iot.json_encode(cfg))
+    settings[name] = cfg
+    return true, cfg
 end
 
 --- 更新配置
@@ -70,10 +74,8 @@ end
 function settings.open()
     log.info("load", iot.json_encode(options.names))
 
-    -- 加载配置
-    options = configs.load_default("settings", options)
-
-    for i, name in ipairs(options.names) do
+    --for i, name in ipairs(options.names) do
+    for i, name in pairs(options.names) do
         settings.load(name)
     end
 end

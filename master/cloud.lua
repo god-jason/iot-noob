@@ -314,8 +314,11 @@ end
 
 local function master_task()
 
-    -- 等待网络就绪
-    iot.wait("IP_READY")
+    if mobile.status() ~= 1 then
+        log.info("等待网络就绪")
+        -- 等待网络就绪
+        iot.wait("IP_READY")
+    end
 
     -- 常亮网络灯（放这里不合适）
     if components.led_net then
@@ -339,14 +342,14 @@ local function master_task()
     -- 连接云平台
     client = MqttClient:new(options)
 
-    client:on_connect(function()        
+    client:on_connect(function()
         -- 平台灯闪烁
         if components.led_cloud then
             components.led_cloud:on()
         end
     end)
 
-    client:on_disconnect(function()        
+    client:on_disconnect(function()
         -- 平台灯闪烁
         if components.led_cloud then
             components.led_cloud:blink()

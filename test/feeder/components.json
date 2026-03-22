@@ -64,16 +64,6 @@
     },
     {
         "type": "led",
-        "name": "led_cloud",
-        "pin": 37
-    },
-    {
-        "type": "led",
-        "name": "led_net",
-        "pin": 38
-    },
-    {
-        "type": "led",
         "name": "led_power",
         "pin": 21
     },

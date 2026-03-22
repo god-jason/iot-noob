@@ -70,6 +70,8 @@ function MqttClient:open()
         return false, "缺少MQTT"
     end
 
+    log.info("connect", self.options.host, self.options.port, self.options.clientid, self.options.username, self.options.password)
+
     -- 创建客户端
     self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
     if self.client == nil then
