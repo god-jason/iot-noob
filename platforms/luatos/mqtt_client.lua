@@ -141,18 +141,10 @@ function MqttClient:open()
                 -- 处理消息
                 local ts = string.split(m.topic, "/")
 
+                iot.call(find_callback, self.sub_tree, ts, 1, m.topic, m.payload)
+
                 -- 直接抛出异常，方便查问题
                 -- find_callback(self.sub_tree, ts, 1, m.topic, m.payload)
-
-                -- 加入异常处理，避免异常崩溃
-                local ret2, info = xpcall(find_callback, function(err)
-                    return debug.traceback(err, 2)
-                end, self.sub_tree, ts, 1, m.topic, m.payload)
-
-                if not ret2 then
-                    log.error(info)
-                    iot.emit("error", info)
-                end
             end
         end
         log.info("message handling task exit")

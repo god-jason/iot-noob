@@ -37,10 +37,7 @@ end
 function Watcher:dispatch(...)
     for i, cb in pairs(self.watchers) do
         if cb then
-            local ok, err = xpcall(cb, iot.traceback, ...)
-            if not ok then
-                log.error("callback error:", err)
-            end
+            iot.xcall(cb, ...)
         end
     end
 end

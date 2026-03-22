@@ -74,10 +74,7 @@ local function on_data(id, len)
 
             -- 卸载旧页面
             if type(current_page.leave) == "function" then
-                ret, err = xcall(current_page.leave, iot.traceback)
-                if ret == false then
-                    log.error("handle page leave error", err)
-                end
+                iot.call(current_page.leave)
             end
 
             -- 更新页面
@@ -85,18 +82,12 @@ local function on_data(id, len)
 
             -- 挂载新页面
             if type(current_page.enter) == "function" then
-                ret, err = xpcall(current_page.enter, iot.traceback)
-                if ret == false then
-                    log.error("handle page enter error", err)
-                end
+                iot.call(current_page.enter)
             end
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                ret, err = xpcall(current_page.tick, iot.traceback)
-                if ret == false then
-                    log.error("handle page tick error", err)
-                end
+                iot.call(current_page.tick)
             end
             return
         end
@@ -124,11 +115,7 @@ function tjc.open()
 
             -- 刷新新页面
             if type(current_page.tick) == "function" then
-                ---local ret, err = iot.xcall(current_page.tick)
-                local ret, err = xpcall(current_page.tick, iot.traceback)
-                if ret == false then
-                    log.error("handle page tick error", err)
-                end
+                iot.xcall(current_page.tick)
             end
         end
     end)

@@ -66,13 +66,10 @@ function FSM:execute()
 
             -- 执行离开
             if self.state and self.state.leave then
-                log.info(self.name, "leave state", self.state_name, self.state.name)
+                log.info(self.name, "离开状态", self.state_name, self.state.name)
 
                 -- self.state.leave(self)
-                local ret, info = iot.xcall(self.state.leave, self.context)
-                if ret == false then
-                    log.error(self.name, self.state_name, "执行leave错误", info)
-                end
+                iot.call(self.state.leave, self.context)
             end
 
             -- 切换状态
@@ -82,13 +79,10 @@ function FSM:execute()
 
             -- 执行进入
             if self.state.enter then
-                log.info(self.name, "enter state", self.state_name, self.state.name)
+                log.info(self.name, "进入状态", self.state_name, self.state.name)
 
                 -- state.enter(self)
-                local ret, info = iot.xcall(self.state.enter, self.context, table.unpack(self.next_args))
-                if ret == false then
-                    log.error(self.name, self.state_name, "执行enter错误", info)
-                end
+                iot.call(self.state.enter, self.context, table.unpack(self.next_args))
             end
 
             ticked = false
@@ -98,11 +92,11 @@ function FSM:execute()
         if self.state then
             if self.state.tick then
                 -- self.state.tick(self)
+                -- 使用原始xpcall，避免错误日志上传多次
                 local ret, info = xpcall(self.state.tick, iot.traceback, self.context)
                 if ret == false then
-                    log.error(self.name, self.state_name, "执行tick错误", info)
+                    log.error(info)
 
-                    -- 使用原始pcall，避免错误日志上传多次
                     if not ticked then
                         iot.emit("error", info)
                     end
@@ -125,13 +119,9 @@ function FSM:execute()
 
     -- 执行离开
     if self.state and self.state.leave then
-        log.info(self.name, "leave state", self.state_name, self.state.name)
-
+        log.info(self.name, "离开状态", self.state_name, self.state.name)
         -- self.state.leave(self)
-        local ret, info = iot.xcall(self.state.leave, self.context)
-        if ret == false then
-            log.error(self.name, self.state_name, "执行leave错误", info)
-        end
+        iot.call(self.state.leave, self.context)
     end
 
     -- 清理状态机

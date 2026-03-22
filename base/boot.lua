@@ -83,10 +83,7 @@ function boot.close(name)
     end
 
     log.info("close", name)
-    local res, info = iot.xcall(mod.close)
-    if res == false then
-        log.error(info)
-    end
+    iot.xcall(mod.close)
 
     mod.opened = false
 end

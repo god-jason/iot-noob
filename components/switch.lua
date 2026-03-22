@@ -38,10 +38,7 @@ function Switch:init()
 
             -- 回调
             if type(self.callback) == "function" then
-                local ok, err = xpcall(self.callback, iot.traceback, level)
-                if not ok then
-                    log.error("switch callback error:", err)
-                end
+                iot.call(self.callback, level)
             end
 
             -- 发送统一事件

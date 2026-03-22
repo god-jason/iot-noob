@@ -134,10 +134,7 @@ local function on_data(id, len)
             if handler then
                 -- response = handler(pkt)
                 -- 加入异常处理
-                local ret, response = xpcall(handler, iot.traceback, pkt)
-                if not ret then
-                    log.info(response)
-                end
+                iot.call(handler, pkt)
             else
                 log.info("unknown command", cache)
             end

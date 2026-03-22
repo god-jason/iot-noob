@@ -374,15 +374,7 @@ function ModbusMaster:_polling()
 
         -- 轮询连接下面的所有设备
         for _, dev in pairs(self.devices) do
-
-            -- 加入异常处理（pcall不能调用对象实例，只是用闭包了）
-            -- local ret, info = iot.xcall(function()
-            local ret, info = xpcall(function()
-                return dev:poll()
-            end, iot.traceback)
-            if not ret then
-                log.error("polling", dev.id, "error", info)
-            end
+            iot.xcall(ModbusMasterDevice.poll, dev)
 
             -- 避免太快
             iot.sleep(500)

@@ -30,7 +30,7 @@ local function create_instruction(name, script)
     end
 
     -- 返回闭包
-    ret, info = iot.xcall(ret)
+    ret, info = iot.call(ret)
     if not ret then
         -- log.info("closure instruction error", fn)
         return false, info
@@ -60,7 +60,7 @@ local function create_planner(name, script)
     end
 
     -- 返回闭包
-    ret, info = iot.xcall(ret)
+    ret, info = iot.call(ret)
     if not ret then
         -- log.info("closure planner error", fn)
         return ret, info

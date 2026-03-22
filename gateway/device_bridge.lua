@@ -33,7 +33,10 @@ function DeviceBridge:init()
         -- 回写外设的寄存器
         iot.start(function()
             for k, v in pairs(values) do
-                self.dev2:set(k, v)
+                local ret, info = self.dev2:set(k, v)
+                if not ret then
+                    log.error(info)
+                end
             end
         end)
     end)
@@ -46,7 +49,10 @@ function DeviceBridge:init()
         -- 回写外设的寄存器
         iot.start(function()
             for k, v in pairs(values) do
-                self.dev1:set(k, v)
+                local ret, info = self.dev1:set(k, v)
+                if not ret then
+                    log.error(info)
+                end
             end
         end)
     end)

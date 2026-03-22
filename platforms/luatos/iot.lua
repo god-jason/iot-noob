@@ -69,6 +69,9 @@ function iot.xcall(func, ...)
         iot.emit("error", res)
         return false, res
     end
+    if res == false then
+        log.error(info)
+    end
     return res, info
 end
 

@@ -86,11 +86,11 @@ end
 function links.close()
     for i, s in pairs(_links) do
         if s.protocol_instance then
-            iot.xcall(function()
+            iot.call(function()
                 s.protocol_instance:close()
             end)
         end
-        iot.xcall(function()
+        iot.call(function()
             s:close()
         end)
     end

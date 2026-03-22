@@ -70,11 +70,7 @@ function Event:emit(name, ...)
     -- 依次回调
     for i, v in ipairs(list) do
         --iot.xcall(v.callback, ...) -- 日志会太多
-        local ret, info = xpcall(v.callback, iot.traceback, ...)
-        if not ret then
-            log.error(info)
-            --iot.emit("error", info)
-        end
+        iot.call(v.callback, ...)
     end
     -- 删除once
     for i = #list, 1, -1 do
