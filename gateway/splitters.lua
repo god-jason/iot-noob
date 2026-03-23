@@ -1,4 +1,4 @@
---- 二主一从，可以桥接两个串口，从中截取数据
+--- 分线器，二主一从，可以桥接两个串口，从中截取数据
 -- @module splitters
 local splitters = {}
 
@@ -131,7 +131,7 @@ function splitters.open()
     for i, t in ipairs(ts) do
         local ret, info = splitters.create(t)
         if not ret then
-            log.error("连接三通", t.master, t.slave, " 出错:", info)
+            log.error("连接分线器", t.master, t.slave, " 出错:", info)
         end
     end
     return true
@@ -149,4 +149,4 @@ splitters.deps = {"links", "settings"}
 
 settings.register("splitters", {})
 
-boot.register("splitter", splitters)
+boot.register("splitters", splitters)

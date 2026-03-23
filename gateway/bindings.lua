@@ -1,3 +1,5 @@
+--- 设备绑定，同步，配对，镜像
+-- @module bindings
 local bindings = {}
 
 local log = iot.logger("mirror")

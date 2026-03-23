@@ -8,16 +8,20 @@ local configs = require("configs")
 local boot = require("boot")
 local yaml = require("yaml")
 
-local options = configs.load_default("settings", {
-    names = {},
-    versions = {}
-})
+-- 版本号
+settings.versions = configs.load_default("versions", {})
 
 local defaults = {}
 
 --- 注册默认配置
 function settings.register(name, default)
-    table.insert(options.names, name)
+    -- table.insert(options.names, name)
+
+    -- 默认版本为0
+    if not settings.versions[name] then
+        settings.versions[name] = 0
+    end
+
     defaults[name] = default
 end
 
@@ -41,12 +45,12 @@ function settings.update(name, content, version)
 
     -- 更新版本
     if version ~= nil then
-        options.versions[name] = version
-    elseif options.versions[name] ~= nil then
-        options.versions[name] = options.versions[name] + 1 -- 自增版本号
+        settings.versions[name] = version
+    elseif settings.versions[name] ~= nil then
+        settings.versions[name] = settings.versions[name] + 1 -- 自增版本号
     end
 
-    return configs.save("settings", options)
+    return configs.save("versions", settings.versions)
 end
 
 --- 保存配置
@@ -63,8 +67,8 @@ function settings.reset(name)
     if name then
         configs.delete(name)
     else
-        for i, n in ipairs(options.names) do
-            configs.delete(n)
+        for i, n in pairs(settings.versions) do
+            configs.delete(i)
         end
     end
     return true
@@ -72,10 +76,10 @@ end
 
 --- 加载配置
 function settings.open()
-    log.info("load", iot.json_encode(options.names))
+    log.info("load", iot.json_encode(settings.versions.names))
 
-    --for i, name in ipairs(options.names) do
-    for i, name in pairs(options.names) do
+    -- for i, name in ipairs(options.names) do
+    for name, ver in pairs(settings.versions) do
         settings.load(name)
     end
 end
