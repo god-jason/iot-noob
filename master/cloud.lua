@@ -13,30 +13,48 @@ local MqttClient = require("mqtt_client")
 local database = require("database")
 local master = require("master")
 
-local client = nil -- MqttClient:new()
-
-local options = {}
-
-local default_options = {
-    enable = true,
-    host = "iot.busycloud.cn",
-    port = 1883,
-    key = "noob"
-}
+local _clouds = {}
 
 -- 查找设备
 local function find_device(data)
     -- 未传值，则使用网关设备
-    if not data.device_id or #data.device_id == 0 or data.device_id == options.id then
-        data.device_id = options.id -- 赋值回传
+    if not data.device_id or #data.device_id == 0 or data.device_id == self.id then
+        data.device_id = self.id -- 赋值回传
         return master.device
     end
     return devices[data.device_id]
 end
 
+-- 解析JSON
+local function parse_json(callback, self)
+    return function(topic, payload)
+        log.info("mqtt message", topic, payload)
+        local data, err = iot.json_decode(payload)
+        if err then
+            log.info("decode", payload, err)
+            return
+        end
+        callback(self, topic, data)
+    end
+end
+
+local Cloud = require("utils").class(require("event"))
+
+function Cloud:init()
+    -- 默认使用IMEI号作为ID
+    if not self.id or #self.id == 0 then
+        self.id = mobile.imei()
+    end
+    -- 生成秘钥， username:imei, password:md5(imei+date+key)
+    -- local date = os.date("%Y-%m-%d") -- 系统可能还没获取到正确的时间
+    self.clientid = self.clientid or self.id
+    self.username = self.username or self.id
+    self.password = self.password or crypto.md5(self.id .. self.key)
+end
+
 -- 上报设备数据
-local function report_device_values(dev, all)
-    if not client then
+function Cloud:report_device_values(dev, all)
+    if not self.client then
         log.error("平台未连接")
         return
     end
@@ -51,13 +69,13 @@ local function report_device_values(dev, all)
     end
 
     if has_data then
-        client:publish("device/" .. dev.id .. "/values", data)
+        self.client:publish("device/" .. dev.id .. "/values", data)
     end
 end
 
 -- 上报设备在线状态
-local function report_device_status(dev)
-    if not client then
+function Cloud:report_device_status(dev)
+    if not self.client then
         log.error("平台未连接")
         return
     end
@@ -67,7 +85,7 @@ local function report_device_status(dev)
     local st = ""
 
     -- 默认10分钟无数据离线
-    if now - dev._updated > (options.sub_offline_timeout or 10) * 60 then
+    if now - dev._updated > (self.sub_offline_timeout or 10) * 60 then
         st = "offline"
     else
         st = "online"
@@ -75,49 +93,13 @@ local function report_device_status(dev)
 
     -- 状态变化才上传
     if dev._status ~= st then
-        client:publish("device/" .. dev.id .. "/" .. st, nil)
+        self.client:publish("device/" .. dev.id .. "/" .. st, nil)
         dev._status = st
     end
 end
 
--- 上报所有设备
-function cloud.report_values(all)
-    report_device_values(master.device, all)
-end
-
--- 上报所有设备
-function cloud.report_devices_values(all)
-    for id, dev in pairs(devices) do
-        if dev.values and not dev.inline then
-            report_device_values(dev, all)
-        end
-    end
-end
-
--- 上报所有设备状态
-function cloud.report_devices_status()
-    for id, dev in pairs(devices) do
-        if dev.values and not dev.inline then
-            report_device_status(dev)
-        end
-    end
-end
-
--- 解析JSON
-local function parse_json(callback)
-    return function(topic, payload)
-        log.info("mqtt message", topic, payload)
-        local data, err = iot.json_decode(payload)
-        if err then
-            log.info("decode", payload, err)
-            return
-        end
-        callback(topic, data)
-    end
-end
-
 -- 处理配置操作
-local function on_setting_operators(topic, data)
+function Cloud:on_setting_operators(topic, data)
     local _, _, _, _, _, cfg, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
     log.info("config", cfg, op)
     local ret, info
@@ -131,11 +113,11 @@ local function on_setting_operators(topic, data)
         info = "未支持的配置操作"
     end
 
-    client:publish(topic .. "/response", info or "成功")
+    self.client:publish(topic .. "/response", info or "成功")
 end
 
 -- 处理数据库操作
-local function on_database_operators(topic, data)
+function Cloud:on_database_operators(topic, data)
     local _, _, _, _, _, db, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
     log.info("database", db, op)
     local ret, info
@@ -159,18 +141,18 @@ local function on_database_operators(topic, data)
     end
 
     -- TODO 数据库操作，没有规定 msg_id等统一字段，只能将错误信息原路返回
-    client:publish(topic .. "/response", info or "成功")
+    self.client:publish(topic .. "/response", info or "成功")
 end
 
 -- 远程下发配置
-local function on_device_setting(topic, data)
+function Cloud:on_device_setting(topic, data)
     settings.update(data.name, data.content, data.version)
     -- 数据直接原路返回了
-    client:publish(topic .. "/response", data)
+    self.client:publish(topic .. "/response", data)
 end
 
 -- 设备同步请求
-local function on_device_sync(topic, data)
+function Cloud:on_device_sync(topic, data)
     local dev = find_device(data)
     if dev then
         local ret, info = dev:poll()
@@ -179,15 +161,15 @@ local function on_device_sync(topic, data)
         end
 
         -- 上传数据
-        cloud.report_values()
+        self:report_values()
     else
         data.error = "设备不存在"
     end
-    client:publish("device/" .. data.device_id .. "/sync/response", data)
+    self.client:publish("device/" .. data.device_id .. "/sync/response", data)
 end
 
 -- 设备写请求
-local function on_device_write(topic, data)
+function Cloud:on_device_write(topic, data)
     local dev = find_device(data)
     if dev then
         data.results = {}
@@ -203,11 +185,11 @@ local function on_device_write(topic, data)
     else
         data.error = "设备不存在"
     end
-    client:publish("device/" .. data.device_id .. "/write/response", data)
+    self.client:publish("device/" .. data.device_id .. "/write/response", data)
 end
 
 -- 设备读请求
-local function on_device_read(topic, data)
+function Cloud:on_device_read(topic, data)
     local dev = find_device(data)
     if dev then
         data.values = {}
@@ -223,11 +205,11 @@ local function on_device_read(topic, data)
     else
         data.error = "设备不存在"
     end
-    client:publish("device/" .. data.device_id .. "/read/response", data)
+    self.client:publish("device/" .. data.device_id .. "/read/response", data)
 end
 
 -- 处理设备操作
-local function on_action(topic, data)
+function Cloud:on_action(topic, data)
     local dev = find_device(data)
     if dev then
         local ret, val = agent.execute(data.action, data.parameters)
@@ -239,7 +221,7 @@ local function on_action(topic, data)
     else
         data.error = "设备不存在"
     end
-    client:publish("device/" .. data.device_id .. "/action/response", data)
+    self.client:publish("device/" .. data.device_id .. "/action/response", data)
 end
 
 -- 同步表数据
@@ -257,12 +239,12 @@ local function sync_table(col)
 end
 
 -- 注册设备信息
-local function register()
+function Cloud:register()
     log.info("register")
 
     local info = {
-        id = options.id,
-        product_id = options.product_id,
+        id = self.id,
+        product_id = self.product_id,
         firmware = rtos.firmware(),
         version = VERSION,
         imei = mobile.imei(),
@@ -279,41 +261,33 @@ local function register()
         }
     }
 
-    client:publish("device/" .. options.id .. "/register", info)
+    self.client:publish("device/" .. self.id .. "/register", info)
 end
 
---- 发布消息
--- @param topic string 主题
--- @param payload string|table|nil 数据，支持string,table
--- @param qos integer|nil 质量
-function cloud.publish(topic, payload, qos)
-    if not client then
-        log.error("平台未连接")
-        return
+-- 上报所有设备
+function Cloud:report_values(all)
+    self:report_device_values(master.device, all)
+end
+
+-- 上报所有设备
+function Cloud:report_devices_values(all)
+    for id, dev in pairs(devices) do
+        if dev.values and not dev.inline then
+            self:report_device_values(dev, all)
+        end
     end
-    client:publish(topic, payload, qos)
 end
 
--- 上报错误
-function cloud.report_error(err)
-    if not client then
-        log.error("平台未连接")
-        return
+-- 上报所有设备状态
+function Cloud:report_devices_status()
+    for id, dev in pairs(devices) do
+        if dev.values and not dev.inline then
+            self:report_device_status(dev)
+        end
     end
-    client:publish("device/" .. options.id .. "/error", err)
 end
 
--- 清除错误
-function cloud.clear_error()
-    if not client then
-        log.error("平台未连接")
-        return
-    end
-    client:publish("device/" .. options.id .. "/error/clear", nil)
-end
-
-local function master_task()
-
+function Cloud:task()
     -- if mobile.status() ~= 1 then
     log.info("等待网络就绪")
     -- 等待网络就绪
@@ -325,31 +299,17 @@ local function master_task()
         components.led_net:turn_on()
     end
 
-    -- 加载配置
-    options = settings.cloud
-
-    -- 默认使用IMEI号作为ID
-    if not options.id or #options.id == 0 then
-        options.id = mobile.imei()
-    end
-
-    -- 生成秘钥， username:imei, password:md5(imei+date+key)
-    -- local date = os.date("%Y-%m-%d") -- 系统可能还没获取到正确的时间
-    options.clientid = options.clientid or options.id
-    options.username = options.username or options.id
-    options.password = options.password or crypto.md5(options.id .. options.key)
-
     -- 连接云平台
-    client = MqttClient:new(options)
+    self.client = MqttClient:new(self)
 
-    client:on_connect(function()
+    self.client:on_connect(function()
         -- 平台灯闪烁
         if components.led_cloud then
             components.led_cloud:turn_on()
         end
     end)
 
-    client:on_disconnect(function()
+    self.client:on_disconnect(function()
         -- 平台灯闪烁
         if components.led_cloud then
             components.led_cloud:blink()
@@ -357,7 +317,7 @@ local function master_task()
     end)
 
     -- 打开
-    local ret, err = client:open()
+    local ret, err = self.client:open()
 
     if not ret then
         log.error("平台连接失败", err)
@@ -366,45 +326,24 @@ local function master_task()
 
     log.info("平台连接成功")
 
-    -- 上传日志
-    iot.on("log", function(data)
-        if client then
-            client:publish("device/" .. options.id .. "/log", data)
-        end
-    end)
-
-    -- 上传错误
-    iot.on("error", function(data)
-        if client then
-            client:publish("device/" .. options.id .. "/log", "[设备错误] " .. data)
-        end
-    end)
-
-    -- 上传指令
-    iot.on("report", function(all)
-        cloud.report_values(all)
-    end)
-
-    iot.emit("MASTER_READY")
-
     -- 订阅网关消息
-    client:subscribe("device/" .. options.id .. "/database/+/+", parse_json(on_database_operators))
-    client:subscribe("device/" .. options.id .. "/setting/+/+", parse_json(on_setting_operators))
-    client:subscribe("device/" .. options.id .. "/setting", parse_json(on_device_setting))
-    client:subscribe("device/" .. options.id .. "/write", parse_json(on_device_write))
-    client:subscribe("device/" .. options.id .. "/read", parse_json(on_device_read))
-    client:subscribe("device/" .. options.id .. "/sync", parse_json(on_device_sync))
-    client:subscribe("device/" .. options.id .. "/action", parse_json(on_action))
+    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Cloud.on_database_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Cloud.on_setting_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Cloud.on_device_setting, self))
+    self.client:subscribe("device/" .. self.id .. "/write", parse_json(Cloud.on_device_write, self))
+    self.client:subscribe("device/" .. self.id .. "/read", parse_json(Cloud.on_device_read, self))
+    self.client:subscribe("device/" .. self.id .. "/sync", parse_json(Cloud.on_device_sync, self))
+    self.client:subscribe("device/" .. self.id .. "/action", parse_json(Cloud.on_action, self))
 
     -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
-    register()
+    self:register()
 
     -- 在线
-    client:publish("device/" .. options.id .. "/online", {})
+    self.client:publish("device/" .. self.id .. "/online", {})
 
     -- 主设备使用配置ID
-    master.device.id = options.id
+    master.device.id = self.id
 
     local all_interval = 600 -- 10分钟传一次全部数据
     local ticks = all_interval - 30 -- 开机30秒，先全部传一次
@@ -417,22 +356,22 @@ local function master_task()
             ticks = 0
 
             -- 上传网关设备数据
-            cloud.report_values(true)
-            cloud.report_devices_values(true)
+            self:report_values(true)
+            self:report_devices_values(true)
         else
-            cloud.report_values()
-            cloud.report_devices_values()
+            self:report_values()
+            self:report_devices_values()
         end
 
         -- 子设备状态
-        cloud.report_devices_status()
+        self:report_devices_status()
 
         -- 正在查看时，1秒上传一次
         if agent.watching then
             iot.sleep(1000)
         else
             -- 避免首次等60秒
-            for i = 1, (options.interval or 60), 1 do
+            for i = 1, (self.interval or 60), 1 do
                 if not agent.watching then
                     iot.sleep(1000)
                 end
@@ -441,21 +380,96 @@ local function master_task()
     end
 end
 
+function Cloud:open()
+    iot.start(Cloud.task, self)
+end
+
+function Cloud:close()
+    self.client:close()
+end
+
+--- 发布消息
+-- @param topic string 主题
+-- @param payload string|table|nil 数据，支持string,table
+-- @param qos integer|nil 质量
+function Cloud:publish(topic, payload, qos)
+    if not self.client then
+        log.error("平台未连接")
+        return
+    end
+    self.client:publish(topic, payload, qos)
+end
+
+-- 上传日志
+iot.on("log", function(data)
+    for i, c in ipairs(_clouds) do
+        if c.log then
+            c:publish("device/" .. c.id .. "/log", data)
+        end
+    end
+end)
+
+-- 上传错误
+iot.on("error", function(data)
+    for i, c in ipairs(_clouds) do
+        if c.error then
+            c:publish("device/" .. c.id .. "/log", "[设备错误] " .. data)
+        end
+    end
+end)
+
+-- 上传指令
+iot.on("report", function(all)
+    for i, c in ipairs(_clouds) do
+        if c.report then
+            c:report_values(all)
+        end
+    end
+end)
+
+-- 上传错误
+iot.on("report_error", function(err)
+    for i, c in ipairs(_clouds) do
+        if c.error then
+            c:publish("device/" .. c.id .. "/error", err)
+        end
+    end
+end)
+
+-- 上传错误
+iot.on("clear_error", function()
+    for i, c in ipairs(_clouds) do
+        if c.error then
+            c:publish("device/" .. c.id .. "/error/clear")
+        end
+    end
+end)
+
 function cloud.open()
-    iot.start(master_task)
+    for i, v in pairs(settings.cloud) do
+        local c = Cloud:new(v)
+        c:open()
+        table.insert(_clouds, c)
+    end
 end
 
 function cloud.close()
-    -- 关闭连接
-    if client then
-        client:close()
-        client = nil
+    for i, v in ipairs(_clouds) do
+        v:close()
     end
 end
 
 cloud.deps = {"settings"}
 boot.register("cloud", cloud)
 
-settings.register("cloud", default_options)
+settings.register("cloud", {{
+    enable = true,
+    host = "iot.busycloud.cn",
+    port = 1883,
+    key = "noob",
+    log = true,
+    error = true,
+    report = true,
+}})
 
 return cloud

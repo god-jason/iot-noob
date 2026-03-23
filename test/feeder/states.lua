@@ -56,7 +56,8 @@ states.error = {
 
         -- 上报平台
         iot.emit("report")
-        cloud.report_error(err)
+        --cloud.report_error(err)
+        iot.emit("report_error", err)
     end,
     leave = function()
         master.device:put_values({
@@ -68,7 +69,8 @@ states.error = {
 
         -- 上报平台
         iot.emit("report")
-        cloud.clear_error()
+        --cloud.clear_error()
+        iot.emit("clear_error")
     end
 }
 
