@@ -73,8 +73,19 @@ function MqttClient:open()
     log.info("connect", self.options.host, self.options.port, self.options.clientid, self.options.username,
         self.options.password)
 
+    local adapter = socket.LWIP_GP -- 默认4G
+    if self.options.adapter == "4G" then
+        adapter = socket.LWIP_GP -- 移动网络
+    elseif self.options.adapter == "WIFI" then
+        adapter = socket.LWIP_STA -- Wifi连接
+    elseif self.options.adapter == "ETH" then
+        adapter = socket.LWIP_ETH -- 内置以太网
+    elseif self.options.adapter == "ETH0" then
+        adapter = socket.ETH0 -- 外置以太网
+    end
+
     -- 创建客户端
-    self.client = mqtt.create(nil, self.options.host, self.options.port, self.options.ssl)
+    self.client = mqtt.create(adapter, self.options.host, self.options.port, self.options.ssl)
     if self.client == nil then
         log.error("create client failed")
         return false, "创建MQTT失败"
@@ -98,7 +109,7 @@ function MqttClient:open()
 
     -- 注册回调
     self.client:on(function(client, event, topic, payload)
-        log.info("event", event, client, topic, payload)
+        -- log.info("event", event, client, topic, payload) 日志太多了
 
         if event == "recv" then
             table.insert(self.sub_queue, {
