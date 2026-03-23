@@ -1,24 +1,24 @@
---- 连接三通，可以桥接两个串口，从中截取数据
--- @module tees
-local tees = {}
+--- 二主一从，可以桥接两个串口，从中截取数据
+-- @module splitters
+local splitters = {}
 
-local log = iot.logger("tees")
+local log = iot.logger("splitter")
 local boot = require("boot")
 local settings = require("settings")
 local protocols = require("protocols")
 
-local _tees = {}
+local _splitters = {}
 
-local Tee = require("utils").class(require("event"))
+local Splitter = require("utils").class(require("event"))
 
 -- 初始化
-function Tee:init()
+function Splitter:init()
     self.buffer = ""
     self.running = false
 end
 
 -- 打开，
-function Tee:open()
+function Splitter:open()
     self.sub1 = self.master:on("data", function(data)
         if self.running then
             if #self.buffer < 1024 then
@@ -41,7 +41,7 @@ function Tee:open()
 end
 
 --- 关闭
-function Tee:close()
+function Splitter:close()
     if self.sub1 then
         self.sub1()
         self.sub1 = nil
@@ -54,7 +54,7 @@ function Tee:close()
 end
 
 -- 发送数据，到从设备
-function Tee:write(data)
+function Splitter:write(data)
     self.running = true
     self.slave:write(data)
 
@@ -76,7 +76,7 @@ function Tee:write(data)
 end
 
 --- 创建镜像
-function tees.create(t)
+function splitters.create(t)
     log.info("create", iot.json_encode(t))
 
     local master = links[t.master]
@@ -90,24 +90,24 @@ function tees.create(t)
     end
 
     -- 初始化实例
-    local tee = Tee:new({
+    local splitter = Splitter:new({
         id = t.id,
         master = master,
         slave = slave,
         timeout = t.timeout
     })
-    table.insert(_tees, tee)
+    table.insert(_splitters, splitter)
 
     -- 注册到全局
-    links[t.id or "tee"] = tee
+    links[t.id or "splitter"] = splitter
 
     -- 直接打开了
-    tee:open()
+    splitter:open()
 
     -- 打开协议
-    if tee.protocol and #tee.protocol > 0 then
+    if splitter.protocol and #splitter.protocol > 0 then
         -- 创建协议
-        local ret, instanse = protocols.create(tee, tee.protocol, tee.protocol_options or {})
+        local ret, instanse = protocols.create(splitter, splitter.protocol, splitter.protocol_options or {})
         if not ret then
             return false, instanse
         end
@@ -119,17 +119,17 @@ function tees.create(t)
         end
 
         -- 协议的实例，比如Modbus主站
-        tee.protocol_instance = instanse
+        splitter.protocol_instance = instanse
     end
 
-    return true, tee
+    return true, splitter
 end
 
 --- 加载镜像
-function tees.open()
-    local ts = settings.tees or {}
+function splitters.open()
+    local ts = settings.splitters or {}
     for i, t in ipairs(ts) do
-        local ret, info = tees.create(t)
+        local ret, info = splitters.create(t)
         if not ret then
             log.error("连接三通", t.master, t.slave, " 出错:", info)
         end
@@ -138,15 +138,15 @@ function tees.open()
 end
 
 --- 关闭镜像
-function tees.close()
-    for i, s in ipairs(_tees) do
+function splitters.close()
+    for i, s in ipairs(_splitters) do
         s:close()
     end
-    _tees = {}
+    _splitters = {}
 end
 
-tees.deps = {"links", "settings"}
+splitters.deps = {"links", "settings"}
 
-settings.register("tees", {})
+settings.register("splitters", {})
 
-boot.register("tee", tees)
+boot.register("splitter", splitters)
