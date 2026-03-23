@@ -440,7 +440,7 @@ function iot.request(url, opts)
     local method = opts.method or "GET"
     local headers = opts.headers or {}
     local body = opts.body
-    return http.request(method, url, headers, body).wait()
+    return http.request(method, url, headers, body, opts).wait()
 end
 --- HTTP下载
 -- @param url string URL
@@ -451,20 +451,21 @@ end
 -- @return string body
 function iot.download(url, dst, opts)
     opts = opts or {}
-    local method = opts.method or "GET"
-    local headers = opts.headers or {}
-    local body = opts.body
-    local options = {
-        dst = dst -- 下载文件
-    }
-    return http.request(method, url, headers, body, options).wait()
+    opts.dst = dst
+    return iot.request(url, opts)
 end
 
 --- 升级文件
 function iot.upgrade(url)
     iot.start(function()
         os.remove("/update.bin")
-        iot.download(url, "/update.bin")
+        iot.request(url, {
+            fota = true
+        })
+        -- iot.download(url, "/update.bin", {
+        --     fota = true
+        -- })
+        log.info("upgrade", "下载完成")
         iot.reboot()
     end)
 end
