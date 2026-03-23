@@ -2,7 +2,7 @@
 -- @module bindings
 local bindings = {}
 
-local log = iot.logger("mirror")
+local log = iot.logger("bindings")
 
 local boot = require("boot")
 

@@ -442,6 +442,7 @@ function iot.request(url, opts)
     local body = opts.body
     return http.request(method, url, headers, body, opts).wait()
 end
+
 --- HTTP下载
 -- @param url string URL
 -- @param dst string 目标路径
