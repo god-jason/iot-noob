@@ -1,4 +1,4 @@
-local device_bridge = {}
+local bindings = {}
 
 local log = iot.logger("mirror")
 
@@ -10,20 +10,20 @@ local master = require("master")
 local _bridges = {}
 
 --- 设备镜像
--- @module DeviceBridge
-local DeviceBridge = {}
-DeviceBridge.__index = DeviceBridge
+-- @module Binding
+local Binding = {}
+Binding.__index = Binding
 
-function DeviceBridge:new(dev1, dev2)
+function Binding:new(dev1, dev2)
     local obj = setmetatable({
         dev1 = dev1,
         dev2 = dev2
-    }, DeviceBridge)
+    }, Binding)
     obj:init()
     return obj
 end
 
-function DeviceBridge:init()
+function Binding:init()
 
     -- 订阅设备1的变化
     self.sub1 = self.dev1:on("change", function(values)
@@ -59,7 +59,7 @@ function DeviceBridge:init()
 end
 
 --- 关闭
-function DeviceBridge:close()
+function Binding:close()
     if self.sub1 then
         self.sub1()
         self.sub1 = nil
@@ -81,7 +81,7 @@ end
 
 
 --- 创建镜像
-function device_bridge.create(mirror)
+function bindings.create(mirror)
     log.info("create", iot.json_encode(mirror))
 
     local dev1 = find_device(mirror.device1)
@@ -94,17 +94,17 @@ function device_bridge.create(mirror)
         return false, "找不到第二个设备"
     end
 
-    local s = DeviceBridge:new(dev1, dev2)
+    local s = Binding:new(dev1, dev2)
     table.insert(_bridges, s)
 
     return true, s
 end
 
 --- 加载镜像
-function device_bridge.open()
-    local ss = settings.device_bridge or {}
+function bindings.open()
+    local ss = settings.bindings or {}
     for i, s in ipairs(ss) do
-        local ret, info = device_bridge.create(s)
+        local ret, info = bindings.create(s)
         if not ret then
             log.error("mirror:", s.device1, s.device2, " open error:", info)
         end
@@ -113,15 +113,15 @@ function device_bridge.open()
 end
 
 --- 关闭镜像
-function device_bridge.close()
+function bindings.close()
     for i, s in ipairs(_bridges) do
         s:close()
     end
     _bridges = {}
 end
 
-device_bridge.deps = {"links", "master", "settings"}
+bindings.deps = {"links", "settings"}
 
-settings.register("device_bridge", {})
+settings.register("bindings", {})
 
-boot.register("device_bridge", device_bridge)
+boot.register("bindings", bindings)

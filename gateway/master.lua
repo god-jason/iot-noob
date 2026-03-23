@@ -74,6 +74,10 @@ end
 --- 打开网关
 function master.open()
 
+    -- 注册到全局
+    device.id = settings.master.id or mobile.imei()
+    devices[device.id] = device
+
     -- 组件绑定 组件变量=>网关变量
     -- bindings = {
     --    state = forward_state,
