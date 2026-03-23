@@ -5,6 +5,7 @@ local tees = {}
 local log = iot.logger("tees")
 local boot = require("boot")
 local settings = require("settings")
+local protocols = require("protocols")
 
 local _tees = {}
 
@@ -102,6 +103,24 @@ function tees.create(t)
 
     -- 直接打开了
     tee:open()
+
+    -- 打开协议
+    if tee.protocol and #tee.protocol > 0 then
+        -- 创建协议
+        local ret, instanse = protocols.create(tee, tee.protocol, tee.protocol_options or {})
+        if not ret then
+            return false, instanse
+        end
+
+        -- 打开协议
+        local ret, info = iot.xcall(instanse.open, instanse)
+        if not ret then
+            return false, info
+        end
+
+        -- 协议的实例，比如Modbus主站
+        tee.protocol_instance = instanse
+    end
 
     return true, tee
 end
