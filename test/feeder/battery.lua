@@ -75,7 +75,7 @@ local percent = 70
 local function calc_battery()
     local battery_full = settings.device.battery_full or 28.5
     local battery_low = settings.device.battery_low or 23
-    log.info("battery_full: ", battery_full, "battery_low: ", battery_low)
+    --log.info("battery_full: ", battery_full, "battery_low: ", battery_low)
 
     local vbat = battery.voltage()
     local p = math.floor((vbat - battery_low) / (battery_full - battery_low) * 100)
@@ -85,7 +85,7 @@ local function calc_battery()
         p = 0
     end
 
-    log.info("calc: ", vbat, p, "%")
+    --log.info("calc: ", vbat, p, "%")
 
     return p
 end
