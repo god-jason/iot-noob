@@ -73,10 +73,10 @@ function MqttClient:open()
     log.info("connect", self.options.host, self.options.port, self.options.clientid, self.options.username,
         self.options.password)
 
-    local adapter = socket.LWIP_GP -- 默认4G
-    if self.options.adapter == "4G" then
+    local adapter = nil
+    if self.options.adapter == "4G" or self.options.adapter == "GPRS" then
         adapter = socket.LWIP_GP -- 移动网络
-    elseif self.options.adapter == "WIFI" then
+    elseif self.options.adapter == "WIFI" or self.options.adapter == "WiFi" then
         adapter = socket.LWIP_STA -- Wifi连接
     elseif self.options.adapter == "ETH" then
         adapter = socket.LWIP_ETH -- 内置以太网

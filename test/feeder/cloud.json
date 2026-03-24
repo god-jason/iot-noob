@@ -9,6 +9,7 @@
         "interval": 60,
         "log": true,
         "error": true,
-        "report": true
+        "report": true,
+        "sync_settings": true
     }
 ]
