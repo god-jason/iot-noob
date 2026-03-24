@@ -130,8 +130,7 @@ function master.open()
     iot.setInterval(master.update_status, (settings.master.interval or 1) * 60 * 1000)
 end
 
-master.deps = {"settings", "components"}
-boot.register("master", master)
+boot.register("master", master, "settings", "components")
 
 settings.register("master", {
     interval = 1

@@ -60,9 +60,7 @@ function components.open()
     return true
 end
 
-components.deps = {"settings"}
-
-boot.register("components", components)
+boot.register("components", components, "settings")
 
 settings.register("components", {})
 

@@ -171,9 +171,7 @@ function battery.open()
     iot.start(battery_task)
 end
 
-battery.deps = {"components", "settings"}
-
 -- 注册
-boot.register("battery", battery)
+boot.register("battery", battery, "components", "settings")
 
 return battery

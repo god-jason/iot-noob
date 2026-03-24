@@ -20,7 +20,7 @@ function boot.register(name, mod, ...)
     modules[name] = {
         open = mod.open,
         close = mod.close,
-        deps = mod.deps or {...},
+        depends = {...},
         opened = false,
         visiting = false
     }
@@ -46,7 +46,7 @@ function boot.open(name)
     mod.visiting = true
 
     -- 启动依赖项
-    for i, v in ipairs(mod.deps) do
+    for i, v in ipairs(mod.depends) do
         if modules[v] then
             local ret, info = boot.open(v)
             if ret == false then

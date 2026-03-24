@@ -1596,9 +1596,7 @@ for i, v in ipairs(names) do
     settings.register(v)
 end
 
-feeder.deps = {"components", "settings", "robot"}
-
 -- 注册
-boot.register("feeder", feeder)
+boot.register("feeder", feeder, "components", "settings", "robot")
 
 return feeder

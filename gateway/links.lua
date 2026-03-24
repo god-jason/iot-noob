@@ -9,6 +9,7 @@ _G.links = _links
 local log = iot.logger("links")
 
 local protocols = require("protocols")
+local boot = require("boot")
 
 --- 创建链接
 function links.create(clazz, opts)
@@ -58,5 +59,12 @@ end
 function links.get(id)
     return _links[id]
 end
+
+function links.open()
+    return true
+end
+
+-- 做统一依赖
+boot.register("links", links, "serials", "splitters", "sockets")
 
 return links

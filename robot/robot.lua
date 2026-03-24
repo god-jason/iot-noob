@@ -137,9 +137,8 @@ function robot.close()
     return true
 end
 
-robot.deps = {"components", "settings"}
 
 -- 注册
-boot.register("robot", robot)
+boot.register("robot", robot, "components", "settings")
 
 return robot

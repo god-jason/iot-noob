@@ -163,13 +163,11 @@ function tjc.set_page(name)
     uart.write(options.uart_id, str .. "\xff\xff\xff")
 end
 
-tjc.deps = {"settings"}
-
 settings.register("taojingchi", {
     uart_id = 1,
     baud_rate = 115200
 })
 
-boot.register("taojingchi", tjc)
+boot.register("taojingchi", tjc, "settings")
 
 return tjc

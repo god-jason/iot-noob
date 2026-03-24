@@ -70,13 +70,12 @@ function logger.close()
     running = false
 end
 
-logger.deps = {"settings"}
 
 settings.register("logger", {
     url = "https://iot.busycloud.cn/api/log",
     level = 3
 })
 
-boot.register("logger", logger)
+boot.register("logger", logger, "settings")
 
 return logger

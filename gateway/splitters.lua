@@ -110,8 +110,6 @@ function splitters.close()
     _splitters = {}
 end
 
-splitters.deps = {"serials", "settings"}
-
 settings.register("splitters", {})
 
-boot.register("splitters", splitters)
+boot.register("splitters", splitters, "serials", "sockets")

@@ -7,6 +7,7 @@ local log = iot.logger("serial")
 -- 注册连接类型
 local links = require("links")
 local settings = require("settings")
+local boot = require("boot")
 
 local _serials = {}
 

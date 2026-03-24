@@ -103,9 +103,7 @@ function program.open()
     return true
 end
 
-program.deps = {"settings"}
-
 -- 注册启动
-boot.register("program", program)
+boot.register("program", program, "settings")
 
 return program

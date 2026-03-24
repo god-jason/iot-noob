@@ -251,17 +251,19 @@ function Cloud:register()
         imei = mobile.imei(),
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
-        links = {} -- 上报连接，方便后台管理
     }
 
     -- 查找所有已经打开的连接
-    for k, v in pairs(links) do
-        table.insert(info.links, {
-            id = k,
-            name = v.name,
-            type = v.type
-        })
-    end
+    if links then
+        info.links = {} -- 上报连接，方便后台管理
+        for k, v in pairs(links) do
+            table.insert(info.links, {
+                id = k,
+                name = v.name,
+                type = v.type
+            })
+        end    
+    end    
 
     -- 同步配置
     if self.sync_settings then
@@ -273,7 +275,8 @@ function Cloud:register()
     if self.sync_databases then
         info.databases = {
             model = sync_table("model"),
-            device = sync_table("device")
+            device = sync_table("device"),
+            scene = sync_table("scene")
         }
     end
 
@@ -475,8 +478,7 @@ function cloud.close()
     end
 end
 
-cloud.deps = {"settings"}
-boot.register("cloud", cloud)
+boot.register("cloud", cloud, "settings")
 
 settings.register("cloud", {{
     enable = true,

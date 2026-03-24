@@ -50,8 +50,6 @@ function scenes.close()
     _scenes = {}
 end
 
-scenes.deps = {"devices", "master"}
-
-boot.register("scenes", scenes)
+boot.register("scenes", scenes, "links", "master")
 
 return scenes

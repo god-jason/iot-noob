@@ -89,9 +89,7 @@ function schedule.close()
     return true
 end
 
-schedule.deps = {"components", "settings"}
-
 -- 注册
-boot.register("schedule", schedule)
+boot.register("schedule", schedule, "components", "settings")
 
 return schedule

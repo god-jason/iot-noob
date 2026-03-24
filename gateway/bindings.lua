@@ -122,8 +122,6 @@ function bindings.close()
     _bridges = {}
 end
 
-bindings.deps = {"links", "settings"}
-
 settings.register("bindings", {})
 
-boot.register("bindings", bindings)
+boot.register("bindings", bindings, "links", "settings")
