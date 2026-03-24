@@ -13,6 +13,7 @@ function Scene:new(opts)
         name = opts.name or "-",
         delay = opts.delay or 0, -- 延迟时间s，避免突发变化
         ranges = opts.ranges or {}, -- 时间范围
+        weekdays = opts.weekdays or {}, -- 限定星期
         triggers = opts.triggers or {}, -- 触发器
         conditions = opts.conditions or {}, -- 条件
         actions = opts.actions or {}, -- 响应
@@ -77,24 +78,8 @@ function Scene:open()
         if trigger.type == "time" then
             -- 每日启动
             local ret, info = cron.clock(trigger.time, function()
-
-                local tm = os.date("*t")
-                if trigger.weekdays and #trigger.weekdays > 0 then
-                    local has = false
-                    for _, v in ipairs(trigger.weekdays) do
-                        if v == tm.wday then
-                            has = true
-                            break
-                        end
-                    end
-                    -- 星期不匹配
-                    if not has then
-                        return
-                    end
-                end
-
                 self:execute()
-            end)
+            end, trigger.weekdays)
 
             if not ret then
                 log.error(info)
@@ -138,9 +123,25 @@ end
 
 --- 场景检查（内部用）
 function Scene:check()
+    local tm = os.date("*t")
+
+    -- 检查星期范围
+    if self.weekdays and #self.weekdays > 0 then
+        local has = false
+        for _, v in ipairs(self.weekdays) do
+            if v == tm.wday then
+                has = true
+                break
+            end
+        end
+        -- 星期不匹配
+        if not has then
+            return false
+        end
+    end
+
     -- 检查时间范围
     if self.ranges and #self.ranges > 0 then
-        local tm = os.date("*t")
         local hm = tm.hour * 60 + tm.min
         local ok = false
         for _, range in ipairs(self.ranges) do
@@ -222,7 +223,7 @@ end
 
 --- 场景执行（先检查条件，满足则执行响应）
 function Scene:execute()
-    
+
     -- 延迟处理，同时避免了快速重入
     if self.delay and self.delay > 0 then
         if self._timer then

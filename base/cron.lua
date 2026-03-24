@@ -324,9 +324,10 @@ end
 --- 创建时钟格式的计划任务
 -- @param time 时间字符串: 06:00 或 06:00:00
 -- @param callback function
+-- @param wdays array 1-7 星期
 -- @return boolean 成功与否
 -- @return integer|string 任务ID或错误信息
-function cron.clock(time, callback)
+function cron.clock(time, callback, wdays)
     local h, m, s = time:match("^(%d+):(%d+):?(%d*)$")
 
     if not h or not m then
@@ -343,7 +344,12 @@ function cron.clock(time, callback)
     end
 
     -- local crontab = string.format("%d %d %d * * *", s, m, h)
-    local crontab = s .. " " .. m .. " " .. h .. " * * *"
+    local crontab = s .. " " .. m .. " " .. h .. " * * "
+    if wdays and #wdays > 0 then
+        crontab = crontab .. table.concat(wdays, ",")
+    else
+        crontab = crontab .. "*"
+    end
 
     return cron.start(crontab, callback)
 end

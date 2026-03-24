@@ -270,28 +270,36 @@ function Cloud:register()
             info.models[id] = data.version or 0
         end
 
-        -- 设备
+        -- 设备关联的物模型
         info.devices = {}
         tab = database.load("device")
         for id, data in pairs(tab) do
-            info.devices[id] = {
-                updated = data.updated,
-                created = data.created
-            }
             if data.product_id and not info.models[data.product_id] then
                 info.models[data.product_id] = 0 -- 同步物模型
             end
         end
 
-        -- 场景
-        info.scenes = {}
-        tab = database.load("scene")
-        for id, data in pairs(tab) do
-            info.devices[id] = {
-                updated = data.updated,
-                created = data.created
-            }
+        local function syncTable(name)
+            local sync = {}
+            tab = database.load("name")
+            for id, data in pairs(tab) do
+                sync[id] = {
+                    updated = data.updated,
+                    created = data.created
+                }
+            end
+            return sync
         end
+
+        -- 同步数据库
+        info.databases = {
+            serial = syncTable("serial"),
+            device = syncTable("device"),
+            scene = syncTable("scene"),
+            binding = syncTable("binding")
+            -- socket = syncTable("socket"),
+        }
+
     end
 
     self.client:publish("device/" .. self.id .. "/register", info)

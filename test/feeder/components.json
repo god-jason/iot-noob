@@ -135,6 +135,7 @@
     {
         "type": "lbs",
         "name": "lbs",
+        "interval": 10,
         "bindings": {
             "longitude": "longitude",
             "latitude": "latitude"
