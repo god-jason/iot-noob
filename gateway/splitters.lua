@@ -14,29 +14,41 @@ local Splitter = require("utils").class(require("event"))
 
 -- 初始化
 function Splitter:init()
+    self.name = self.name or "三通" .. self.port
+    self.type = "三通"
     self.buffer = ""
     self.running = false
 end
 
 -- 打开，
 function Splitter:open()
-    self.sub1 = self.master:on("data", function(data)
+    self._master = links[self.master]
+    if not self._master then
+        return false, "主连接未打开"
+    end
+
+    self._slave = links[self.slave]
+    if not self._slave then
+        return false, "从连接未打开"
+    end
+
+    self.sub1 = self._master:on("data", function(data)
         if self.running then
             if #self.buffer < 1024 then
                 self.buffer = self.buffer .. data
+            else
+                log.error("主连接数据太多，丢弃", data:toHex())
             end
-            return
+        else
+            self._slave:write(data)
         end
-
-        self.slave:write(data)
     end)
-    self.sub2 = self.slave:on("data", function(data)
+    self.sub2 = self._slave:on("data", function(data)
         if self.running then
             self:emit("data", data)
-            return
+        else
+            self._master:write(data)
         end
-
-        self.master:write(data)
     end)
     return true
 end
@@ -82,7 +94,7 @@ function splitters.open()
     for i, t in ipairs(ts) do
         local ret, info = splitters.create(t)
         if not ret then
-            log.error("连接分线器", t.master, t.slave, t.name, " 出错:", info)
+            log.error("连接三通", t.master, t.slave, t.name, " 出错:", info)
         else
             table.insert(_splitters, info)
         end

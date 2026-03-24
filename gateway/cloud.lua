@@ -242,6 +242,17 @@ end
 function Cloud:register()
     log.info("register")
 
+    -- 查找所有已经打开的连接
+    local _links = {}
+    for k, v in pairs(links) do
+        table.insert(_links, {
+            id = k,
+            name = v.name,
+            type = v.type
+        })
+    end
+
+    -- 上报注册信息
     local info = {
         id = self.id,
         product_id = self.product_id,
@@ -251,8 +262,11 @@ function Cloud:register()
         imsi = mobile.imsi(),
         iccid = mobile.iccid(),
 
-        -- TODO 配置同步改为独立
+        -- 配置文件版本号，上传服务器之后，自动同步
         settings = settings.versions,
+
+        -- 连接，方便后台管理
+        links = _links,
 
         -- TODO 数据库同步改为独立
         databases = {
@@ -469,7 +483,7 @@ settings.register("cloud", {{
     key = "noob",
     log = true,
     error = true,
-    report = true,
+    report = true
 }})
 
 return cloud

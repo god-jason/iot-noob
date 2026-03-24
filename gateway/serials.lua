@@ -2,7 +2,6 @@
 -- @module serials
 local serials = {}
 
-
 local log = iot.logger("serial")
 
 -- 注册连接类型
@@ -10,7 +9,6 @@ local links = require("links")
 local settings = require("settings")
 
 local _serials = {}
-
 
 --- 串口连接，继承Link
 -- @module serial
@@ -20,6 +18,8 @@ local Serial = require("utils").class(require("event"))
 -- @param opts table
 -- @return table
 function Serial:init()
+    self.name = self.name or "串口" .. self.port
+    self.type = "串口"
 end
 
 --- 打开
