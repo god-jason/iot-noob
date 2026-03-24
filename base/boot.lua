@@ -47,10 +47,14 @@ function boot.open(name)
 
     -- 启动依赖项
     for i, v in ipairs(mod.deps) do
-        local ret, info = boot.open(v)
-        if ret == false then
-            mod.visiting = false
-            return false, "启动" .. name .. "失败：" .. info
+        if modules[v] then
+            local ret, info = boot.open(v)
+            if ret == false then
+                mod.visiting = false
+                return false, "启动依赖的模块" .. v .. "失败：" .. info
+            end
+        else
+            log.warn(name .. "依赖的模块" .. v .. "未集成")
         end
     end
 
