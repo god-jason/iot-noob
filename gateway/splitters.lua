@@ -90,15 +90,16 @@ end
 
 --- 加载镜像
 function splitters.open()
-    local ts = settings.splitters or {}
-    for i, t in ipairs(ts) do
-        local ret, info = splitters.create(t)
-        if not ret then
-            log.error("连接三通", t.master, t.slave, t.name, " 出错:", info)
-        else
-            table.insert(_splitters, info)
-        end
+    if not settings.splitter.enable then
+        return true, "三通未启用"
     end
+
+    local ret, info = splitters.create(t)
+    if not ret then
+        return ret, info
+    end
+    
+    table.insert(_splitters, info)
     return true
 end
 
@@ -110,6 +111,6 @@ function splitters.close()
     _splitters = {}
 end
 
-settings.register("splitters", {})
+settings.register("splitter", {})
 
 boot.register("splitters", splitters, "serials", "sockets")

@@ -1,15 +1,14 @@
-[
-    {
-        "debug": false,
-        "product_id": "feeder",
-        "adapter": "4G",
-        "host": "iot.longyuanshuichan.cn",
-        "port": 1883,
-        "key": "longyuanshuichan",
-        "interval": 60,
-        "log": true,
-        "error": true,
-        "report": true,
-        "sync_settings": true
-    }
-]
+{
+    "enable": true,
+    "debug": false,
+    "product_id": "feeder",
+    "adapter": "4G",
+    "host": "iot.longyuanshuichan.cn",
+    "port": 1883,
+    "key": "longyuanshuichan",
+    "interval": 60,
+    "log": true,
+    "error": true,
+    "report": true,
+    "sync_settings": true
+}

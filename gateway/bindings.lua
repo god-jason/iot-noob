@@ -6,7 +6,7 @@ local log = iot.logger("bindings")
 
 local boot = require("boot")
 
-local settings = require("settings")
+local database = require("database")
 local master = require("master")
 
 local _bridges = {}
@@ -103,8 +103,8 @@ function bindings.create(mirror)
 end
 
 --- 加载镜像
-function bindings.open()
-    local ss = settings.bindings or {}
+function bindings.open()    
+    local ss = database.find("binding")
     for i, s in ipairs(ss) do
         local ret, info = bindings.create(s)
         if not ret then
@@ -122,6 +122,4 @@ function bindings.close()
     _bridges = {}
 end
 
-settings.register("bindings", {})
-
-boot.register("bindings", bindings, "links", "settings")
+boot.register("bindings", bindings, "links")

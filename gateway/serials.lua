@@ -6,8 +6,8 @@ local log = iot.logger("serial")
 
 -- 注册连接类型
 local links = require("links")
-local settings = require("settings")
 local boot = require("boot")
+local database = require("database")
 
 local _serials = {}
 
@@ -61,8 +61,8 @@ end
 
 --- 加载镜像
 function serials.open()
-    local ts = settings.serials or {}
-    for i, t in ipairs(ts) do
+    local ss = database.find("serial")
+    for i, t in ipairs(ss) do
         local ret, info = links.create(Serial, t)
         if not ret then
             log.error("连接串口", t.port, t.name, " 出错:", info)
@@ -80,8 +80,6 @@ function serials.close()
     end
     _serials = {}
 end
-
-settings.register("serials", {})
 
 boot.register("serials", serials)
 

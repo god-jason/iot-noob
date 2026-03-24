@@ -15,16 +15,6 @@ local master = require("master")
 
 local _clouds = {}
 
--- 查找设备
-local function find_device(data)
-    -- 未传值，则使用网关设备
-    if not data.device_id or #data.device_id == 0 or data.device_id == self.id then
-        data.device_id = self.id -- 赋值回传
-        return master.device
-    end
-    return devices[data.device_id]
-end
-
 -- 解析JSON
 local function parse_json(callback, self)
     return function(topic, payload)
@@ -50,6 +40,19 @@ function Cloud:init()
     self.clientid = self.clientid or self.id
     self.username = self.username or self.id
     self.password = self.password or crypto.md5(self.id .. self.key)
+
+    -- 启动任务
+    iot.start(Cloud.task, self)
+end
+
+-- 查找设备
+function Cloud:find_device(data)
+    -- 未传值，则使用网关设备
+    if not data.device_id or #data.device_id == 0 or data.device_id == self.id then
+        data.device_id = self.id -- 赋值回传
+        return master.device
+    end
+    return devices[data.device_id]
 end
 
 -- 上报设备数据
@@ -153,7 +156,7 @@ end
 
 -- 设备同步请求
 function Cloud:on_device_sync(topic, data)
-    local dev = find_device(data)
+    local dev = self:find_device(data)
     if dev then
         local ret, info = dev:poll()
         if not ret then
@@ -170,7 +173,7 @@ end
 
 -- 设备写请求
 function Cloud:on_device_write(topic, data)
-    local dev = find_device(data)
+    local dev = self:find_device(data)
     if dev then
         data.results = {}
         for k, v in pairs(data.values) do
@@ -190,7 +193,7 @@ end
 
 -- 设备读请求
 function Cloud:on_device_read(topic, data)
-    local dev = find_device(data)
+    local dev = self:find_device(data)
     if dev then
         data.values = {}
         for _, k in ipairs(data) do
@@ -210,7 +213,7 @@ end
 
 -- 处理设备操作
 function Cloud:on_action(topic, data)
-    local dev = find_device(data)
+    local dev = self:find_device(data)
     if dev then
         local ret, val = agent.execute(data.action, data.parameters)
         if ret then
@@ -410,10 +413,6 @@ function Cloud:task()
     end
 end
 
-function Cloud:open()
-    iot.start(Cloud.task, self)
-end
-
 function Cloud:close()
     self.client:close()
 end
@@ -485,10 +484,14 @@ iot.on("location", function(data)
 end)
 
 function cloud.open()
-    for i, v in pairs(settings.cloud) do
-        local c = Cloud:new(v)
-        c:open()
-        table.insert(_clouds, c)
+    local clouds = {settings.cloud, settings.cloud1, settings.cloud1}
+
+    -- 打开连接
+    for i, v in ipairs(clouds) do
+        if v.enable then
+            local c = Cloud:new(v)
+            table.insert(_clouds, c)        
+        end
     end
 end
 
@@ -500,7 +503,7 @@ end
 
 boot.register("cloud", cloud, "settings")
 
-settings.register("cloud", {{
+settings.register("cloud", {
     enable = true,
     host = "iot.busycloud.cn",
     port = 1883,
@@ -510,6 +513,8 @@ settings.register("cloud", {{
     report = true,
     sync_settings = true,
     sync_databases = true
-}})
+})
+
+settings.register("cloud1", "cloud2")
 
 return cloud
