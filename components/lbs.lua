@@ -8,7 +8,11 @@ local log = iot.logger("LBS")
 
 function LBS:init()
     self.latitude, self.longitude = 0, 0
-    -- 定时定位
+
+    -- 定时定位    
+    iot.setTimeout(iot.start, 5000, function()
+        self:locate()
+    end)
 end
 
 function LBS:locate()
@@ -20,6 +24,10 @@ function LBS:locate()
         })
         if ret then
             self.latitude, self.longitude = data.lat, data.lng
+            self:emit("change", {
+                latitude = self.latitude,
+                longitude = self.longitude
+            })
             return true, self.latitude, self.longitude
         end
     end
@@ -30,6 +38,11 @@ function LBS:locate()
         return false, "LBS服务器调用失败"
     end
     self.latitude, self.longitude = lat, lng
+    self:emit("change", {
+        latitude = self.latitude,
+        longitude = self.longitude
+    })
+
     return true, self.latitude, self.longitude
 end
 
