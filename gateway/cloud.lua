@@ -476,6 +476,7 @@ end)
 
 -- 监听定位，并上传
 iot.on("location", function(data)
+    data = iot.json_encode(data, "12f") -- 默认精度只有2位，太低了
     for i, c in ipairs(_clouds) do
         if c.location then
             c:publish("device/" .. c.id .. "/location", data)
@@ -490,7 +491,7 @@ function cloud.open()
     for i, v in ipairs(clouds) do
         if v.enable then
             local c = Cloud:new(v)
-            table.insert(_clouds, c)        
+            table.insert(_clouds, c)
         end
     end
 end
@@ -511,6 +512,7 @@ settings.register("cloud", {
     log = true,
     error = true,
     report = true,
+    location = true,
     sync_settings = true,
     sync_databases = true
 })

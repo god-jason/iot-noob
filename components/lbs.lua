@@ -9,10 +9,13 @@ local log = iot.logger("LBS")
 function LBS:init()
     self.latitude, self.longitude = 0, 0
 
-    -- 定时定位    
-    iot.setTimeout(iot.start, 5000, function()
-        self:locate()
-    end)
+    -- 开机定位    
+    iot.setTimeout(iot.start, 5000, LBS.locate, self)
+
+    -- 周期定位
+    if self.interval and self.interval > 0 then
+        iot.setInterval(iot.start, self.interval * 60000, LBS.locate, self)
+    end
 end
 
 function LBS:locate()
@@ -51,7 +54,7 @@ function LBS:locate()
             longitude = self.longitude
         })
 
-        self:emit("location", {
+        iot.emit("location", {
             latitude = self.latitude,
             longitude = self.longitude
         })

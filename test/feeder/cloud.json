@@ -10,5 +10,6 @@
     "log": true,
     "error": true,
     "report": true,
+    "location": true,
     "sync_settings": true
 }
