@@ -177,7 +177,7 @@ function Cjt188Device:open()
 
     -- 变化阈值
     if self.model then
-        for _, prop in ipairs(self.model.properties or {}) do
+        for _, prop in ipairs(self.model.content or {}) do
             for _, pt in ipairs(prop.points) do
                 if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
                     self:set_threshold(pt.name, pt.threshold)
@@ -213,7 +213,7 @@ function Cjt188Device:set(key, value)
     }
 
     -- 找到点位，写入数据
-    for _, pt in ipairs(self.model.properties) do
+    for _, pt in ipairs(self.model.content) do
         if pt.writable then
             for _, point in ipairs(pt.points) do
                 if point.name == key then
@@ -256,14 +256,14 @@ function Cjt188Device:poll()
         log.error("poll", self.id, "没有物模型")
         return false, "没有物模型"
     end
-    if not self.model.properties then
+    if not self.model.content then
         log.error("poll", self.id, "没有属性表")
         return false, "没有属性表"
     end
 
     local values = {}
 
-    for _, pt in pairs(self.model.properties) do
+    for _, pt in pairs(self.model.content) do
         if not pt.writable then
 
             log.info("poll", pt.name, pt.type, pt.code, pt.di)

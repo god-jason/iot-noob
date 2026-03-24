@@ -224,20 +224,6 @@ function Cloud:on_action(topic, data)
     self.client:publish("device/" .. data.device_id .. "/action/response", data)
 end
 
--- 同步表数据
-local function sync_table(col)
-    local results = {}
-    local tab = database.load(col)
-    for id, data in pairs(tab) do
-        results[id] = {
-            updated = data.updated,
-            created = data.created,
-            product_id = data.product_id
-        }
-    end
-    return results
-end
-
 -- 注册设备信息
 function Cloud:register()
     log.info("register")
@@ -250,7 +236,7 @@ function Cloud:register()
         version = VERSION,
         imei = mobile.imei(),
         imsi = mobile.imsi(),
-        iccid = mobile.iccid(),
+        iccid = mobile.iccid()
     }
 
     -- 查找所有已经打开的连接
@@ -262,8 +248,8 @@ function Cloud:register()
                 name = v.name,
                 type = v.type
             })
-        end    
-    end    
+        end
+    end
 
     -- 同步配置
     if self.sync_settings then
@@ -273,11 +259,36 @@ function Cloud:register()
 
     -- 同步数据库
     if self.sync_databases then
-        info.databases = {
-            model = sync_table("model"),
-            device = sync_table("device"),
-            scene = sync_table("scene")
-        }
+
+        -- 物模型
+        info.models = {}
+        local tab = database.load("model")
+        for id, data in pairs(tab) do
+            info.models[id] = data.version or 0
+        end
+
+        -- 设备
+        info.devices = {}
+        tab = database.load("device")
+        for id, data in pairs(tab) do
+            info.devices[id] = {
+                updated = data.updated,
+                created = data.created
+            }
+            if data.product_id and not info.models[data.product_id] then
+                info.models[data.product_id] = 0 -- 同步物模型
+            end
+        end
+
+        -- 场景
+        info.scenes = {}
+        tab = database.load("scene")
+        for id, data in pairs(tab) do
+            info.devices[id] = {
+                updated = data.updated,
+                created = data.created
+            }
+        end
     end
 
     self.client:publish("device/" .. self.id .. "/register", info)
@@ -464,6 +475,15 @@ iot.on("clear_error", function()
     end
 end)
 
+-- 监听定位，并上传
+iot.on("location", function(data)
+    for i, c in ipairs(_clouds) do
+        if c.location then
+            c:publish("device/" .. c.id .. "/location", data)
+        end
+    end
+end)
+
 function cloud.open()
     for i, v in pairs(settings.cloud) do
         local c = Cloud:new(v)
@@ -489,7 +509,7 @@ settings.register("cloud", {{
     error = true,
     report = true,
     sync_settings = true,
-    sync_databases = true,
+    sync_databases = true
 }})
 
 return cloud

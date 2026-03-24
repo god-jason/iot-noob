@@ -20,9 +20,10 @@ function ModbusMasterDevice:open()
 
     -- TODO 优化
     self.model = model.get(self.product_id)
+    
     -- 变化阈值
     if self.model then
-        for _, prop in ipairs(self.model.properties or {}) do
+        for _, prop in ipairs(self.model.content or {}) do
             for _, pt in ipairs(prop.points) do
                 if pt.threshold and pt.threshold > 0 and pt.name and #pt.name > 0 then
                     self:set_threshold(pt.name, pt.threshold)

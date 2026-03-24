@@ -119,7 +119,7 @@ function ModbusMapper:load()
     log.info("load 2")
 
     -- 分类
-    for _, prop in ipairs(mod.properties or {}) do
+    for _, prop in ipairs(mod.content or {}) do
         for _, pt in ipairs(prop.points) do
             if pt.register == 1 then
                 table.insert(self.coils, pt)

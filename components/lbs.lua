@@ -16,7 +16,9 @@ function LBS:init()
 end
 
 function LBS:locate()
-    -- 如果配置了项目ID和KEY，就使用付费的airlbs
+    local located = false
+
+    -- 如果配置了项目ID和KEY，优先使用付费的airlbs
     if self.project_id then
         local ret, data = require("airlbs").request({
             project_id = self.project_id,
@@ -24,24 +26,36 @@ function LBS:locate()
         })
         if ret then
             self.latitude, self.longitude = data.lat, data.lng
-            self:emit("change", {
-                latitude = self.latitude,
-                longitude = self.longitude
-            })
-            return true, self.latitude, self.longitude
+
+            located = true
+        else
+            log.info("airlbs定位失败")
         end
     end
 
-    -- 默认使用免费的
-    local lat, lng, tm = require("lbsLoc2").request()
-    if lat == nil then
-        return false, "LBS服务器调用失败"
+    -- 其实使用免费的LBS
+    if not located then
+        local lat, lng, tm = require("lbsLoc2").request()
+        if lat ~= nil then
+            self.latitude, self.longitude = tonumber(lat), tonumber(lng)
+            located = true
+        else
+            log.info("lbs定位失败")
+        end
     end
-    self.latitude, self.longitude = lat, lng
-    self:emit("change", {
-        latitude = self.latitude,
-        longitude = self.longitude
-    })
+
+    -- 如果定位成功，但发布消息
+    if located then
+        self:emit("change", {
+            latitude = self.latitude,
+            longitude = self.longitude
+        })
+
+        self:emit("location", {
+            latitude = self.latitude,
+            longitude = self.longitude
+        })
+    end
 
     return true, self.latitude, self.longitude
 end
