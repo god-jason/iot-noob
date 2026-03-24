@@ -1,5 +1,5 @@
 --- 连接类定义
--- 所有连接必须继承Link，并实现标准接口
+-- 所有连接必须继承参考Link，并实现标准接口，以及data消息
 -- @module link
 local Link = require("utils").class(require("event"))
 

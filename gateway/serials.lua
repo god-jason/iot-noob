@@ -1,12 +1,20 @@
---- 串口连接，继承Link
--- @module serial
-local Serial = require("utils").class(require("event"))
+--- 串口管理
+-- @module serials
+local serials = {}
+
 
 local log = iot.logger("serial")
 
 -- 注册连接类型
 local links = require("links")
-links.register("serial", Serial)
+local settings = require("settings")
+
+local _serials = {}
+
+
+--- 串口连接，继承Link
+-- @module serial
+local Serial = require("utils").class(require("event"))
 
 ---创建串口实例
 -- @param opts table
@@ -50,4 +58,30 @@ function Serial:close()
     self:emit("close")
 end
 
-return Serial
+--- 加载镜像
+function serials.open()
+    local ts = settings.serials or {}
+    for i, t in ipairs(ts) do
+        local ret, info = links.create(Serial, t)
+        if not ret then
+            log.error("连接串口", t.port, t.name, " 出错:", info)
+        else
+            table.insert(_serials, info)
+        end
+    end
+    return true
+end
+
+--- 关闭镜像
+function serials.close()
+    for i, s in ipairs(_serials) do
+        s:close()
+    end
+    _serials = {}
+end
+
+settings.register("serials", {})
+
+boot.register("serials", serials)
+
+return serials

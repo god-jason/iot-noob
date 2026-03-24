@@ -5,10 +5,11 @@ local splitters = {}
 local log = iot.logger("splitter")
 local boot = require("boot")
 local settings = require("settings")
-local protocols = require("protocols")
 
 local _splitters = {}
 
+--- 三通连接，继承Link
+-- @module Splitter
 local Splitter = require("utils").class(require("event"))
 
 -- 初始化
@@ -75,63 +76,15 @@ function Splitter:write(data)
     return true
 end
 
---- 创建镜像
-function splitters.create(t)
-    log.info("create", iot.json_encode(t))
-
-    local master = links[t.master]
-    if not master then
-        return false, "找不到主连接"
-    end
-
-    local slave = links[t.slave]
-    if not slave then
-        return false, "找不到从连接"
-    end
-
-    -- 初始化实例
-    local splitter = Splitter:new({
-        id = t.id,
-        master = master,
-        slave = slave,
-        timeout = t.timeout
-    })
-    table.insert(_splitters, splitter)
-
-    -- 注册到全局
-    links[t.id or "splitter"] = splitter
-
-    -- 直接打开了
-    splitter:open()
-
-    -- 打开协议
-    if splitter.protocol and #splitter.protocol > 0 then
-        -- 创建协议
-        local ret, instanse = protocols.create(splitter, splitter.protocol, splitter.protocol_options or {})
-        if not ret then
-            return false, instanse
-        end
-
-        -- 打开协议
-        local ret, info = iot.xcall(instanse.open, instanse)
-        if not ret then
-            return false, info
-        end
-
-        -- 协议的实例，比如Modbus主站
-        splitter.protocol_instance = instanse
-    end
-
-    return true, splitter
-end
-
 --- 加载镜像
 function splitters.open()
     local ts = settings.splitters or {}
     for i, t in ipairs(ts) do
         local ret, info = splitters.create(t)
         if not ret then
-            log.error("连接分线器", t.master, t.slave, " 出错:", info)
+            log.error("连接分线器", t.master, t.slave, t.name, " 出错:", info)
+        else
+            table.insert(_splitters, info)
         end
     end
     return true
@@ -145,7 +98,7 @@ function splitters.close()
     _splitters = {}
 end
 
-splitters.deps = {"links", "settings"}
+splitters.deps = {"serials", "settings"}
 
 settings.register("splitters", {})
 

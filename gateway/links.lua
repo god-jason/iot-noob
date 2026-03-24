@@ -8,25 +8,11 @@ _G.links = _links
 
 local log = iot.logger("links")
 
-local settings = require("settings")
-local boot = require("boot")
 local protocols = require("protocols")
 
-local types = {}
-
---- 注册链接
-function links.register(name, clazz)
-    types[name] = clazz
-end
-
 --- 创建链接
-function links.create(opts)
+function links.create(clazz, opts)
     log.info("create", iot.json_encode(opts))
-
-    local clazz = types[opts.type]
-    if not clazz then
-        return false, "未知链接类型" .. opts.type
-    end
 
     local link = clazz:new(opts)
     if opts.id and #opts.id > 0 then
@@ -63,39 +49,6 @@ function links.create(opts)
     return true, link
 end
 
---- 加载链接
-function links.open()
-    log.info("load")
-    local lnks = {}
-
-    local cms = settings.links
-    for k, v in ipairs(cms) do
-        local ret, info = links.create(v)
-        if not ret then
-            log.error(info)
-            iot.emit("error", "打开连接失败" .. info)
-        else
-            table.insert(lnks, info)
-        end
-    end
-
-    return true, lnks
-end
-
---- 关闭连接
-function links.close()
-    for i, s in pairs(_links) do
-        if s.protocol_instance then
-            iot.call(function()
-                s.protocol_instance:close()
-            end)
-        end
-        iot.call(function()
-            s:close()
-        end)
-    end
-end
-
 --- 所有连接
 function links.links()
     return _links
@@ -105,10 +58,5 @@ end
 function links.get(id)
     return _links[id]
 end
-
-links.deps = {"settings"}
-
-settings.register("links", {})
-boot.register("links", links)
 
 return links
