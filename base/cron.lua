@@ -76,35 +76,20 @@ local function parse(crontab)
     return true, job
 end
 
-local function calc_wday(time, field)
-    local added = false
+local function test_wday(time, field)
     local wday = time.wday
     if field.every then
-        added = false
+        return true
     elseif field.mod then
-        while wday % field.mod ~= 0 do
-            wday = wday + 1
-            time.day = time.day + 1
-
-            if wday > 7 then
-                wday = 1
-            end
-            added = true
+        if wday % field.mod == 0 then
+            return true
         end
     else
-        while not field[tostring(wday)] do
-            -- log.info("calc_next dot", f, tm[f])
-            wday = wday + 1
-            time.day = time.day + 1
-
-            -- 1-7 日一二三四五六
-            if wday > 7 then
-                wday = 1
-            end
-            added = true
+        if field[tostring(wday)] then
+            return true
         end
     end
-    return added
+    return false
 end
 
 local function calc_field(time, field, key, upper, min, max)
@@ -179,10 +164,28 @@ local function calc_next(job, now)
         -- log.info("next begin", iot.json_encode(tm))
 
         -- 逐级计算累加时间
+        -- added = calc_field(tm, job.sec, "sec", "min", 0, 59) or calc_field(tm, job.min, "min", "hour", 0, 59) or
+        --             calc_field(tm, job.hour, "hour", "day", 0, 23) or
+        --             calc_field(tm, job.day, "day", "month", 1, get_month_days(tm)) or
+        --             calc_field(tm, job.month, "month", "year", 1, 12) or calc_wday(tm, job.wday)
+
+        -- 先计算时分秒
         added = calc_field(tm, job.sec, "sec", "min", 0, 59) or calc_field(tm, job.min, "min", "hour", 0, 59) or
-                    calc_field(tm, job.hour, "hour", "day", 0, 23) or
-                    calc_field(tm, job.day, "day", "month", 1, get_month_days(tm)) or
-                    calc_field(tm, job.month, "month", "year", 1, 12) or calc_wday(tm, job.wday)
+                    calc_field(tm, job.hour, "hour", "day", 0, 23)
+
+        -- 计算日，星期（两个条件是或）
+        if not added then
+            -- 不满足星期的情况下才计算天
+            local t = test_wday(tm, job.wday)
+            if not t then
+                added = calc_field(tm, job.day, "day", "month", 1, get_month_days(tm))
+            end
+        end
+
+        -- 计算月份
+        if not added then
+            added = calc_field(tm, job.month, "month", "year", 1, 12)
+        end
 
         -- log.info("next end", iot.json_encode(tm))
 
