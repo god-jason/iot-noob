@@ -14,6 +14,14 @@ local database = require("database")
 
 local Scene = require("scene")
 
+function scenes.remove(id)
+    local s = _scenes[id]
+    if s then
+        return s:close()
+    end
+    return false, "找不到场景实例"
+end
+
 --- 创建场景
 function scenes.create(scene)
     log.info("create", iot.json_encode(scene))

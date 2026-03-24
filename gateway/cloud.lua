@@ -293,11 +293,12 @@ function Cloud:register()
 
         -- 同步数据库
         info.databases = {
-            serial = syncTable("serial"),
-            device = syncTable("device"),
-            scene = syncTable("scene"),
-            binding = syncTable("binding")
-            -- socket = syncTable("socket"),
+            serial = syncTable("serial"), -- 串口连接
+            -- socket = syncTable("socket"), -- 网口连接
+            device = syncTable("device"), -- 子设备
+            scene = syncTable("scene"), -- 智能场景
+            schedule = syncTable("schedule"), -- 定时任务
+            binding = syncTable("binding") -- 设备绑定
         }
 
     end

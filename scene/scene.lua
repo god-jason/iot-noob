@@ -119,6 +119,7 @@ function Scene:close()
             trigger._cancel()
         end
     end
+    return true
 end
 
 --- 场景检查（内部用）
