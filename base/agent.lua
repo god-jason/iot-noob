@@ -4,12 +4,12 @@ local agent = {}
 
 local log = iot.logger("agent")
 
-local commands = {}
+local actions = {}
 
 --- 所有命令
 -- @return table
-function agent.commands()
-    return commands
+function agent.actions()
+    return actions
 end
 
 --- 注册命令
@@ -17,14 +17,14 @@ end
 -- @param fn function 回凋
 function agent.register(name, fn)
     if type(name) == "string" and type(fn) == "function" then
-        commands[name] = fn
+        actions[name] = fn
     end
 
     -- 批量注册
     if type(name) == "table" then
         for k, v in pairs(name) do
             if type(v) == "function" then
-                commands[k] = v
+                actions[k] = v
             end
         end
     end
@@ -36,7 +36,7 @@ end
 -- @return boolean 成功与否
 -- @return string 错误信息 或 结果
 function agent.execute(name, data)
-    local cmd = commands[name]
+    local cmd = actions[name]
     if type(cmd) ~= "function" then
         return false, "找不到命令：" .. name
     end
@@ -48,7 +48,7 @@ agent.watching = false
 local watcher = 0
 
 -- 观察
-function commands.watch(data)
+function actions.watch(data)
     log.info("查看")
     iot.emit("report", true)
 
@@ -69,13 +69,13 @@ function commands.watch(data)
 end
 
 -- 重启设备
-function commands.reboot()
+function actions.reboot()
     iot.reboot()
     return true
 end
 
 -- 清除数据
-function commands.reset()
+function actions.reset()
     -- 删除所有文件，恢复出厂设置
     iot.walk("/", function(fn)
         log.info("remove", fn)
@@ -86,7 +86,7 @@ function commands.reset()
 end
 
 -- 固件升级
-function commands.upgrade(data)
+function actions.upgrade(data)
     if data.url and #data.url > 0 then
         iot.upgrade(data.url)
     else

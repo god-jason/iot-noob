@@ -8,7 +8,7 @@ local configs = require("configs")
 local sensor = require("sensor")
 local robot = require("robot")
 local battery = require("battery")
-local schedule = require("schedule")
+local cron = require("cron")
 local master = require("master")
 
 -- 每圈的距离，齿比20:70，直径8cm
@@ -939,7 +939,7 @@ local function onFeedFinished(ctx)
                     -- TODO 检查堵料
 
                     -- 进入错误状态，不再投喂了
-                    robot.state("error", "喂料未达标，缺少"..total_lack.."g")
+                    robot.state("error", "喂料未达标，缺少" .. total_lack .. "g")
                     return
                 end
             end
@@ -1222,6 +1222,8 @@ function feeder.dry(val)
     end
 end
 
+local jobs = {}
+
 function feeder.start()
 
     -- 启动定时任务
@@ -1231,7 +1233,7 @@ function feeder.start()
             local name = "food" .. i
             local food = settings[name]
             if food.enable then
-                schedule.clock(food.start, function()
+                local ret, id = cron.clock(food.start, function()
                     if not options.auto then
                         return
                     end
@@ -1245,13 +1247,19 @@ function feeder.start()
                         iot.emit("log", "定时投喂启动失败：" .. info)
                     end
                 end)
+                if not ret then
+                    log.error("创建定时投喂" .. i .. "失败：", id)
+                    iot.emit("log", "创建定时投喂" .. i .. "失败：" .. id)
+                else
+                    table.insert(jobs, id)
+                end
             end
         end
     end
 
     -- 自动去皮
     if options.smart and settings.weight.auto_tare then
-        schedule.clock(settings.weight.auto_tare_time or "03:00", function()
+        local ret, id = cron.clock(settings.weight.auto_tare_time or "03:00", function()
             if sensor.weight() < (settings.weight.auto_tare_threshold or 300) then
 
                 if robot.state_name() ~= "charge" and robot.state_name() ~= "move" then
@@ -1278,14 +1286,26 @@ function feeder.start()
                 })
             end
         end)
+        if not ret then
+            log.error("创建自动去皮失败：", id)
+            iot.emit("log", "创建自动去皮失败：" .. id)
+        else
+            table.insert(jobs, id)
+        end
     end
 
     -- 自动重启
     if settings.device.auto_reboot_enable then
-        schedule.clock(settings.device.auto_reboot_time or "01:00", function()
+        local ret, id = cron.clock(settings.device.auto_reboot_time or "01:00", function()
             log.info("auto reboot")
             iot.reboot()
         end)
+        if not ret then
+            log.error("创建自动重启失败：", id)
+            iot.emit("log", "创建自动重启失败：" .. id)
+        else
+            table.insert(jobs, id)
+        end
     end
 
     -- 进入待机状态
@@ -1293,9 +1313,11 @@ function feeder.start()
 end
 
 function feeder.stop()
-
     -- 停止定时任务
-    schedule.clear()
+    for i, v in ipairs(jobs) do
+        cron.stop(v)
+    end
+    jobs = {}
 
     -- 进入待机状态
     -- robot.state("standby")

@@ -1,4 +1,4 @@
-local actions = require("agent").commands()
+local actions = require("agent").actions()
 
 local settings = require "settings"
 local controls = require "controls"
