@@ -106,7 +106,7 @@ end
 local cache = ""
 local function on_data(id, len)
     local data = uart.read(id, len)
-    -- log.info("receive", len, data) 日志太多了
+    --log.info("sensor receive", len, data) -- 日志太多了
 
     if #cache > 0 then
         cache = cache .. data
@@ -148,6 +148,15 @@ end
 uart.setup(uart_id, 115200)
 uart.on(uart_id, "receive", on_data)
 
+-- 问重量
+local query_cmd = iot.json_encode({
+    type = "status"
+})
+function sensor.query_status()
+    -- log.info("sensor write", query_cmd) -- 日志太多了
+    uart.write(uart_id, query_cmd)
+end
+
 -- 清空计数
 function sensor.reset()
     uart.write(uart_id, json.encode({
@@ -175,13 +184,6 @@ function sensor.calibrate(weight)
     }))
 end
 
--- 问重量
-local query_cmd = iot.json_encode({
-    type = "status"
-})
-function sensor.query_status()
-    uart.write(uart_id, query_cmd)
-end
 
 -- 自动校正重量到目标值
 function sensor.correct(target, step)

@@ -16,48 +16,49 @@ local _bridges = {}
 local Binding = {}
 Binding.__index = Binding
 
-function Binding:new(dev1, dev2)
-    local obj = setmetatable({
-        dev1 = dev1,
-        dev2 = dev2
-    }, Binding)
+function Binding:new(opts)
+    local obj = setmetatable(opts, Binding)
     obj:init()
     return obj
 end
 
 function Binding:init()
 
-    -- 订阅设备1的变化
-    self.sub1 = self.dev1:on("change", function(values)
-        -- 触发其他 change 监听
-        self.dev2:put_values(values)
+    if not self.forward or self.forward == true or self.forward == 1 then
+        -- 订阅设备1的变化
+        self.sub1 = self.dev1:on("change", function(values)
+            -- 触发其他 change 监听
+            self.dev2:put_values(values)
 
-        -- 回写外设的寄存器
-        iot.start(function()
-            for k, v in pairs(values) do
-                local ret, info = self.dev2:set(k, v)
-                if not ret then
-                    log.error(info)
+            -- 回写外设的寄存器
+            iot.start(function()
+                for k, v in pairs(values) do
+                    local ret, info = self.dev2:set(k, v)
+                    if not ret then
+                        log.error(info)
+                    end
                 end
-            end
+            end)
         end)
-    end)
+    end
 
-    -- 订阅设备2的变化
-    self.sub2 = self.dev2:on("change", function(values)
-        -- 触发其他 change 监听
-        self.dev1:put_values(values)
+    if not self.backward or self.backward == true or self.backward == 1 then
+        -- 订阅设备2的变化
+        self.sub2 = self.dev2:on("change", function(values)
+            -- 触发其他 change 监听
+            self.dev1:put_values(values)
 
-        -- 回写外设的寄存器
-        iot.start(function()
-            for k, v in pairs(values) do
-                local ret, info = self.dev1:set(k, v)
-                if not ret then
-                    log.error(info)
+            -- 回写外设的寄存器
+            iot.start(function()
+                for k, v in pairs(values) do
+                    local ret, info = self.dev1:set(k, v)
+                    if not ret then
+                        log.error(info)
+                    end
                 end
-            end
+            end)
         end)
-    end)
+    end
 end
 
 --- 关闭
@@ -81,29 +82,28 @@ local function find_device(id)
     return devices[id]
 end
 
-
 --- 创建镜像
 function bindings.create(mirror)
     log.info("create", iot.json_encode(mirror))
 
-    local dev1 = find_device(mirror.device1)
-    if not dev1 then
+    mirror.dev1 = find_device(mirror.device1)
+    if not mirror.dev1 then
         return false, "找不到第一个设备"
     end
 
-    local dev2 = find_device(mirror.device2)
-    if not dev2 then
+    mirror.dev2 = find_device(mirror.device2)
+    if not mirror.dev2 then
         return false, "找不到第二个设备"
     end
 
-    local s = Binding:new(dev1, dev2)
+    local s = Binding:new(mirror)
     table.insert(_bridges, s)
 
     return true, s
 end
 
 --- 加载镜像
-function bindings.open()    
+function bindings.open()
     local ss = database.find("binding")
     for i, s in ipairs(ss) do
         local ret, info = bindings.create(s)
