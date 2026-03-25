@@ -397,11 +397,11 @@ protocols.register("cjt188", Cjt188Master)
 -- @param link any 连接实例
 -- @param opts table 协议参数
 -- @return Cjt188Master
-function Cjt188Master:new(link, opts)
+function Cjt188Master:new(opts)
     local master = setmetatable({}, self)
-    master.link = link
+    master.link = opts.link
     master.timeout = opts.timeout or 2000
-    master.request = Request:new(link, master.timeout)
+    master.request = Request:new(master.link, master.timeout)
     master.poller_interval = opts.poller_interval or 10
     master.increment = 0
 
@@ -514,13 +514,8 @@ function Cjt188Master:open()
     end
     self.opened = true
 
-    -- 加载设备
-    -- local ds = devices.load_by_link(self.link.id)
-    local ds = database.find("device", "link_id", self.link.id)
-
     -- 启动设备
-    self.devices = {}
-    for _, d in ipairs(ds) do
+    for _, d in ipairs(self.devices) do
         log.info("open device", iot.json_encode(d))
         local dev = Cjt188Device:new(d)
         dev.master = self

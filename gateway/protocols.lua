@@ -14,16 +14,15 @@ function protocols.register(name, clazz)
 end
 
 --- 创建协议
-function protocols.create(link, name, opts)
-    log.info("create", iot.json_encode(opts))
+function protocols.create(name, opts)
+    log.info("create", name)
 
     local clazz = types[name]
     if not clazz then
         return false, "未知协议类型" .. name
     end
 
-    return true, clazz:new(link, opts)
+    return true, clazz:new(opts)
 end
-
 
 return protocols

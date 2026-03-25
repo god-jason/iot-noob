@@ -10,15 +10,27 @@ function LBS:init()
     self.latitude, self.longitude = 0, 0
 
     -- 开机定位    
-    iot.setTimeout(iot.start, 5000, LBS.locate, self)
+    -- iot.setTimeout(iot.start, 5000, LBS.locate, self)
+    iot.setTimeout(function()        
+        iot.start(function()
+            self:locate()
+        end)
+    end, 5000)
 
     -- 周期定位
     if self.interval and self.interval > 0 then
-        iot.setInterval(iot.start, self.interval * 60000, LBS.locate, self)
+        -- iot.setInterval(iot.start, self.interval * 60000, LBS.locate, self)
+        iot.setInterval(function()
+            iot.start(function()
+                self:locate()
+            end)
+        end, self.interval * 60000)
     end
 end
 
 function LBS:locate()
+    log.info("locate")
+
     local located = false
 
     -- 如果配置了项目ID和KEY，优先使用付费的airlbs

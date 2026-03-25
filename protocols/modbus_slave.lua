@@ -328,9 +328,9 @@ protocols.register("modbus_slave", ModbusSlave)
 -- @param link any 连接实例
 -- @param opts table 协议参数
 -- @return Slave
-function ModbusSlave:new(link, opts)
+function ModbusSlave:new(opts)
     local slave = setmetatable({}, self)
-    slave.link = link
+    slave.link = opts.link
     slave.timeout = opts.timeout or 1000 -- 1秒钟
     slave.tcp = opts.tcp or false -- modbus tcp
     return slave
@@ -344,13 +344,8 @@ function ModbusSlave:open()
     end
     self.opened = true
 
-    -- 加载设备
-    -- local ds = devices.load_by_link(self.link.id)
-    local ds = database.find("device", "link_id", self.link.id)
-
     -- 启动设备
-    self.devices = {}
-    for _, d in ipairs(ds) do
+    for _, d in ipairs(self.devices) do
         log.info("open device", iot.json_encode(d))
         local dev = ModbusSlaveDevice:new(d)
         -- dev.slave = self.slave

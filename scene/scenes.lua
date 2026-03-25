@@ -26,6 +26,11 @@ end
 function scenes.create(scene)
     log.info("create", iot.json_encode(scene))
 
+    -- 关掉上一个场景实例
+    if _scenes[scene.id] then
+        _scenes[scene.id]:close()
+    end
+
     local s = Scene:new(scene)
     _scenes[scene.id] = s
 

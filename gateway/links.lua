@@ -8,6 +8,8 @@ _G.links = _links
 
 local log = iot.logger("links")
 
+local database = require("database")
+local settings = require("settings")
 local protocols = require("protocols")
 local boot = require("boot")
 
@@ -29,10 +31,44 @@ function links.create(clazz, opts)
         return false, info
     end
 
+    local devices = {}
+
+    -- 打开内联设备
+    for i, d in pairs(settings.devices) do
+        if d.link_id == opts.id then
+            d.inline = true -- 强制为内联设备
+            table.insert(devices, d)
+        end
+    end
+
+    -- 查找设备数据库
+    local ds = database.find("device", "link_id", opts.id)
+    for i, d in ipairs(ds) do
+        table.insert(devices, d)
+    end
+
+    -- 遍历设备，查找物模型
+    local products = {}
+    for i, d in ipairs(devices) do
+        if d.product_id then
+            table.insert(products, d.product_id)
+        end
+    end
+
+    -- 协议是按其中一个设备来 TODO 检查协议不一致的问题
+    local protocol = link.protocol
+    local protocol_options = link.protocol_options
+
+    -- TODO 如果协议是空，则从产品中取
+
     -- 打开协议
-    if link.protocol and #link.protocol > 0 then
+    if protocol and #protocol > 0 then
         -- 创建协议
-        local ret, instanse = protocols.create(link, link.protocol, link.protocol_options or {})
+        local ret, instanse = protocols.create(protocol, {
+            link = link,
+            devices = devices,
+            options = protocol_options or {}
+        })
         if not ret then
             return false, instanse
         end
