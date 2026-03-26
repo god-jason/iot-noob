@@ -279,3 +279,16 @@ function actions.vibrator(data)
         branch = true -- 独立运行
     })
 end
+
+-- 毛竹打点
+function actions.bamboo(data)
+    --settings.distance
+    for i = 1, 20, 1 do
+        if not settings.distance["bamboo"..i] or settings.distance["bamboo"..i] == 0 then
+            settings.distance["bamboo"..i] = sensor.position() / 100
+            settings.save("distance")
+            return true
+        end
+    end
+    return false, "毛竹已经打完"
+end
