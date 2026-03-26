@@ -1,4 +1,4 @@
---- GNSS模组（兼容合宙的GPS模组）
+--- GNSS模组（依赖合宙的GPS模组）
 -- @module GNSS
 local GNSS = require("utils").class(require("component"))
 

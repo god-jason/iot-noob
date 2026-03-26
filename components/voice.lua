@@ -1,4 +1,4 @@
---- 组件 语音
+--- 组件 语音（依赖合宙的4G模组）
 -- @module Voice
 local Voice = require("utils").class(require("component"))
 

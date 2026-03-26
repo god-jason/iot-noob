@@ -801,6 +801,12 @@ end
 -- @module adc
 local ADC = {}
 ADC.__index = ADC
+
+--- 打开
+function ADC:open()
+    return adc.open(self.id)
+end
+
 --- 关闭
 function ADC:close()
     adc.close(self.id)
@@ -822,6 +828,7 @@ function iot.adc(id, opts)
     if not ret then
         return false, "ADC打开失败" .. id
     end
+    
     return true, setmetatable({
         id = id
     }, ADC)
