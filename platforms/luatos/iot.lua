@@ -429,6 +429,28 @@ function iot.socket(opts)
     return Socket:new(opts)
 end
 
+function iot.urlencode(str)
+    if str == nil then
+        return ""
+    end
+    str = tostring(str)
+    -- 换行处理
+    str = str:gsub("\n", "\r\n")
+    -- 非安全字符编码
+    str = str:gsub("([^%w%-_%.~])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+    return str
+end
+
+local function build_query(params)
+    local query = {}
+    for k, v in pairs(params) do
+        table.insert(query, iot.urlencode(k) .. "=" .. iot.urlencode(v))
+    end
+    return table.concat(query, "&")
+end
+
 --- HTTP请求
 -- @param url string URL
 -- @param opts table 参数 {method, headers, body}
@@ -437,9 +459,40 @@ end
 -- @return string body
 function iot.request(url, opts)
     opts = opts or {}
-    local method = opts.method or "GET"
+
+    -- headers 默认值
     local headers = opts.headers or {}
+
+    -- 查询字符串
+    if opts.query then
+        local query = opts.query
+        if type(query) == "table" then
+            query = build_query(query)
+        end
+
+        if #query > 0 then
+            if string.find(url, "?", 1, true) then
+                url = url .. "&" .. query
+            else
+                url = url .. "?" .. query
+            end
+        end
+    end
+
+    -- 默认GET
+    local method = opts.method or "GET"
+
+    -- GET 默认不带 body
     local body = opts.body
+
+    if type(body) ~= "string" then
+        -- body默认打包JSON
+        body = iot.json_encode(body)
+        if not headers["Content-Type"] then
+            headers["Content-Type"] = "application/json"
+        end
+    end
+
     return http.request(method, url, headers, body, opts).wait()
 end
 

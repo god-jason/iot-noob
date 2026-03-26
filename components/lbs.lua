@@ -61,7 +61,9 @@ function LBS:amap()
         output = "JSON"
     }
 
-    local code, headers, body = iot.request("https://apilocate.amap.com/position")
+    local code, headers, body = iot.request("https://apilocate.amap.com/position", {
+        query = params
+    })
     if code ~= 200 then
         return false, "服务器返回错误" .. code
     end
@@ -76,7 +78,7 @@ function LBS:amap()
     end
 
     local ls = data.result.location:split(",")
-    self.latitude, self.longitude = tonumber(ls[1], ls[2])
+    self.longitude, self.latitude = tonumber(ls[1]), tonumber(ls[2])
 
     return true
 end
