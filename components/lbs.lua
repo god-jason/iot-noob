@@ -36,9 +36,11 @@ end
 --- 高德LBS（需要先付5万，获得技术服务许可，坑爹玩意）
 function LBS:amap()
 
+    -- 当前基站
     local cell = mobile.scell()
     local bts = table.concat({cell.mcc, cell.mnc, cell.tac, cell.cid, cell.rssi}, ",")
 
+    -- 附近基站
     local nearbts = {}
 
     mobile.reqCellInfo(15)
@@ -50,6 +52,7 @@ function LBS:amap()
     end
     nearbts = table.concat(nearbts, "|")
 
+    -- 接参数
     local params = {
         key = self.amap_key,
         accesstype = 0,
@@ -60,7 +63,9 @@ function LBS:amap()
         imei = mobile.imei(),
         output = "JSON"
     }
+    log.info("请求高德服务器", iot.json_encode(params))
 
+    -- 发送地图请求
     local code, headers, body = iot.request("https://apilocate.amap.com/position", {
         query = params
     })
@@ -69,16 +74,31 @@ function LBS:amap()
     end
 
     log.info("高德服务器返回内容", body)
-    local data = iot.json_decode(body)
+    local data, err = iot.json_decode(body)
+    if not data then
+        return false, "数据返回错误：" .. err
+    end
+
     if data.status == 0 then
         return false, "高德定位失败"
     end
     if data.info ~= "OK" then
-        return false, "高德定位错误" .. data.info
+        return false, "高德定位错误：" .. data.info
     end
 
     local ls = data.result.location:split(",")
     self.longitude, self.latitude = tonumber(ls[1]), tonumber(ls[2])
+
+    iot.emit("location", {
+        latitude = self.latitude,
+        longitude = self.longitude,
+        country = data.result.country,
+        province = data.result.province,
+        city = data.result.city,
+        street = data.result.street,
+        detail = data.result.desc, -- 详细地址
+        radius = data.result.radius -- 精度 米
+    })
 
     return true
 end
@@ -89,21 +109,32 @@ function LBS:airlbs()
         project_id = self.project_id,
         project_key = self.project_key or PRODUCT_KEY
     })
-    if ret then
-        self.latitude, self.longitude = data.lat, data.lng
-        return true
+    if not ret then
+        return false, "airlbs定位失败"
     end
-    return false, "airlbs定位失败"
+    self.latitude, self.longitude = data.lat, data.lng
+
+    iot.emit("location", {
+        latitude = self.latitude,
+        longitude = self.longitude
+    })
+
+    return true
 end
 
 -- 合宙免费LBS定位，单基站，定位精度较差
 function LBS:simple()
     local lat, lng, tm = require("lbsLoc2").request()
-    if lat ~= nil then
-        self.latitude, self.longitude = tonumber(lat), tonumber(lng)
-        return true
+    if lat == nil then
+        return false, "lbs定位失败"
     end
-    return false, "lbs定位失败"
+    self.latitude, self.longitude = tonumber(lat), tonumber(lng)
+
+    iot.emit("location", {
+        latitude = self.latitude,
+        longitude = self.longitude
+    })
+    return true
 end
 
 function LBS:locate()
@@ -137,11 +168,6 @@ function LBS:locate()
 
     -- 如果定位成功，但发布消息
     self:emit("change", {
-        latitude = self.latitude,
-        longitude = self.longitude
-    })
-
-    iot.emit("location", {
         latitude = self.latitude,
         longitude = self.longitude
     })

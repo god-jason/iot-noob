@@ -136,7 +136,6 @@
         "type": "lbs",
         "name": "lbs",
         "amap_key": "0ce21bcb510ac0e1b978eb5c4a9525fb",
-        "interval": 10,
         "bindings": {
             "longitude": "longitude",
             "latitude": "latitude"
