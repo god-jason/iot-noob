@@ -12,7 +12,6 @@ local points = require("points")
 local model = require("model")
 local modbus = require("modbus")
 
-
 ---打开设备
 function ModbusMasterDevice:open()
     log.info("device open", self.id, self.product_id)
@@ -20,7 +19,7 @@ function ModbusMasterDevice:open()
 
     -- TODO 优化
     self.model = model.get(self.product_id)
-    
+
     -- 变化阈值
     if self.model then
         for _, prop in ipairs(self.model.content or {}) do
@@ -52,7 +51,6 @@ function ModbusMasterDevice:get(key)
         if not ret then
             return false, data
         end
-        -- 直接判断返回值就行了 FF00 0000
         ret, data = points.parseBit(point, data, point.address)
     elseif point.register == 3 or point.register == 4 then
         local feature = points.feature(point.type)
@@ -85,16 +83,21 @@ function ModbusMasterDevice:set(key, value)
         return false, "找不到点位" .. key
     end
 
+    if value == nil then
+        return false, "值不能为空"
+    end
+
     local ret
     local data
     local func = point.register
 
     -- 编码数据
     if func == 1 or func == 2 then
-        if value then
-            data = string.fromHex("FF00")
-        else
+        -- 兼容 false 0
+        if value == false or value <= 0 then
             data = string.fromHex("0000")
+        else
+            data = string.fromHex("FF00")
         end
         func = 5
     else

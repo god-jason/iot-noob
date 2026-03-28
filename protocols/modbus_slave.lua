@@ -72,14 +72,14 @@ end
 
 --- 生成异常响应
 function ModbusSlaveDevice:exception(func, code)
-    local resp = string.char(self.slave, func | 0x80, code)
+    local resp = string.char(self.slave or 1, func | 0x80, code)
     local crc = modbus.crc16(resp)
     return resp .. iot.pack("<H", crc)
 end
 
 --- 构建标准响应（RTU）
 function ModbusSlaveDevice:build_response(func, payload)
-    local resp = string.char(self.slave, func) .. payload
+    local resp = string.char(self.slave or 1, func) .. payload
     local crc = modbus.crc16(resp)
     return resp .. iot.pack("<H", crc)
 end
@@ -87,15 +87,6 @@ end
 --- 读取线圈
 function ModbusSlaveDevice:read_coils(data)
     local _, addr, len = iot.unpack("2>H", data, 3)
-
-    --  处理1个长度
-    if len == 1 then
-        if self.coils[addr] then
-            return self:build_response(2, string.char(2) .. "\xFF00")
-        else
-            return self:build_response(2, string.char(2) .. "\x0000")
-        end
-    end
 
     local payload = {}
     for i = 0, len - 1 do
@@ -123,15 +114,6 @@ end
 --- 读取离散输入（只读，类似 coils）
 function ModbusSlaveDevice:read_discrete_inputs(data)
     local _, addr, len = iot.unpack("2>H", data, 3)
-
-    -- 处理1个长度
-    if len == 1 then
-        if self.discrete_inputs[addr] then
-            return self:build_response(2, string.char(2) .. "\xFF00")
-        else
-            return self:build_response(2, string.char(2) .. "\x0000")
-        end
-    end
 
     local payload = {}
     for i = 0, len - 1 do
@@ -161,7 +143,7 @@ function ModbusSlaveDevice:read_holding_registers(data)
 
     local bytes = {}
     for i = 0, len - 1 do
-        local val = self.holding_registers[addr + i] or "0000"
+        local val = self.holding_registers[addr + i] or "\x00\x00"
         table.insert(bytes, val)
     end
 
@@ -174,7 +156,7 @@ function ModbusSlaveDevice:read_input_registers(data)
 
     local bytes = {}
     for i = 0, len - 1 do
-        local val = self.input_registers[addr + i] or "0000"
+        local val = self.input_registers[addr + i] or "\x00\x00"
         table.insert(bytes, val)
     end
 
@@ -184,7 +166,7 @@ end
 --- 写单个线圈
 function ModbusSlaveDevice:write_coil(data)
     local _, addr, val = iot.unpack("2>H", data, 3)
-    local val = val == 0xFF00
+    val = val ~= 0x0000
 
     if self.coils[addr] == nil then
         return self:exception(5, 2) -- 非法地址
@@ -246,7 +228,7 @@ function ModbusSlaveDevice:write_multiple_coils(data)
     local has = false
     local values = {}
     for i, point in ipairs(self.mapper.coils) do
-        if point.address >= addr and point.address < addr + coil_bytes then
+        if point.address >= addr and point.address < addr + len then
             values[point.name] = self.coils[point.address]
             has = true
         end
@@ -272,7 +254,7 @@ function ModbusSlaveDevice:write_multiple_registers(data)
     local has = false
     local values = {}
     for i, point in ipairs(self.mapper.holding_registers) do
-        if point.address >= addr and point.address < addr + reg_bytes then
+        if point.address >= addr and point.address < addr + len then
             local ret, val = points.parseWord(point, reg_bytes, addr)
             if ret then
                 values[point.name] = val
@@ -292,9 +274,9 @@ function ModbusSlaveDevice:process(data)
     local slave = string.byte(data, 1)
     local func = string.byte(data, 2)
 
-    if slave ~= self.slave then
-        return nil -- 非本从站的数据
-    end
+    -- if slave ~= self.slave then
+    --     return nil -- 非本从站的数据
+    -- end
 
     if func == 1 then
         return self:read_coils(data)
@@ -351,7 +333,7 @@ function ModbusSlave:open()
         -- dev.slave = self.slave
         dev:open() -- 设备也要打开
 
-        self.devices[d.slave] = dev
+        self.devices[d.slave or 1] = dev
 
         devices.register(d.id, dev)
     end
