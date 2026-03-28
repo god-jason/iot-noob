@@ -30,11 +30,26 @@ end
 -- 自动识别SIM2
 mobile.simid(2, true)
 
+gpio.setup(27, 1, gpio.PULLDOWN)
+gpio.setup(26, 1, gpio.PULLDOWN)
 
--- 关闭银尔达看门狗（watch_dog组件无用）
+
+-- 看门狗（watch_dog组件无用）
 local air153C_wtd = require 'air153C_wtd'
-air153C_wtd.init(28)
-air153C_wtd.close_watch_dog(28)
+sys.taskInit(function ()
+    log.info("main","air153C_wtd")
+    local flag = 0
+    air153C_wtd.init(28)
+    air153C_wtd.feed_dog(28)--模块开机第一步需要喂狗一次
+    sys.wait(3000)
+
+    log.info("WTD","eatdog test start!")
+    while 1 do
+		air153C_wtd.feed_dog(28)--28为看门狗控制引脚
+		log.info("main","feed dog")
+		sys.wait(150000)
+    end
+end)
 
 -- 主进程
 sys.taskInit(function()

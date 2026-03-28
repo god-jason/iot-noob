@@ -22,8 +22,9 @@ function Request:new(link, timeout)
     request.link = link
     request.timeout = timeout or 1000
     request.requesting = false
+    request.topic = "REQUEST_DATA_"..request.id
     request.cancel = link:on("data", function(data)
-        iot.emit("REQUEST_DATA_"..request.id, data)
+        iot.emit(request.topic, data)
     end)
     return request
 end
@@ -58,7 +59,7 @@ function Request:request(request, want_len)
     local buf = ""
     repeat
         -- 应该不是每次都要等待
-        local ret, data = iot.wait("REQUEST_DATA_"..request.id, self.timeout or 1000)
+        local ret, data = iot.wait(self.topic, self.timeout or 1000)
         if not ret then
             self.requesting = false
             return false, "读取超时"

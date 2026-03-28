@@ -8,7 +8,7 @@ local log = iot.logger("WatchDog")
 
 --- 初始化
 function WatchDog:init(opts)
-    self.pin = self.pin
+    self.pin = self.pin or 28 -- 合宙demo默认
     self.interval = self.interval or 30 -- 喂狗间隔，秒
     self.high_time = self.high_time or 400 -- 高电平持续时间，毫秒
     self.close_time = self.close_time or 700 -- 关闭时高电平持续时间，毫秒

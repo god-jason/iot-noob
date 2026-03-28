@@ -4,9 +4,6 @@ local modbus = {}
 
 local log = iot.logger("modbus")
 
-local database = require("database")
-local devices = require("devices")
-local protocols = require("protocols")
 local points = require("points")
 local binary = require("binary")
 local model = require("model")
@@ -89,23 +86,6 @@ function ModbusMapper:new(product_id)
     }, ModbusMapper)
 end
 
--- 加载地址映射
-function modbus.load_mapper(product_id)
-    if mapper_cache[product_id] then
-        return mapper_cache[product_id]
-    end
-
-    local mapper = ModbusMapper:new(product_id)
-    mapper_cache[product_id] = mapper
-
-    local ret, info = mapper:load()
-    if not ret then
-        log.error(info)
-        iot.emit("error", "modbus解析地址表错误：" .. (info or ""))
-    end
-
-    return mapper
-end
 
 function ModbusMapper:load()
     log.info("load", self.product_id)
@@ -391,6 +371,25 @@ function ModbusMapper:parse(data, register, address, length)
     end
 
     return has, values
+end
+
+
+-- 加载地址映射
+function modbus.load_mapper(product_id)
+    if mapper_cache[product_id] then
+        return mapper_cache[product_id]
+    end
+
+    local mapper = ModbusMapper:new(product_id)
+    mapper_cache[product_id] = mapper
+
+    local ret, info = mapper:load()
+    if not ret then
+        log.error(info)
+        iot.emit("error", "modbus解析地址表错误：" .. (info or ""))
+    end
+
+    return mapper
 end
 
 return modbus

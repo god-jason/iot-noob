@@ -565,11 +565,20 @@ end
 -- @return GPIO
 function iot.gpio(id, opts)
     opts = opts or {}
-    local pull = opts.pull and gpio.PULLUP or gpio.PULLDOWN
+
+    -- 上下拉
+    local pull = nil
+    if opts.pull ~= nil then
+        if opts.pull == true or opts.pull == 1 then
+            pull = gpio.PULLUP
+        else
+            pull = gpio.PULLDOWN
+        end
+    end
 
     if opts.callback == nil then
         -- 输出模式
-        gpio.setup(id, 0, pull)
+        gpio.setup(id, opts.level or 0, pull)
     else
         local when = gpio.BOTH
 
