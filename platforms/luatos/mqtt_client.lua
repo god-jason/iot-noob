@@ -96,13 +96,21 @@ function MqttClient:open()
         self.client:debug(true)
     end
 
+    -- 默认保持会话
+    if self.options.clientid and self.options.clean_session == nil then
+        self.options.clean_session = false
+    end
+
     -- 鉴权
-    self.client:auth(self.options.clientid, self.options.username, self.options.password)
+    self.client:auth(self.options.clientid, self.options.username, self.options.password, self.options.clean_session)
 
-    self.client:keepalive(self.options.keepalive or 240) -- 默认值240s
+    -- 心跳
+    self.client:keepalive(self.options.keepalive or 60) -- 默认值240s 太长了，容易掉线
 
+    -- 自动重连
     self.client:autoreconn(true, self.options.reconnect_timeout or 5000) -- 自动重连机制 ms
 
+    -- 遗嘱消息
     if self.options.will ~= nil then
         self.client:will(self.options.will.topic, self.options.will.payload)
     end

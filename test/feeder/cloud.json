@@ -5,6 +5,8 @@
     "adapter": "4G",
     "host": "iot.longyuanshuichan.cn",
     "port": 1883,
+    "keepalive": 60,
+    "clean_session": false,
     "key": "longyuanshuichan",
     "interval": 60,
     "log": true,
