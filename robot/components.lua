@@ -41,7 +41,10 @@ function components.create(cmp)
 
     local comp = fn:new(cmp)
 
-    _components[cmp.name] = comp
+    if cmp.name then
+    _components[cmp.name] = comp        
+    end
+    
     return true, comp
 end
 

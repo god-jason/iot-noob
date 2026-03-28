@@ -1,0 +1,9 @@
+{
+    "zt-demo": {
+        "id": "zt-demo",
+        "link_id": "rs485",
+        "product_id": "zetian-rtu",
+        "slave": 1,
+        "inline": true
+    }
+}

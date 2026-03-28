@@ -24,6 +24,7 @@ end
 
 -- 手动喂狗，一般不用
 function WatchDog:feed()
+    log.info("feed")
     self.gpio:set(1)
 
     iot.setTimeout(function()
@@ -33,6 +34,8 @@ end
 
 -- 关闭
 function WatchDog:close()
+    log.info("close")
+    
     iot.clearInterval(self.timer)
 
     self.gpio:set(1)

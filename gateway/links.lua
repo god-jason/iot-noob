@@ -101,6 +101,6 @@ function links.open()
 end
 
 -- 做统一依赖
-boot.register("links", links, "serials", "splitters", "sockets")
+boot.register("links", links, "serials", "splitters", "sockets", "settings")
 
 return links

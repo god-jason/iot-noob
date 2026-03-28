@@ -1,0 +1,17 @@
+{
+    "enable": true,
+    "debug": false,
+    "product_id": "zetian",
+    "adapter": "4G",
+    "host": "iot.longyuanshuichan.cn",
+    "port": 1883,
+    "keepalive": 60,
+    "clean_session": false,
+    "key": "noob",
+    "interval": 60,
+    "log": true,
+    "error": true,
+    "report": true,
+    "location": true,
+    "sync_settings": true
+}

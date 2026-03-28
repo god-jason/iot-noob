@@ -81,6 +81,6 @@ function serials.close()
     _serials = {}
 end
 
-boot.register("serials", serials)
+boot.register("serials", serials, "settings")
 
 return serials
