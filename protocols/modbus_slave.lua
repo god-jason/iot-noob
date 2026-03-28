@@ -313,6 +313,7 @@ protocols.register("modbus_slave", ModbusSlave)
 function ModbusSlave:new(opts)
     local slave = setmetatable({}, self)
     slave.link = opts.link
+    slave.devices = opts.devices or {}
     slave.timeout = opts.timeout or 1000 -- 1秒钟
     slave.tcp = opts.tcp or false -- modbus tcp
     return slave

@@ -154,6 +154,7 @@ protocols.register("modbus", ModbusMaster)
 function ModbusMaster:new(opts)
     local master = setmetatable({}, self)
     master.link = opts.link
+    master.devices = opts.devices or {}
     master.timeout = opts.timeout or 1000 -- 1秒钟
     master.request = Request:new(master.link, master.timeout)
     master.poller_interval = opts.poller_interval or 5 -- 5秒钟

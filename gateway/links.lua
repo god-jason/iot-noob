@@ -47,6 +47,8 @@ function links.create(clazz, opts)
         table.insert(devices, d)
     end
 
+    log.info("连接[", opts.name or opts.id, "]挂载设备数量", #devices)
+
     -- 遍历设备，查找物模型
     local products = {}
     for i, d in ipairs(devices) do

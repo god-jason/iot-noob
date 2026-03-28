@@ -400,6 +400,7 @@ protocols.register("cjt188", Cjt188Master)
 function Cjt188Master:new(opts)
     local master = setmetatable({}, self)
     master.link = opts.link
+    master.devices = opts.devices or {}
     master.timeout = opts.timeout or 2000
     master.request = Request:new(master.link, master.timeout)
     master.poller_interval = opts.poller_interval or 10
