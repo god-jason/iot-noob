@@ -2,7 +2,7 @@
     "zetian-rtu":{
         "id": "zetian-rtu",
         "name": "model",
-        "version": 3,
+        "version": 4,
         "content": [
             {
                 "hidden": false,
@@ -46,7 +46,7 @@
                         "label": "浊度",
                         "le": false,
                         "mode": "r",
-                        "name": "ph",
+                        "name": "ntu",
                         "precision": 2,
                         "rate": 1,
                         "register": 3,

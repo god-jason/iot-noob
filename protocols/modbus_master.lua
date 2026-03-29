@@ -341,13 +341,13 @@ function ModbusMaster:open()
     self.opened = true
 
     -- 启动设备
-    for _, d in ipairs(self.devices) do
+    for i, d in ipairs(self.devices) do
         log.info("open device", iot.json_encode(d))
         local dev = ModbusMasterDevice:new(d)
         dev.master = self
         dev:open() -- 设备也要打开
 
-        self.devices[d.id] = dev
+        self.devices[i] = dev
 
         devices.register(d.id, dev)
     end
