@@ -104,10 +104,10 @@ function master.open()
     end
 
     -- 订阅添加子设备
-    iot.on("DEVICE_REGISTER", function(device)
+    iot.on("DEVICE_REGISTER", function(dev)
         -- 只绑定内联设备
-        if device.inline then
-            device:attach_children(device)
+        if dev.inline then
+            device:attach_children(dev)
         end
     end)
 

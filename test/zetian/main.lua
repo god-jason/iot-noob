@@ -30,8 +30,12 @@ end
 -- 自动识别SIM2
 mobile.simid(2, true)
 
-gpio.setup(27, 1, gpio.PULLDOWN)
-gpio.setup(26, 1, gpio.PULLDOWN)
+
+-- 测试指示灯
+gpio.setup(27, 0)
+gpio.set(27, 1)
+gpio.setup(26, 0)
+gpio.set(26, 1)
 
 
 -- 看门狗（watch_dog组件无用）

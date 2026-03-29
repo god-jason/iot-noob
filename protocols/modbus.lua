@@ -137,7 +137,7 @@ function ModbusMapper:load()
     table.sort(self.holding_registers, sortPoint)
     table.sort(self.input_registers, sortPoint)
 
-    -- log.info("before pollers", iot.json_encode(mapper))
+    --log.info("before pollers", iot.json_encode(self.coils))
 
     -- 间隔3个以内，视为连续地址
     local sep = 3
@@ -297,7 +297,7 @@ function ModbusMapper:parse(data, register, address, length)
     local values = {}
 
     if register == 1 then
-        -- log.info("parse 1 ", #data)
+        log.info("parse 1 ", #data)
         for _, point in ipairs(self.coils) do
             if address <= point.address and point.address < address + length then
                 local r, v = points.parseBit(point, data, address)
@@ -308,9 +308,9 @@ function ModbusMapper:parse(data, register, address, length)
                 end
             end
         end
-        -- log.info("parse 1 ", iot.json_encode(values))
+        log.info("parse 1 ", iot.json_encode(values))
     elseif register == 2 then
-        -- log.info("parse 2 ", #data)
+        log.info("parse 2 ", #data)
         for _, point in ipairs(self.discrete_inputs) do
             if address <= point.address and point.address < address + length then
                 local r, v = points.parseBit(point, data, address)
@@ -321,9 +321,9 @@ function ModbusMapper:parse(data, register, address, length)
                 end
             end
         end
-        -- log.info("parse 2 ", iot.json_encode(values))
+        log.info("parse 2 ", iot.json_encode(values))
     elseif register == 3 then
-        -- log.info("parse 3 ", #data)
+        log.info("parse 3 ", #data)
         for _, point in ipairs(self.holding_registers) do
             if address <= point.address and point.address < address + length then
                 local r, v = points.parseWord(point, data, address)
@@ -343,9 +343,9 @@ function ModbusMapper:parse(data, register, address, length)
                 end
             end
         end
-        -- log.info("parse 3 ", iot.json_encode(values))
+        log.info("parse 3 ", iot.json_encode(values))
     elseif register == 4 then
-        -- log.info("parse 4 ", #data)
+        log.info("parse 4 ", #data)
         for _, point in ipairs(self.input_registers) do
             if address <= point.address and point.address < address + length then
                 local r, v = points.parseWord(point, data, address)
@@ -365,7 +365,7 @@ function ModbusMapper:parse(data, register, address, length)
                 end
             end
         end
-        -- log.info("parse 4 ", iot.json_encode(values))
+        log.info("parse 4 ", iot.json_encode(values))
     else
         -- 暂不支持其他类型
     end

@@ -6,15 +6,5 @@
             "longitude": "longitude",
             "latitude": "latitude"
         }
-    },
-    {
-        "type": "led",
-        "name": "led_cloud",
-        "pin": 27
-    },
-    {
-        "type": "led",
-        "name": "led_net",
-        "pin": 26
     }
 ]

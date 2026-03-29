@@ -124,9 +124,10 @@ function ModbusMasterDevice:poll()
 
     -- 依次轮询
     for _, poller in ipairs(self.mapper.pollers) do
+        log.info("poll", self.slave, poller.register, poller.address, poller.length)
+
         local res, data = self.master:read(self.slave, poller.register, poller.address, poller.length)
         if res then
-            log.info("poll read", #data)
             local ret, values = self.mapper:parse(data, poller.register, poller.address, poller.length)
             if ret then
                 -- 存入数据
@@ -374,11 +375,13 @@ function ModbusMaster:_polling()
 
         -- 轮询连接下面的所有设备
         for _, dev in pairs(self.devices) do
-            iot.xcall(ModbusMasterDevice.poll, dev)
+            local ret, result = iot.xcall(ModbusMasterDevice.poll, dev)
+            if not ret then
+                log.error(dev.id, "轮询错误", result)
+            end
 
             -- 避免太快
             iot.sleep(500)
-
         end
 
         local finish = mcu.ticks()

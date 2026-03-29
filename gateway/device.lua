@@ -91,6 +91,8 @@ end
 
 --- 添加子设备
 function Device:attach_children(dev)
+    log.info(self.id, "attach_children", dev.id)
+    
     -- 订阅子设备变化
     local cancel = dev:on("change", function(values)
         self:emit("change", values)

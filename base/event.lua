@@ -14,6 +14,8 @@ end
 -- @param name 名称
 -- @param fn 回调
 function Event:on(name, fn)
+    log.info("on", name, debug.traceback())
+
     if not self._handlers[name] then
         self._handlers[name] = {}
     end
@@ -63,6 +65,9 @@ end
 --- 发送消息
 -- @param name 名称
 function Event:emit(name, ...)
+    -- 调试事件死循环用
+    --log.info("emit", name, debug.traceback())
+
     local list = self._handlers[name]
     if not list then
         return
