@@ -5,7 +5,7 @@ local master = require "master"
 -- 开关机
 function actions.control(data)
     if data.value == false or data.value == 0 then
-        return master.device:set("control", 0)
+        return master.device:set("control", 3)
     else
         return master.device:set("control", 1)
     end
@@ -18,5 +18,5 @@ end
 
 -- 关
 function actions.close(data)
-    return master.device:set("control", 0)
+    return master.device:set("control", 3)
 end

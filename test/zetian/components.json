@@ -1,10 +1,26 @@
-[   
+[
     {
         "type": "lbs",
         "name": "lbs",
+        "amap_key": "0ce21bcb510ac0e1b978eb5c4a9525fb",
         "bindings": {
             "longitude": "longitude",
             "latitude": "latitude"
         }
+    },
+    {
+        "type": "led",
+        "name": "led_cloud",
+        "pin": 26
+    },
+    {
+        "type": "led",
+        "name": "led_net",
+        "pin": 27
+    },
+    {
+        "name": "watch_dog",
+        "type": "watch_dog",
+        "pin": 28
     }
 ]

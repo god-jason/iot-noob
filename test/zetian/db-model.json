@@ -93,7 +93,7 @@
                         "mode": "r",
                         "name": "elc",
                         "precision": 2,
-                        "rate": 1,
+                        "rate": 0.01,
                         "register": 3,
                         "type": "uint32",
                         "unit": ""

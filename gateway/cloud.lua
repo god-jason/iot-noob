@@ -85,7 +85,7 @@ function Cloud:report_device_status(dev)
 
     local now = os.time()
 
-    local st = ""
+    local st
 
     -- 默认10分钟无数据离线
     if now - dev._updated > (self.sub_offline_timeout or 10) * 60 then
@@ -406,7 +406,7 @@ function Cloud:task()
         end
 
         -- 子设备状态
-        self:report_devices_status()
+        --self:report_devices_status()
 
         -- 正在查看时，1秒上传一次
         if agent.watching then

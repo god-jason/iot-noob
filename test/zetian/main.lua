@@ -31,29 +31,8 @@ end
 mobile.simid(2, true)
 
 
--- 测试指示灯
-gpio.setup(27, 0)
-gpio.set(27, 1)
-gpio.setup(26, 0)
-gpio.set(26, 1)
-
-
--- 看门狗（watch_dog组件无用）
-local air153C_wtd = require 'air153C_wtd'
-sys.taskInit(function ()
-    log.info("main","air153C_wtd")
-    local flag = 0
-    air153C_wtd.init(28)
-    air153C_wtd.feed_dog(28)--模块开机第一步需要喂狗一次
-    sys.wait(3000)
-
-    log.info("WTD","eatdog test start!")
-    while 1 do
-		air153C_wtd.feed_dog(28)--28为看门狗控制引脚
-		log.info("main","feed dog")
-		sys.wait(150000)
-    end
-end)
+-- 银尔达电平默认是1.8，需要改成3.3，否则无法使用GPIO
+pm.ioVol(pm.IOVOL_ALL_GPIO, 3300) 
 
 -- 主进程
 sys.taskInit(function()

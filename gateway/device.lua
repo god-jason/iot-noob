@@ -13,7 +13,7 @@ function Device:init()
     self._values = {}
     self._modified_values = {}
     self._thresholds = {} -- 变化阈值
-    self._updated = 0 -- 数据更新时间
+    self._updated = os.time() -- 数据更新时间
     self._handlers = {}
     self._children = {} -- 内联子设备
     self._children_change = {}
@@ -92,9 +92,10 @@ end
 --- 添加子设备
 function Device:attach_children(dev)
     log.info(self.id, "attach_children", dev.id)
-    
+
     -- 订阅子设备变化
     local cancel = dev:on("change", function(values)
+        log.info("children", dev.id, "to", self.id)
         self:emit("change", values)
     end)
 
