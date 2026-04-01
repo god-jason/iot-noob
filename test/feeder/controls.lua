@@ -104,39 +104,43 @@ function vm.move(task, ctx, executor)
         end)
     end
 
-    -- 检查限位开关
-    iot.setTimeout(function()
-        if task == ctx.move_task and not executor.stoped and not executor.paused then
-
-            if task.distance > 0 then
-
-                -- 向前行走，开关没有松开
-                if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
-                    executor:stop()
-                    robot.state("error", "后接近开关故障")
-                    return
-                end
-                if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
-                    executor:stop()
-                    robot.state("error", "后磁感应开关故障")
-                    return
-                end
-
-            else
-                -- 向后行走，开关没有松开
-                if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
-                    executor:stop()
-                    robot.state("error", "前接近开关故障")
-                    return
-                end
-            end
-
-        end
-
-    end, 3000) -- 3s后再计算
-
     -- 主动上报数据
     iot.emit("report")
+
+    -- 检查限位开关
+    if ctx.check_timer == nil then
+        ctx.check_timer = iot.setTimeout(function()
+            ctx.check_timer = nil
+
+            if task == ctx.move_task and not executor.stoped and not executor.paused then
+
+                if task.distance > 0 then
+
+                    -- 向前行走，开关没有松开
+                    if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "后接近开关故障")
+                        return
+                    end
+                    if settings.device.meg_sensor_enable and components.meg_sensor.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "后磁感应开关故障")
+                        return
+                    end
+
+                else
+                    -- 向后行走，开关没有松开
+                    if settings.device.forward_limit_enable and components.forward_limit.gpio:get() == 0 then
+                        executor:stop()
+                        robot.state("error", "前接近开关故障")
+                        return
+                    end
+                end
+
+            end
+
+        end, 20000) -- 20s后再计算
+    end
 
     return task.wait, tm
 end
@@ -345,7 +349,7 @@ function vm.zero(task, ctx, executor)
             if ret then
                 return
             end
-            --停止电机
+            -- 停止电机
             components.move_servo:stop()
         end
     end
