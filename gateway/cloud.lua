@@ -323,7 +323,8 @@ end
 -- 上报所有设备状态
 function Cloud:report_devices_status()
     for id, dev in pairs(devices) do
-        if dev.values and not dev.inline then
+        -- 只上报非内联子设备状态
+        if dev ~= master.device and dev.values and not dev.inline then
             self:report_device_status(dev)
         end
     end
@@ -381,11 +382,13 @@ function Cloud:task()
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
     self:register()
 
-    -- 在线
+    -- 主设备上线
     self.client:publish("device/" .. self.id .. "/online", {})
 
     -- 主设备使用配置ID
-    master.device.id = self.id
+    if not master.device.id then
+        master.device.id = self.id
+    end
 
     local all_interval = 600 -- 10分钟传一次全部数据
     local ticks = all_interval - 30 -- 开机30秒，先全部传一次
@@ -406,7 +409,7 @@ function Cloud:task()
         end
 
         -- 子设备状态
-        --self:report_devices_status()
+        self:report_devices_status()
 
         -- 正在查看时，1秒上传一次
         if agent.watching then
