@@ -33,16 +33,14 @@ function links.create(clazz, opts)
 
     local devices = {}
 
-    -- 打开内联设备
-    for i, d in pairs(settings.devices) do
-        if d.link_id == opts.id then
-            d.inline = true -- 强制为内联设备
-            table.insert(devices, d)
-        end
+    -- 查找内联设备数据库
+    local ds = database.find("inline", "link_id", opts.id)
+    for i, d in ipairs(ds) do
+        table.insert(devices, d)
     end
 
     -- 查找设备数据库
-    local ds = database.find("device", "link_id", opts.id)
+    ds = database.find("device", "link_id", opts.id)
     for i, d in ipairs(ds) do
         table.insert(devices, d)
     end

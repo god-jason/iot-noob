@@ -29,7 +29,4 @@ function devices.get(id)
     return _devices[id]
 end
 
--- 内联设备，其他设备通过数据库添加
-settings.register("devices")
-
 return devices

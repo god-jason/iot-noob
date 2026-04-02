@@ -271,8 +271,15 @@ function Cloud:register()
         end
 
         -- 设备关联的物模型
-        info.devices = {}
         tab = database.load("device")
+        for id, data in pairs(tab) do
+            if data.product_id and not info.models[data.product_id] then
+                info.models[data.product_id] = 0 -- 同步物模型
+            end
+        end
+
+        -- 内联设备
+        tab = database.load("inline")
         for id, data in pairs(tab) do
             if data.product_id and not info.models[data.product_id] then
                 info.models[data.product_id] = 0 -- 同步物模型
@@ -296,6 +303,7 @@ function Cloud:register()
             serial = syncTable("serial"), -- 串口连接
             -- socket = syncTable("socket"), -- 网口连接
             device = syncTable("device"), -- 子设备
+            inline = syncTable("inline"), -- 内联设备
             binding = syncTable("binding"), -- 设备绑定
             scene = syncTable("scene"), -- 智能场景
             job = syncTable("job") -- 定时任务
