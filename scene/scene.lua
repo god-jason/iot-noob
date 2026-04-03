@@ -6,6 +6,7 @@ Scene.__index = Scene
 local log = iot.logger("scene")
 local devices = require("devices")
 local cron = require("cron")
+local agent = require("agent")
 
 --- 场景实例化
 function Scene:new(opts)
@@ -15,6 +16,7 @@ function Scene:new(opts)
         ranges = opts.ranges or {}, -- 时间范围
         weekdays = opts.weekdays or {}, -- 限定星期
         triggers = opts.triggers or {}, -- 触发器
+        is_and = opts.is_and or false, -- 条件关系 and/or
         conditions = opts.conditions or {}, -- 条件
         actions = opts.actions or {}, -- 响应
         triggered = false
@@ -162,60 +164,68 @@ function Scene:check()
     end
 
     -- 检查条件
-    for _, cond in ipairs(self.conditions) do
-        if cond.type == "script" then
-            local ok, ret = pcall(cond.script)
-            if not ok then
-                log.error("条件计算错误", ret)
-                return false
-            end
-            if not ret then
-                return false
-            end
-        elseif cond.type == "device" then
+    if self.conditions and #self.conditions > 0 then
+        local has = false
+        for _, cond in ipairs(self.conditions) do
+            if cond.type == "script" then
+                local ok, ret = pcall(cond.script)
+                if not ok then
+                    log.error("条件计算错误", ret)
+                    return false
+                end
+                if ret then
+                    has = true
+                elseif self.is_and then
+                    return false
+                end
+            elseif cond.type == "device" then
 
-            local device = devices[cond.device]
-            if not device then
-                return false
-            end
+                local device = devices[cond.device]
+                if not device then
+                    return false
+                end
 
-            -- 条件对比
-            local ret, value = device:get_value(cond.key)
-            if not ret then
-                return false, value
-            end
+                -- 条件对比
+                local ret, value = device:get_value(cond.key)
+                if not ret then
+                    return false, value
+                end
 
-            -- TODO 以下只能判断数据关系
-            if type(value) ~= "number" then
-                log.error("device:", cond.device, " value:", cond.key, " is not a number")
-                return false
-            end
+                -- TODO 以下只能判断数据关系
+                if type(value) ~= "number" then
+                    log.error("device:", cond.device, " value:", cond.key, " is not a number")
+                    return false
+                end
 
-            if cond.compare == ">" then
-                if value <= tonumber(cond.value) then
+                ret = false
+                if cond.compare == ">" then
+                    ret = value > tonumber(cond.value)
+                elseif cond.compare == ">=" then
+                    ret = value >= tonumber(cond.value)
+                elseif cond.compare == "<" then
+                    ret = value < tonumber(cond.value)
+                elseif cond.compare == "<=" then
+                    ret = value <= tonumber(cond.value)
+                elseif cond.compare == "==" or cond.compare == "=" then
+                    ret = value == tonumber(cond.value)
+                elseif cond.compare == "~=" or cond.compare == "!=" or cond.compare == "<>" then
+                    ret = value ~= tonumber(cond.value)
+                else
+                    log.error("不支持的比较方式", cond.compare)
                     return false
                 end
-            elseif cond.compare == ">=" then
-                if value < tonumber(cond.value) then
-                    return false
-                end
-            elseif cond.compare == "<" then
-                if value >= tonumber(cond.value) then
-                    return false
-                end
-            elseif cond.compare == "<=" then
-                if value > tonumber(cond.value) then
-                    return false
-                end
-            elseif cond.compare == "==" then
-                if value ~= tonumber(cond.value) then
-                    return false
-                end
-            elseif cond.compare == "~=" then
-                if value == tonumber(cond.value) then
+
+                if ret then
+                    has = true
+                elseif self.is_and then
                     return false
                 end
             end
+        end
+
+        -- 或 条件也全不满足
+        if not has then
+            return false
         end
     end
 
@@ -271,6 +281,12 @@ function Scene:execute()
             local scene = scenes[action.scene]
             if scene.__index == Scene and not scene.triggered then
                 scene:execute()
+            end
+        elseif action.type == "action" then
+            -- 执行响应
+            local ok, err = agent.execute(action.action, action.data)
+            if not ok then
+                log.error("执行错误", err)
             end
         end
     end
