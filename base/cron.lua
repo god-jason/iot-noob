@@ -216,21 +216,23 @@ function cron.execute()
     local now = os.time()
     local next
     for _, job in pairs(jobs) do
-        if not job.next then
-            calc_next(job, now)
-        elseif job.next <= now then
-            -- 超过1个小时，则丢弃（避免时间同步，系统日期有较大变化）
-            if job.next > now - 3600 then
-                for _, cb in pairs(job.callbacks) do
-                    -- 异步执行(不知道有没有数量限制，会不会影响性能)
-                    iot.start(cb)
+        if job ~= nil then
+            if not job.next then
+                calc_next(job, now)
+            elseif job.next <= now then
+                -- 超过1个小时，则丢弃（避免时间同步，系统日期有较大变化）
+                if job.next > now - 3600 then
+                    for _, cb in pairs(job.callbacks) do
+                        -- 异步执行(不知道有没有数量限制，会不会影响性能)
+                        iot.start(cb)
+                    end
                 end
+                calc_next(job, now)
             end
-            calc_next(job, now)
-        end
 
-        if next == nil or job.next < next then
-            next = job.next
+            if next == nil or job.next < next then
+                next = job.next
+            end
         end
     end
 
@@ -308,14 +310,14 @@ end
 function cron.stop(id)
     for k, job in pairs(jobs) do
         if job.callbacks[id] ~= nil then
-            if job.count <= 1 then
-                -- table.remove(jobs, k)
-                jobs[k] = nil
-                break
-            end
             -- table.remove(job.callbacks, id)
             job.callbacks[id] = nil
             job.count = job.count - 1
+
+            -- 清空定时
+            if job.count < 1 then
+                jobs[k] = nil
+            end
             break
         end
     end
