@@ -61,8 +61,8 @@ function Executor:stop()
 end
 
 --- 中断当前任务等待
-function Executor:interrupt()
-    iot.emit("executor_" .. self.id .. "_break")
+function Executor:interrupt(...)
+    iot.emit("executor_" .. self.id .. "_break", ...)
 end
 
 function Executor:wait(timeout)

@@ -223,7 +223,7 @@ function MqttClient:publish(topic, payload, qos)
     end
 
     -- 太多消息，则不发送
-    if #self.pub_queue > 50 then
+    if #self.pub_queue > 10 then
         return false, "太多MQTT消息"
     end
 
@@ -232,7 +232,7 @@ function MqttClient:publish(topic, payload, qos)
         local err
         payload, err = iot.json_encode(payload, "2f")
         if payload == nil then
-            payload = "payload解析错误：" .. err
+            return false, err 
         end
     end
     log.info("publish", topic, payload, qos)

@@ -293,8 +293,14 @@ function vm.zero(task, ctx, executor)
         local tm = components.move_servo:start(rpm, rounds)
 
         -- 调用执行器的等待（反向调用了，有点怪）
-        local ret = executor:wait(tm)
+        local ret, info = executor:wait(tm)
         if ret then
+            if info == "HEAD" then
+                log.info("位置清零被外部中断，可能是到达了起点，停止清零")
+                success = true
+                break
+            end
+
             -- 已经有后接近信号了
             if settings.device.backward_limit_enable and components.backward_limit.gpio:get() == 0 then
                 iot.emit("log", "后接近信号，清零成功")

@@ -1527,7 +1527,7 @@ local function on_backward_limit(level)
             iot.emit("log", "后接近信号，未到起点，暂停")
         else
             if robot.executor then
-                robot.executor:interrupt()
+                robot.executor:interrupt("HEAD")
             end
             sensor.set_position(0) -- 位置清零
             iot.emit("log", "后接近信号，到起点")
@@ -1556,7 +1556,7 @@ local function on_meg_sensor(level)
         components.move_servo:stop()
 
         if robot.executor then
-            robot.executor:interrupt()
+            robot.executor:interrupt("HEAD")
         end
 
         sensor.set_position(0) -- 位置清零
