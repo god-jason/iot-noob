@@ -12,6 +12,9 @@ if not DEBUG then
     COROUTINE_ERROR_RESTART = false
 end
 
+-- GPIO电平默认是1.8，需要改成3.3，否则无法使用GPIO
+pm.ioVol(pm.IOVOL_ALL_GPIO, 3300) 
+
 -- 引入系统适配层
 require("iot")
 

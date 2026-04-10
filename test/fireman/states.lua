@@ -5,6 +5,23 @@ local sensor = require("sensor")
 local master = require("master")
 local vm = require("vm")
 
+local function test_extinguish_stop()
+    local ret, info = robot.plan("extinguish_stop", {}, {
+        -- 完成之后，恢复巡逻状态
+        on_finish = function()
+            robot.state("patrol")
+        end
+    })
+    if not ret then
+        log.error("启动灭火结束计划失败", info)
+        return
+    end
+end
+
+local function test_extinguish()    
+    robot.state("extinguish")
+end
+
 local states = {}
 
 states.standby = {
@@ -44,12 +61,22 @@ states.error = {
 states.init = {
     name = "初始化",
     enter = function()
-        robot.plan("stop")
+        robot.plan("stop", {}, {
+            on_finish = function()
+
+                --测试接水
+                --vm.water_up({})
+            end
+        })
 
         -- 5秒后进入巡逻状态
-        iot.setTimeout(function()
-            robot.state("patrol")
-        end, 5000)
+        -- iot.setTimeout(function()
+        --     robot.state("patrol")
+        -- end, 5000)
+
+        -- 测试，30秒后进入灭火状态
+        iot.setTimeout(test_extinguish, 5000)
+
     end
 }
 
@@ -75,20 +102,22 @@ states.patrol = {
     leave = function()
         -- 停止行走电机和摄像头
         robot.stop()
+        components.move_stepper:stop()
     end,
     tick = function()
+        log.info("巡逻中，距离", sensor.distance)
         -- 维持速度，自动恢复
-        if robot.executors.move then
-            -- 如果距离小于100cm，停止行走电机
-            if sensor.distance < 100 and components.move_stepper.running then
-                components.move_stepper:stop()
-                robot.executors.move:pause()
-            end
-            -- 如果距离大于200cm，恢复行走电机
-            if sensor.distance > 200 and not components.move_stepper.running then
-                robot.executors.move:resume()
-            end
-        end
+        -- if robot.executors.move then
+        --     -- 如果距离小于100cm，停止行走电机
+        --     if sensor.distance < 100 and components.move_stepper.running then
+        --         components.move_stepper:stop()
+        --         robot.executors.move:pause()
+        --     end
+        --     -- 如果距离大于200cm，恢复行走电机
+        --     if sensor.distance > 200 and not components.move_stepper.running then
+        --         robot.executors.move:resume()
+        --     end
+        -- end
     end
 }
 
@@ -98,8 +127,14 @@ states.extinguish = {
     enter = function()
         -- 停止行走电机
 
-        -- 创建任务，启动机械臂，方向，接水
-        local ret, info = robot.plan("extinguish", {})
+        local ret, info = robot.plan("extinguish", {}, {
+            on_finish = function()
+                log.info("灭火动作执行完，5秒后结束灭火")
+
+                -- 灭火完成，5秒后恢复巡逻状态
+                iot.setTimeout(test_extinguish_stop, 5000)
+            end
+        })
         if not ret then
             log.error("启动灭火计划失败", info)
             return
@@ -107,22 +142,6 @@ states.extinguish = {
 
     end,
     leave = function()
-        -- 创建任务，停水，收回机械臂，方向回正
-        local ret, info = robot.plan("extinguish_stop", {}, {
-            -- 完成之后，恢复巡逻状态
-            on_finish = function()
-                robot.state("patrol")
-            end
-        })
-        if not ret then
-            log.error("启动灭火结束计划失败", info)
-            return
-        end
-
-        -- 10秒后进入巡逻状态
-        iot.setTimeout(function()
-            robot.state("patrol")
-        end, 30000)
     end,
     tick = function()
         -- 自动纠正方向，瞄准火源

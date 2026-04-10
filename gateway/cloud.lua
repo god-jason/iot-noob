@@ -288,7 +288,7 @@ function Cloud:register()
 
         local function syncTable(name)
             local sync = {}
-            tab = database.load("name")
+            tab = database.load(name)
             for id, data in pairs(tab) do
                 sync[id] = {
                     updated = data.updated,

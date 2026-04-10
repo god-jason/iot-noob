@@ -25,14 +25,14 @@ function planners.move(data)
     return true, {
         name = "move",
         tasks = {{
-            name = "patrol",
+            name = "move",
             type = "move",
             speed = data.speed or 5,
-            rounds = data.rounds or 100,
+            rounds = data.rounds or 10000,
             wait = true
         }, {
             type = "jump", -- 重复执行旋转
-            label = "patrol"
+            label = "move"
         }}
     }
     
@@ -44,14 +44,14 @@ function planners.patrol(data)
         tasks = {{
             name = "patrol",
             type = "cam_left",
-            rpm = data.rpm or 5,
+            rpm = data.rpm or 20,
             wait = true
         }, {
             type = "wait",
             time = 100
         }, {
             type = "cam_right",
-            rpm = data.rpm or 5,
+            rpm = data.rpm or 20,
             wait = true
         }, {
             type = "wait",
@@ -68,14 +68,14 @@ function planners.cam_angle(data)
     return true, {
         tasks = {{
             type = "cam_left",
-            rpm = data.rpm or 5,
+            rpm = data.rpm or 10,
             wait = true
         }, {
             type = "wait",
             time = 100
         }, {
             type = "cam_angle",
-            rpm = 5,
+            rpm = data.rpm or 10,
             angle = data.angle,
             wait = true
         }}
@@ -87,21 +87,27 @@ function planners.extinguish(data)
     return true, {
         tasks = {{ -- 摄像头归位
             type = "cam_left",
-            rpm = data.cam_rpm or 5,
+            rpm = data.cam_rpm or 10,
             wait = true
         }, {
             type = "turn_angle", -- 机身旋转
-            rpm = data.turn_rpm or 60,
-            angle = data.turn_angle or 30,
+            rpm = data.rpm or 30,
+            angle = data.angle or 90,
             wait = true
         }, {
+            type = "turn_stop"
+        }, {
             type = "arm_angle", -- 机械臂旋转
-            rpm = data.arm_rpm or 60,
-            angle = data.arm_angle or 30,
+            rpm = data.rpm or 30,
+            angle = data.angle or 90,
             wait = true
+        }, {
+            type = "arm_stop"
         }, {
             type = "water_up", -- 接水
             wait = true
+        }, {
+            type = "water_stop"
         }}
     }
 end
@@ -113,20 +119,19 @@ function planners.extinguish_stop(data)
             type = "water_down",
             wait = true
         }, {
-            type = "water_stop",
-            wait = true
+            type = "water_stop"
         }, {
             type = "arm_back",
+            rpm = data.rpm or 30,
             wait = true
         }, {
-            type = "arm_stop",
-            wait = true
+            type = "arm_stop"
         }, {
             type = "turn_back",
+            rpm = data.rpm or 30,
             wait = true
         }, {
-            type = "turn_stop",
-            wait = true
+            type = "turn_stop"
         }}
     }
 end

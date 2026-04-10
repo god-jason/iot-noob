@@ -2,7 +2,7 @@
     {
         "type": "stepper",
         "name": "move_stepper",
-        "reverse": true,
+        "reverse": false,
         "pwm_id": 0,
         "dir": 5,
         "en": 4,
@@ -11,7 +11,7 @@
     {
         "type": "stepper",
         "name": "arm_stepper",
-        "reverse": true,
+        "reverse": false,
         "pwm_id": 0,
         "dir": 8,
         "en": 7,
@@ -20,7 +20,7 @@
     {
         "name": "turn_stepper",
         "type": "stepper",
-        "reverse": true,
+        "reverse": false,
         "pwm_id": 1,
         "dir": 23,
         "en": 22,
@@ -29,7 +29,7 @@
     {
         "name": "cam_stepper",
         "type": "stepper",
-        "reverse": true,
+        "reverse": false,
         "pwm_id": 1,
         "dir": 27,
         "en": 26,
@@ -58,7 +58,7 @@
     {
         "name": "water_pin1",
         "type": "relay",
-        "pin": 36
+        "pin": 35
     },
     {
         "name": "water_pin2",

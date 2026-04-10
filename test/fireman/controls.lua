@@ -11,8 +11,8 @@ local move_speed_step = 10
 
 -- 摄像头圈数
 local cam_rounds = 0.75 -- 默认3/4圈，实际要按比例计算
-local turn_rounds = 1 -- 要按实际圈数
-local arm_rounds = 1 -- 要按实际圈数
+local turn_rounds = 2 -- 要按实际圈数
+local arm_rounds = 2 -- 要按实际圈数
 
 -- 行走
 function vm.move(task)
@@ -61,12 +61,7 @@ end
 function vm.turn_back(task)
     components.cam_pin:turn_off()
     components.turn_pin:turn_on()
-    if task.angle then
-        local rounds = turn_rounds * task.angle / 360
-        return task.wait, components.turn_stepper:start(task.rpm, -rounds)
-    else
-        return task.wait, components.turn_stepper:start(task.rpm, -(turn_rounds))
-    end
+    return task.wait, components.turn_stepper:start(task.rpm, -turn_rounds)
 end
 
 -- 转到 指定角度
@@ -87,12 +82,7 @@ end
 function vm.arm_back(task)
     components.move_pin:turn_off()
     components.arm_pin:turn_on()
-    if task.angle then
-        local rounds = arm_rounds * task.angle / 180
-        return task.wait, components.arm_stepper:start(task.rpm, -rounds)
-    else
-        return task.wait, components.arm_stepper:start(task.rpm, -arm_rounds)
-    end
+    return task.wait, components.arm_stepper:start(task.rpm, -arm_rounds)
 end
 
 -- 机械臂 转到 指定角度
@@ -113,14 +103,14 @@ end
 function vm.water_up(task)
     components.water_pin1:turn_on()
     components.water_pin2:turn_off()
-    return task.wait, 1000
+    return task.wait, 5000
 end
 
 -- 断水
 function vm.water_down(task)
     components.water_pin1:turn_off()
     components.water_pin2:turn_on()
-    return task.wait, 1000
+    return task.wait, 5000
 end
 
 -- 停止接水
