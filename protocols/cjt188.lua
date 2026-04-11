@@ -401,7 +401,7 @@ function Cjt188Master:new(opts)
     local master = setmetatable({}, self)
     master.link = opts.link
     master.devices = opts.devices or {}
-    master.timeout = opts.timeout or 2000
+    master.timeout = opts.timeout or 1000
     master.request = Request:new(master.link, master.timeout)
     master.polling_interval = opts.polling_interval or 10
     master.increment = 0

@@ -1,0 +1,140 @@
+--- 集线器 串口复用
+-- @module hub
+local hub = {}
+
+local log = iot.logger("hub")
+local boot = require("boot")
+local settings = require("settings")
+local database = require("database")
+local links = require("links")
+
+local _hubs = {}
+
+--- 集线器虚拟连接，继承Link
+local HubLink = require("utils").class(require("event"))
+
+function HubLink:open()
+    self.hub = _hubs[self.hub_id]
+    if not self.hub then
+        return false, "集线器未打开"
+    end
+    return true
+end
+
+function HubLink:write(data)
+    -- 写数据到集线器
+    return self.hub:write(data, self)
+end
+
+--- 集线器连接，继承Link
+local Hub = require("utils").class(require("event"))
+
+function Hub:init()
+    self.using = false
+    self.listener = nil
+end
+
+function Hub:open()
+    self.link = links.get(self.link_id)
+    if not self.link then
+        log.error("连接", self.link_id, "未打开")
+        return
+    end
+
+    self.cancel = self.link:on("data", function(data)
+        self.using = false -- 收到数据就解锁
+
+        -- 发送
+        self:emit("data", data)
+
+        -- 转发到虚拟连接
+        if self.child then
+            self.child:emit("data", data)
+        end
+
+        if self.timer then
+            iot.clearTimeout(self.timer)
+            self.timer = nil
+        end
+    end)
+end
+
+function Hub:close()
+    if self.cancel then
+        self.cancel()
+        self.cancel = nil
+    end
+    self.listener = nil
+    self.using = false
+    self.child = nil
+end
+
+function Hub:write(data, link)
+    if not self.link then
+        return false, "连接未打开"
+    end
+
+    -- 重入锁，等待其他操作完成
+    if self.child ~= link then
+        while self.using do
+            log.info("集线器等待上一个数据处理完成", self.id, link.id)
+            iot.sleep(200)
+        end
+    end
+
+    self.using = true
+    self.child = link
+
+    local ret, info = self.link:write(data)
+    if not ret then
+        return false, info
+    end
+
+    -- 设置超时，防止数据处理失败导致阻塞
+    if self.timer then
+        iot.clearTimeout(self.timer)
+    end
+    self.timer = iot.setTimeout(function()
+        self.using = false
+        self.timer = nil
+    end, self.timeout or 1000)
+
+    return true
+end
+
+function hub.open()
+    local hubs = database.find("hub")
+    for i, h in ipairs(hubs) do
+        local hb = Hub:new(h)
+        local ret, info = hub:open()
+        if not ret then
+            log.error("连接集线器", h.id, h.name, " 出错:", info)
+        else
+            _hubs[h.id] = hb
+
+            -- 加载虚拟连接
+            local ls = database.find("hub_link", "hub_id", h.id)
+            for i, l in ipairs(ls) do
+                local ret, info = links.create(HubLink, l)
+                if not ret then
+                    log.error("连接虚拟连接", h.id, h.name, " 出错:", info)
+                else
+                    hb.attach(info)
+                end
+            end
+        end
+
+    end
+    return true
+end
+
+function hub.close()
+    for k, hb in pairs(_hubs) do
+        hb:close()
+    end
+    _hubs = {}
+end
+
+boot.register("hub", hub, "links")
+
+return hub
