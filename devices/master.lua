@@ -127,13 +127,9 @@ function master.open()
         iccid = mobile.iccid()
     })
 
-    iot.setInterval(master.update_status, (settings.master.interval or 1) * 60 * 1000)
+    iot.setInterval(master.update_status, 60 * 1000)
 end
 
 boot.register("master", master, "settings", "components")
-
-settings.register("master", {
-    interval = 1
-})
 
 return master
