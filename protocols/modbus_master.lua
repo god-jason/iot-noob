@@ -2,10 +2,6 @@
 -- @module modbus_master_device
 local modbus_master = {}
 
---- Modbus设备
--- @module modbus_master_device
-local ModbusMasterDevice = require("utils").class(require("device"))
-modbus_master.ModbusMasterDevice = ModbusMasterDevice
 
 local log = iot.logger("modbus_master")
 
@@ -16,6 +12,13 @@ local protocols = require("protocols")
 local points = require("points")
 local model = require("model")
 local modbus = require("modbus")
+local utils = require("utils")
+
+--- Modbus设备
+-- @module modbus_master_device
+local ModbusMasterDevice = utils.class(require("device"))
+modbus_master.ModbusMasterDevice = ModbusMasterDevice
+
 
 ---打开设备
 function ModbusMasterDevice:open()
@@ -148,26 +151,21 @@ end
 
 ---Modbus主站
 -- @module modbus_master
-local ModbusMaster = {}
-ModbusMaster.__index = ModbusMaster
-
+local ModbusMaster = utils.class()
 protocols.register("modbus", ModbusMaster)
 
 ---创建实例
 -- @param link any 连接实例
 -- @param opts table 协议参数
 -- @return Master
-function ModbusMaster:new(opts)
-    local master = setmetatable({}, self)
-    master.link = opts.link
-    master.devices = opts.devices or {}
-    master.timeout = opts.timeout or 1000 -- 1秒钟
-    master.request = Request:new(master.link, master.timeout)
-    master.polling_interval = opts.polling_interval or 5 -- 5秒钟
-    master.tcp = opts.tcp or false -- modbus tcp
-    master.increment = 1 -- modbus-tcp序号
-
-    return master
+function ModbusMaster:init()
+    self.link = self.link
+    self.devices = self.devices or {}
+    self.timeout = self.timeout or 1000 -- 1秒钟
+    self.request = Request:new(self.link, self.timeout)
+    self.polling_interval = self.polling_interval or 5 -- 5秒钟
+    self.tcp = self.tcp or false -- modbus tcp
+    self.increment = 1 -- modbus-tcp序号
 end
 
 function ModbusMaster:readTCP(slave, func, addr, len)

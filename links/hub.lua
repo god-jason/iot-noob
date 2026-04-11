@@ -103,27 +103,34 @@ function Hub:write(data, link)
 end
 
 function hub.open()
-    local hubs = database.find("hub")
-    for i, h in ipairs(hubs) do
-        local hb = Hub:new(h)
-        local ret, info = hub:open()
-        if not ret then
-            log.error("连接集线器", h.id, h.name, " 出错:", info)
-        else
-            _hubs[h.id] = hb
+    local hubs = {
+        hub1 = settings.hub1,
+        hub2 = settings.hub2,
+        hub3 = settings.hub3,
+    }
 
-            -- 加载虚拟连接
-            local ls = database.find("hub_link", "hub_id", h.id)
-            for i, l in ipairs(ls) do
-                local ret, info = links.create(HubLink, l)
-                if not ret then
-                    log.error("连接虚拟连接", h.id, h.name, " 出错:", info)
-                else
-                    hb.attach(info)
+    for i, h in pairs(hubs) do
+        if h and h.enable then
+            local hb = Hub:new(h)
+            local ret, info = hub:open()
+            if not ret then
+                log.error("连接集线器", i, h.name, " 出错:", info)
+            else
+                _hubs[i] = hb
+
+                -- 加载虚拟连接
+                local ls = database.find("hub_link", "hub_id", i)
+                for i, l in ipairs(ls) do
+                    local ret, link = links.create(HubLink, l)
+                    if not ret then
+                        log.error("连接虚拟连接", i, l.name, " 出错:", link)
+                    else
+                        link.hub = hb
+                    end
                 end
             end
-        end
 
+        end
     end
     return true
 end
@@ -135,6 +142,10 @@ function hub.close()
     _hubs = {}
 end
 
-boot.register("hub", hub, "links")
+boot.register("hub", hub, "settings", "links")
+
+settings.register("hub1")
+settings.register("hub2")
+settings.register("hub3")
 
 return hub

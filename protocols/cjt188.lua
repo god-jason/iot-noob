@@ -12,6 +12,7 @@ local protocols = require("protocols")
 local binary = require("binary")
 local points = require("points")
 local model = require("model")
+local utils = require("utils")
 
 -- 单位转换代码
 local units = {
@@ -173,7 +174,7 @@ local types = {
 
 --- CJT188设备
 -- @module cjt188_device
-local Cjt188Device = require("utils").class(require("device"))
+local Cjt188Device = utils.class(require("device"))
 cjt188.Cjt188Device = Cjt188Device
 
 ---打开设备
@@ -398,8 +399,7 @@ end
 
 ---Cjt188主站
 -- @module cjt188_master
-local Cjt188Master = {}
-Cjt188Master.__index = Cjt188Master
+local Cjt188Master = utils.class()
 cjt188.Cjt188Master = Cjt188Master
 
 protocols.register("cjt188", Cjt188Master)
@@ -408,16 +408,13 @@ protocols.register("cjt188", Cjt188Master)
 -- @param link any 连接实例
 -- @param opts table 协议参数
 -- @return Cjt188Master
-function Cjt188Master:new(opts)
-    local master = setmetatable({}, self)
-    master.link = opts.link
-    master.devices = opts.devices or {}
-    master.timeout = opts.timeout or 1000
-    master.request = Request:new(master.link, master.timeout)
-    master.polling_interval = opts.polling_interval or 10
-    master.increment = 0
-
-    return master
+function Cjt188Master:init()
+    self.link = self.link
+    self.devices = self.devices or {}
+    self.timeout = self.timeout or 1000
+    self.request = Request:new(self.link, self.timeout)
+    self.polling_interval = self.polling_interval or 1800 -- 默认半小时轮询一次
+    self.increment = 0
 end
 
 -- 写入数据
@@ -539,7 +536,9 @@ function Cjt188Master:open()
     end
 
     -- 开启轮询
-    iot.start(Cjt188Master._polling, self)
+    if self.polling ~= false then
+        iot.start(Cjt188Master._polling, self)
+    end
 end
 
 --- 关闭
@@ -551,7 +550,7 @@ end
 --- 轮询
 function Cjt188Master:_polling()
     -- 轮询间隔
-    local interval = self.polling_interval or 60
+    local interval = self.polling_interval or 1800
     interval = interval * 1000 -- 毫秒
 
     log.info("polling interval", interval)
@@ -562,11 +561,10 @@ function Cjt188Master:_polling()
 
         -- 轮询连接下面的所有设备
         for _, dev in pairs(self.devices) do
-            iot.xcall(Cjt188Device.poll, dev)
+            iot.xcall(dev.poll, dev)
 
             -- 等待数据完成
             iot.sleep(500)
-
         end
 
         local finish = mcu.ticks()
@@ -576,6 +574,5 @@ function Cjt188Master:_polling()
         end
     end
 end
-
 
 return cjt188
