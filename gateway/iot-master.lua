@@ -13,7 +13,7 @@ local MqttClient = require("mqtt_client")
 local database = require("database")
 local master = require("master")
 
-local _clouds = {}
+local _masters = {}
 
 -- 解析JSON
 local function parse_json(callback, self)
@@ -28,9 +28,9 @@ local function parse_json(callback, self)
     end
 end
 
-local Cloud = require("utils").class(require("event"))
+local Master = require("utils").class(require("event"))
 
-function Cloud:init()
+function Master:init()
     -- 默认使用IMEI号作为ID
     if not self.id or #self.id == 0 then
         self.id = mobile.imei()
@@ -42,11 +42,11 @@ function Cloud:init()
     self.password = self.password or crypto.md5(self.id .. self.key)
 
     -- 启动任务
-    iot.start(Cloud.task, self)
+    iot.start(Master.task, self)
 end
 
 -- 查找设备
-function Cloud:find_device(device_id)
+function Master:find_device(device_id)
     -- 未传值，则使用网关设备
     if not device_id or #device_id == 0 or device_id == self.id then
         --data.device_id = self.id -- 赋值回传
@@ -56,7 +56,7 @@ function Cloud:find_device(device_id)
 end
 
 -- 上报设备数据
-function Cloud:report_device_values(dev, all)
+function Master:report_device_values(dev, all)
     if not self.client then
         log.error("平台未连接")
         return
@@ -77,7 +77,7 @@ function Cloud:report_device_values(dev, all)
 end
 
 -- 上报设备在线状态
-function Cloud:report_device_status(dev)
+function Master:report_device_status(dev)
     if not self.client then
         log.error("平台未连接")
         return
@@ -102,7 +102,7 @@ function Cloud:report_device_status(dev)
 end
 
 -- 处理配置操作
-function Cloud:on_setting_operators(topic, data)
+function Master:on_setting_operators(topic, data)
     local _, _, _, _, _, cfg, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
     log.info("config", cfg, op)
     local ret, info
@@ -120,7 +120,7 @@ function Cloud:on_setting_operators(topic, data)
 end
 
 -- 处理数据库操作
-function Cloud:on_database_operators(topic, data)
+function Master:on_database_operators(topic, data)
     local _, _, _, _, _, db, op = topic:find("(.+)/(.+)/(.+)/(.+)/(.+)")
     log.info("database", db, op)
     local ret, info
@@ -148,14 +148,14 @@ function Cloud:on_database_operators(topic, data)
 end
 
 -- 远程下发配置
-function Cloud:on_device_setting(topic, data)
+function Master:on_device_setting(topic, data)
     settings.update(data.name, data.content, data.version)
     -- 数据直接原路返回了
     self.client:publish(topic .. "/response", data)
 end
 
 -- 设备同步请求
-function Cloud:on_device_sync(topic, data)
+function Master:on_device_sync(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
         local ret, info = dev:poll()
@@ -172,7 +172,7 @@ function Cloud:on_device_sync(topic, data)
 end
 
 -- 设备写请求
-function Cloud:on_device_write(topic, data)
+function Master:on_device_write(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
         data.results = {}
@@ -192,7 +192,7 @@ function Cloud:on_device_write(topic, data)
 end
 
 -- 设备读请求
-function Cloud:on_device_read(topic, data)
+function Master:on_device_read(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
         data.values = {}
@@ -212,7 +212,7 @@ function Cloud:on_device_read(topic, data)
 end
 
 -- 处理设备操作
-function Cloud:on_action(topic, data)
+function Master:on_action(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
         local ret, val = agent.execute(data.action, data.parameters or data.data)
@@ -228,7 +228,7 @@ function Cloud:on_action(topic, data)
 end
 
 -- 注册设备信息
-function Cloud:register()
+function Master:register()
     log.info("register")
 
     -- 上报注册信息
@@ -315,12 +315,12 @@ function Cloud:register()
 end
 
 -- 上报所有设备
-function Cloud:report_values(all)
+function Master:report_values(all)
     self:report_device_values(master.device, all)
 end
 
 -- 上报所有设备
-function Cloud:report_devices_values(all)
+function Master:report_devices_values(all)
     for id, dev in pairs(devices) do
         if dev.values and not dev.inline then
             self:report_device_values(dev, all)
@@ -329,7 +329,7 @@ function Cloud:report_devices_values(all)
 end
 
 -- 上报所有设备状态
-function Cloud:report_devices_status()
+function Master:report_devices_status()
     for id, dev in pairs(devices) do
         -- 只上报非内联子设备状态
         if dev ~= master.device and dev.values and not dev.inline then
@@ -338,7 +338,7 @@ function Cloud:report_devices_status()
     end
 end
 
-function Cloud:task()
+function Master:task()
     -- if mobile.status() ~= 1 then
     log.info("等待网络就绪")
     -- 等待网络就绪
@@ -378,13 +378,13 @@ function Cloud:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    -- self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Cloud.on_database_operators, self))
-    -- self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Cloud.on_setting_operators, self))
-    self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Cloud.on_device_setting, self))
-    self.client:subscribe("device/" .. self.id .. "/write", parse_json(Cloud.on_device_write, self))
-    self.client:subscribe("device/" .. self.id .. "/read", parse_json(Cloud.on_device_read, self))
-    self.client:subscribe("device/" .. self.id .. "/sync", parse_json(Cloud.on_device_sync, self))
-    self.client:subscribe("device/" .. self.id .. "/action", parse_json(Cloud.on_action, self))
+    -- self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self))
+    -- self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Master.on_device_setting, self))
+    self.client:subscribe("device/" .. self.id .. "/write", parse_json(Master.on_device_write, self))
+    self.client:subscribe("device/" .. self.id .. "/read", parse_json(Master.on_device_read, self))
+    self.client:subscribe("device/" .. self.id .. "/sync", parse_json(Master.on_device_sync, self))
+    self.client:subscribe("device/" .. self.id .. "/action", parse_json(Master.on_action, self))
 
     -- 自动注册
     -- iot.on("MQTT_CONNECT_" .. cloud.id, register)
@@ -433,7 +433,7 @@ function Cloud:task()
     end
 end
 
-function Cloud:close()
+function Master:close()
     self.client:close()
 end
 
@@ -441,7 +441,7 @@ end
 -- @param topic string 主题
 -- @param payload string|table|nil 数据，支持string,table
 -- @param qos integer|nil 质量
-function Cloud:publish(topic, payload, qos)
+function Master:publish(topic, payload, qos)
     if not self.client then
         log.error("平台未连接")
         return
@@ -451,7 +451,7 @@ end
 
 -- 上传日志
 iot.on("log", function(data)
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.log then
             c:publish("device/" .. c.id .. "/log", data)
         end
@@ -460,7 +460,7 @@ end)
 
 -- 上传错误
 iot.on("error", function(data)
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.error then
             c:publish("device/" .. c.id .. "/log", "[设备错误] " .. data)
         end
@@ -469,7 +469,7 @@ end)
 
 -- 上传指令
 iot.on("report", function(all)
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.report then
             c:report_values(all)
         end
@@ -478,7 +478,7 @@ end)
 
 -- 上传错误
 iot.on("report_error", function(err)
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.error then
             c:publish("device/" .. c.id .. "/error", err)
         end
@@ -487,7 +487,7 @@ end)
 
 -- 上传错误
 iot.on("clear_error", function()
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.error then
             c:publish("device/" .. c.id .. "/error/clear")
         end
@@ -497,7 +497,7 @@ end)
 -- 监听定位，并上传
 iot.on("location", function(data)
     data = iot.json_encode(data, "12f") -- 默认精度只有2位，太低了
-    for i, c in ipairs(_clouds) do
+    for i, c in ipairs(_masters) do
         if c.location then
             c:publish("device/" .. c.id .. "/location", data)
         end
@@ -505,26 +505,26 @@ iot.on("location", function(data)
 end)
 
 function cloud.open()
-    local clouds = {settings.cloud, settings.cloud1, settings.cloud1}
+    local clouds = {settings.master, settings.master1, settings.master2}
 
     -- 打开连接
     for i, v in ipairs(clouds) do
         if v.enable then
-            local c = Cloud:new(v)
-            table.insert(_clouds, c)
+            local c = Master:new(v)
+            table.insert(_masters, c)
         end
     end
 end
 
 function cloud.close()
-    for i, v in ipairs(_clouds) do
+    for i, v in ipairs(_masters) do
         v:close()
     end
 end
 
-boot.register("cloud", cloud, "settings")
+boot.register("iot-master", cloud, "settings")
 
-settings.register("cloud", {
+settings.register("master", {
     enable = true,
     host = "iot.busycloud.cn",
     port = 1883,
@@ -537,6 +537,6 @@ settings.register("cloud", {
     sync_databases = true
 })
 
-settings.register("cloud1", "cloud2")
+settings.register("master1", "master2")
 
 return cloud
