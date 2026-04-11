@@ -12,6 +12,7 @@ local binary = require("binary")
 local points = require("points")
 local model = require("model")
 local utils = require("utils")
+local meter = require("meter")
 
 -- 单位转换代码
 local units = {
@@ -97,83 +98,6 @@ local function unit_convert(unit, value)
     end
     return value
 end
-
--- 数据格式
-local types = {
-    ["XXXXXXXX"] = {
-        type = "bcd",
-        size = 4
-    },
-    ["XXXXXX"] = {
-        type = "bcd",
-        size = 3
-    },
-    ["XXXXXX.XX"] = {
-        type = "bcd",
-        size = 4,
-        rate = 0.01
-    },
-    ["XXXX"] = {
-        type = "bcd",
-        size = 2
-    },
-    ["XXXX.XX"] = {
-        type = "bcd",
-        size = 3,
-        rate = 0.01
-    },
-    ["XXXX.XXXX"] = {
-        type = "bcd",
-        size = 4,
-        rate = 0.0001
-    },
-    ["XX"] = {
-        type = "bcd",
-        size = 1
-    },
-    ["XX.XX"] = {
-        type = "bcd",
-        size = 2,
-        rate = 0.01
-    },
-    ["XX.XXXX"] = {
-        type = "bcd",
-        size = 3,
-        rate = 0.0001
-    },
-    ["HH"] = {
-        type = "hex",
-        size = 1
-    },
-    ["HHHH"] = {
-        type = "hex",
-        size = 2
-    },
-    ["YYYYMMDDhhmmss"] = {
-        type = "datetime",
-        size = 7
-    },
-    ["YYMMDDhhmmss"] = {
-        type = "datetime6",
-        size = 6
-    },
-    ["YYMMDDhhmm"] = {
-        type = "datetime5",
-        size = 5
-    },
-    ["YYYYMMDD"] = {
-        type = "date",
-        size = 4
-    },
-    ["uint8"] = {
-        type = "u8",
-        size = 1
-    },
-    ["uint16"] = {
-        type = "u16",
-        size = 2
-    }
-}
 
 --- CJT188设备
 -- @module cjt188_device
@@ -275,6 +199,7 @@ function Cjt188Device:poll()
         return false, "没有属性表"
     end
 
+    local has = false
     local values = {}
 
     for _, pt in pairs(self.model.content) do
@@ -297,107 +222,57 @@ function Cjt188Device:poll()
                 log.info("poll parse", binary.encodeHex(data))
 
                 for _, point in ipairs(pt.points) do
-                    local fmt = types[point.type]
-                    if fmt then
-                        if #data > point.address then
-                            local str = data:sub(point.address + 1, point.address + fmt.size)
-                            log.info("poll decode", point.name, point.label, fmt.type, binary.encodeHex(str), str)
 
-                            local value
-                            if fmt.type == "bcd" then
-                                str = binary.reverse(str)
-                                value = binary.decodeBCD(fmt.size, str)
-                                if point.hasUnit then
-                                    local unit = data:byte(point.address + fmt.size + 1)
-                                    log.info("data unit", point.name, value, units[unit])
-                                    value = unit_convert(unit, value)
-                                end
-                                if fmt.rate then
-                                    value = value * fmt.rate
-                                end
-                                -- self:put_value(point.name, value)
-                                values[point.name] = value
-                            elseif fmt.type == "hex" then
-                                value = 0
-                                for i = 1, fmt.size do
-                                    value = (value << 8) | str:byte(1)
-                                end
+                    if #data > point.address then
+                        local ret, value = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
 
-                                -- 取位，布尔型
-                                if point.bits ~= nil and #point.bits > 0 then
-                                    for _, b in ipairs(point.bits) do
-                                        local vv = (0x01 << b.bit) & value > 0
-                                        -- 取反
-                                        if b["not"] then
-                                            value = not value
-                                        end
-                                        -- self:put_value(point.name, vv)
-                                        values[point.name] = vv
-                                    end
-                                else
-                                    _, value = points.findEnumValue(point, value) -- 枚举
-                                    -- self:put_value(point.name, value)
-                                    values[point.name] = value
+                        -- 仅BCD格式有单位
+                        if point.hasUnit then
+                            local unit = data:byte(point.address + point.size + 1)
+                            log.info("data unit", point.name, value, units[unit])
+                            value = unit_convert(unit, value)
+                        end
+
+                        if point.rate and point.rate ~= 0 and point.rate ~= 1 then
+                            value = value * point.rate
+                        end
+
+                        -- 取位，布尔型
+                        if point.bits ~= nil and #point.bits > 0 then
+                            for _, b in ipairs(point.bits) do
+                                local vv = (0x01 << b.bit) & value > 0
+                                -- 取反
+                                if b["not"] then
+                                    value = not value
                                 end
-                            elseif fmt.type == "datetime" then
-                                str = binary.reverse(str)
-                                value = binary.encodeHex(str) -- 字符串 YYYYMMDDhhmmss
-                                -- self:put_value(point.name, value)
-                                values[point.name] = value
-                            elseif fmt.type == "date" then
-                                str = binary.reverse(str)
-                                value = binary.encodeHex(str) -- 字符串 YYYYMMDD
-                                -- self:put_value(point.name, value)
-                                values[point.name] = value
-                            elseif fmt.type == "datetime6" then
-                                str = binary.reverse(str)
-                                value = "20" .. binary.encodeHex(str) -- 字符串
-                            elseif fmt.type == "datetime5" then
-                                str = binary.reverse(str)
-                                value = "20" .. binary.encodeHex(str) .. "00" -- 字符串
-                            elseif fmt.type == "u8" then
-                                value = str:byte(1)
-                                if fmt.rate then
-                                    value = value * fmt.rate
-                                end
-                                if point.rate then
-                                    value = value * point.rate
-                                end
-                                _, value = points.findEnumValue(point, value) -- 枚举
-                                -- self:put_value(point.name, value)
-                                values[point.name] = value
-                            elseif fmt.type == "u16" then
-                                _, value = iot.unpack(str, "<H")
-                                if fmt.rate then
-                                    value = value * fmt.rate
-                                end
-                                if point.rate then
-                                    value = value * point.rate
-                                end
-                                _, value = points.findEnumValue(point, value) -- 枚举
-                                -- self:put_value(point.name, value)
-                                values[point.name] = value
-                            else
-                                log.error("poll", self.id, "unknown format type", fmt.type)
+                                -- self:put_value(point.name, vv)
+                                values[point.name] = vv
                             end
                         else
-                            log.error("poll", self.id, "data too short", #data, point.address)
+                            _, value = points.findEnumValue(point, value) -- 枚举
+                            -- self:put_value(point.name, value)
+                            values[point.name] = value
                         end
-                    else
-                        log.error("poll", self.id, "unknown format", point.type)
+
+                        has = true
                     end
                 end
 
-                -- 数据更新时间
+                -- 即使没数据，至少说明读取成功了，设备还在线
                 self._updated = os.time()
             end
         end
     end
 
     -- 存入设备
-    self:put_values(values)
+    if has then
+        -- 数据更新时间
+        self._updated = os.time()
+        self:put_values(values)
+        return true, values
+    end
 
-    return true
+    return false, "没有读取到数据"
 end
 
 ---Cjt188主站
