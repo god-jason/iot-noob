@@ -6,7 +6,6 @@ local log = iot.logger("cjt188")
 
 local Request = require("request")
 
-local database = require("database")
 local devices = require("devices")
 local protocols = require("protocols")
 local binary = require("binary")
@@ -105,9 +104,22 @@ local types = {
         type = "bcd",
         size = 4
     },
+    ["XXXXXX"] = {
+        type = "bcd",
+        size = 3
+    },
     ["XXXXXX.XX"] = {
         type = "bcd",
         size = 4,
+        rate = 0.01
+    },
+    ["XXXX"] = {
+        type = "bcd",
+        size = 2
+    },
+    ["XXXX.XX"] = {
+        type = "bcd",
+        size = 3,
         rate = 0.01
     },
     ["XXXX.XXXX"] = {
@@ -115,27 +127,19 @@ local types = {
         size = 4,
         rate = 0.0001
     },
-    ["XXXXXX"] = {
+    ["XX"] = {
         type = "bcd",
-        size = 3
-    },
-    ["XXXX.XX"] = {
-        type = "bcd",
-        size = 3,
-        rate = 0.01
-    },
-    ["XXXX"] = {
-        type = "bcd",
-        size = 2
+        size = 1
     },
     ["XX.XX"] = {
         type = "bcd",
         size = 2,
         rate = 0.01
     },
-    ["XX"] = {
+    ["XX.XXXX"] = {
         type = "bcd",
-        size = 1
+        size = 3,
+        rate = 0.0001
     },
     ["HH"] = {
         type = "hex",
@@ -169,7 +173,6 @@ local types = {
         type = "u16",
         size = 2
     }
-
 }
 
 --- CJT188设备
@@ -425,7 +428,7 @@ end
 -- @param data string|nil 数据
 -- @return boolean 成功与否
 -- @return string 只有数据
-function Cjt188Master:request(addr, type, code, di, data)
+function Cjt188Master:ask(addr, type, code, di, data)
 
     local dl = 3
     if data and #data > 0 then
@@ -498,7 +501,7 @@ end
 function Cjt188Master:read(addr, type, code, di)
     log.info("read", addr, type, code, di)
     self.link:read() -- 清空接收区数据
-    return self:request(addr, type, code, di, nil)
+    return self:ask(addr, type, code, di, nil)
 end
 
 -- 写入数据
@@ -512,7 +515,7 @@ end
 function Cjt188Master:write(addr, type, code, di, data)
     log.info("write", addr, type, code, di, data)
     self.link:read() -- 清空接收区数据
-    return self:request(addr, type, code, di, data)
+    return self:ask(addr, type, code, di, data)
 end
 
 ---打开主站
