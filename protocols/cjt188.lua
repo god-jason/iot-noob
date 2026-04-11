@@ -1,6 +1,7 @@
 --- CJT188协议实现
--- @module cjt188_device
-local Cjt188Device = require("utils").class(require("device"))
+-- @module cjt188
+local cjt188 = {}
+
 local log = iot.logger("cjt188")
 
 local Request = require("request")
@@ -170,6 +171,11 @@ local types = {
 
 }
 
+--- CJT188设备
+-- @module cjt188_device
+local Cjt188Device = require("utils").class(require("device"))
+cjt188.Cjt188Device = Cjt188Device
+
 ---打开设备
 function Cjt188Device:open()
     log.info("device open", self.id, self.product_id)
@@ -198,6 +204,8 @@ function Cjt188Device:get(key)
     if self._values[key] then
         return true, self._values[key].value
     end
+
+    return false, "找不到点位" .. key
 end
 
 ---写入数据
@@ -240,11 +248,13 @@ function Cjt188Device:set(key, value)
                         addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
                     end
 
-                    self.master:write(addr, pt.type, pt.code, pt.di, value)
+                    return self.master:write(addr, pt.type, pt.code, pt.di, value)
                 end
             end
         end
     end
+
+    return false, "找不到可写点位" .. key
 end
 
 ---读取所有数据
@@ -390,6 +400,7 @@ end
 -- @module cjt188_master
 local Cjt188Master = {}
 Cjt188Master.__index = Cjt188Master
+cjt188.Cjt188Master = Cjt188Master
 
 protocols.register("cjt188", Cjt188Master)
 
@@ -566,3 +577,5 @@ function Cjt188Master:_polling()
     end
 end
 
+
+return cjt188

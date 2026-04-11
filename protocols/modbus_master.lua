@@ -1,6 +1,11 @@
 --- Modbus 协议实现
 -- @module modbus_master_device
+local modbus_master = {}
+
+--- Modbus设备
+-- @module modbus_master_device
 local ModbusMasterDevice = require("utils").class(require("device"))
+modbus_master.ModbusMasterDevice = ModbusMasterDevice
 
 local log = iot.logger("modbus_master")
 
@@ -391,3 +396,5 @@ function ModbusMaster:_polling()
         end
     end
 end
+
+return modbus_master
