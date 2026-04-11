@@ -403,7 +403,7 @@ function Cjt188Master:new(opts)
     master.devices = opts.devices or {}
     master.timeout = opts.timeout or 2000
     master.request = Request:new(master.link, master.timeout)
-    master.poller_interval = opts.poller_interval or 10
+    master.polling_interval = opts.polling_interval or 10
     master.increment = 0
 
     return master
@@ -540,7 +540,7 @@ end
 --- 轮询
 function Cjt188Master:_polling()
     -- 轮询间隔
-    local interval = self.poller_interval or 60
+    local interval = self.polling_interval or 60
     interval = interval * 1000 -- 毫秒
 
     log.info("polling interval", interval)

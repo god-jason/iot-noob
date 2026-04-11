@@ -158,7 +158,7 @@ function ModbusMaster:new(opts)
     master.devices = opts.devices or {}
     master.timeout = opts.timeout or 1000 -- 1秒钟
     master.request = Request:new(master.link, master.timeout)
-    master.poller_interval = opts.poller_interval or 5 -- 5秒钟
+    master.polling_interval = opts.polling_interval or 5 -- 5秒钟
     master.tcp = opts.tcp or false -- modbus tcp
     master.increment = 1 -- modbus-tcp序号
 
@@ -366,7 +366,7 @@ end
 function ModbusMaster:_polling()
 
     -- 轮询间隔
-    local interval = self.poller_interval or 60
+    local interval = self.polling_interval or 60
     interval = interval * 1000 -- 毫秒
 
     while self.opened do

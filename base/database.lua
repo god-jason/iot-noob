@@ -39,7 +39,7 @@ function database.save(col, objs)
     local data, err = iot.json_encode(objs)
     if data == nil then
         log.error(err)
-        return false
+        return false, err
     end
     return iot.writeFile(dbname(col), data)
 end
@@ -58,7 +58,7 @@ end
 function database.insert(col, id, obj)
     local tab = database.load(col)
     tab[tostring(id)] = obj
-    database.save(col, tab)
+    return database.save(col, tab)
 end
 
 --- 修改数据（目前与insert相同）
@@ -68,7 +68,7 @@ end
 function database.update(col, id, obj)
     local tab = database.load(col)
     tab[tostring(id)] = obj
-    database.save(col, tab)
+    return database.save(col, tab)
 end
 
 --- 插入多条
@@ -79,7 +79,7 @@ function database.insertMany(col, objs)
     for id, obj in pairs(objs) do
         tab[id] = obj
     end
-    database.save(col, tab)
+    return database.save(col, tab)
 end
 
 --- 插入多条
@@ -91,7 +91,7 @@ function database.insertArray(col, objs)
         local id = obj["id"]
         tab[tostring(id)] = obj
     end
-    database.save(col, tab)
+    return database.save(col, tab)
 end
 
 --- 删除
@@ -101,8 +101,9 @@ function database.delete(col, id)
     local tab = database.load(col)
     if tab ~= nil then
         table.remove(tab, tostring(id))
-        database.save(col, tab)
+        return database.save(col, tab)
     end
+    return false, "表不存在"
 end
 
 --- 获取数据

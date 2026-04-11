@@ -46,13 +46,13 @@ function Cloud:init()
 end
 
 -- 查找设备
-function Cloud:find_device(data)
+function Cloud:find_device(device_id)
     -- 未传值，则使用网关设备
-    if not data.device_id or #data.device_id == 0 or data.device_id == self.id then
-        data.device_id = self.id -- 赋值回传
+    if not device_id or #device_id == 0 or device_id == self.id then
+        --data.device_id = self.id -- 赋值回传
         return master.device
     end
-    return devices[data.device_id]
+    return devices[device_id]
 end
 
 -- 上报设备数据
@@ -156,7 +156,7 @@ end
 
 -- 设备同步请求
 function Cloud:on_device_sync(topic, data)
-    local dev = self:find_device(data)
+    local dev = self:find_device(data.device_id)
     if dev then
         local ret, info = dev:poll()
         if not ret then
@@ -173,7 +173,7 @@ end
 
 -- 设备写请求
 function Cloud:on_device_write(topic, data)
-    local dev = self:find_device(data)
+    local dev = self:find_device(data.device_id)
     if dev then
         data.results = {}
         for k, v in pairs(data.values) do
@@ -193,7 +193,7 @@ end
 
 -- 设备读请求
 function Cloud:on_device_read(topic, data)
-    local dev = self:find_device(data)
+    local dev = self:find_device(data.device_id)
     if dev then
         data.values = {}
         for _, k in ipairs(data) do
@@ -213,9 +213,9 @@ end
 
 -- 处理设备操作
 function Cloud:on_action(topic, data)
-    local dev = self:find_device(data)
+    local dev = self:find_device(data.device_id)
     if dev then
-        local ret, val = agent.execute(data.action, data.parameters)
+        local ret, val = agent.execute(data.action, data.parameters or data.data)
         if ret then
             data.result = val
         else
@@ -378,8 +378,8 @@ function Cloud:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Cloud.on_database_operators, self))
-    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Cloud.on_setting_operators, self))
+    -- self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Cloud.on_database_operators, self))
+    -- self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Cloud.on_setting_operators, self))
     self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Cloud.on_device_setting, self))
     self.client:subscribe("device/" .. self.id .. "/write", parse_json(Cloud.on_device_write, self))
     self.client:subscribe("device/" .. self.id .. "/read", parse_json(Cloud.on_device_read, self))
