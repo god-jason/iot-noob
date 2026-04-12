@@ -31,6 +31,16 @@ local types = {
         size = 4,
         rate = 0.0001
     },
+    ["XXX.X"] = {
+        type = "bcd",
+        size = 2,
+        rate = 0.1
+    },
+    ["XXX.XXX"] = {
+        type = "bcd",
+        size = 3,
+        rate = 0.001
+    },
     ["XX"] = {
         type = "bcd",
         size = 1
@@ -44,6 +54,11 @@ local types = {
         type = "bcd",
         size = 3,
         rate = 0.0001
+    },
+    ["X.XXX"] = {
+        type = "bcd",
+        size = 2,
+        rate = 0.001
     },
     ["HH"] = {
         type = "hex",
