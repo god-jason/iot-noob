@@ -97,7 +97,7 @@ local types = {
 function meter.decode(data, type, reverse)
     local fmt = types[type]
     if not fmt then
-        return false, "未知数据类型"
+        return false, "未知数据类型" .. type
     end
 
     if #data < fmt.size then
@@ -135,7 +135,7 @@ function meter.decode(data, type, reverse)
     else
         return false, "不支持的数据格式"
     end
-    return true, value
+    return true, value, fmt.size
 end
 
 function meter.encode(type, value)

@@ -13,7 +13,7 @@ function Device:init()
     self._values = {}
     self._modified_values = {}
     self._thresholds = {} -- 变化阈值
-    self._updated = os.time() -- 数据更新时间
+    self._updated = 0 -- 数据更新时间
     self._handlers = {}
     self._children = {} -- 内联子设备
     self._children_change = {}

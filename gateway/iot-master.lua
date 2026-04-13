@@ -24,7 +24,7 @@ local function parse_json(callback, self)
             log.info("decode", payload, err)
             return
         end
-        callback(self, topic, data)
+        callback(self, topic, data or payload)
     end
 end
 
@@ -49,7 +49,7 @@ end
 function Master:find_device(device_id)
     -- 未传值，则使用网关设备
     if not device_id or #device_id == 0 or device_id == self.id then
-        --data.device_id = self.id -- 赋值回传
+        -- data.device_id = self.id -- 赋值回传
         return master.device
     end
     return devices[device_id]
@@ -87,6 +87,11 @@ function Master:report_device_status(dev)
 
     local st
 
+    -- 数据更新时间异常，可能是设备刚启动，没有正确的时间
+    if dev._updated > 0 and dev._updated < 1000 then
+        dev._updated = now
+    end
+
     -- 默认10分钟无数据离线
     if now - dev._updated > (self.sub_offline_timeout or 10) * 60 then
         st = "offline"
@@ -94,8 +99,11 @@ function Master:report_device_status(dev)
         st = "online"
     end
 
+    -- log.info("report_device_status", dev.id, now, dev._updated, now - dev._updated, st, (self.sub_offline_timeout or 10))
+
     -- 状态变化才上传
-    if dev._status ~= st then
+    -- 刚启动，默认在线，不上传状态
+    if dev._status and dev._status ~= st then
         self.client:publish("device/" .. dev.id .. "/" .. st, nil)
         dev._status = st
     end
@@ -164,11 +172,11 @@ function Master:on_device_sync(topic, data)
         end
 
         -- 上传数据
-        self:report_values()
+        self:report_device_values(dev, true)
     else
         data.error = "设备不存在"
     end
-    self.client:publish("device/" .. data.device_id .. "/sync/response", data)
+    self.client:publish(topic .. "/response", data)
 end
 
 -- 设备写请求
@@ -188,7 +196,7 @@ function Master:on_device_write(topic, data)
     else
         data.error = "设备不存在"
     end
-    self.client:publish("device/" .. data.device_id .. "/write/response", data)
+    self.client:publish(topic .. "/response", data)
 end
 
 -- 设备读请求
@@ -208,7 +216,7 @@ function Master:on_device_read(topic, data)
     else
         data.error = "设备不存在"
     end
-    self.client:publish("device/" .. data.device_id .. "/read/response", data)
+    self.client:publish(topic .. "/response", data)
 end
 
 -- 处理设备操作
@@ -224,7 +232,7 @@ function Master:on_action(topic, data)
     else
         data.error = "设备不存在"
     end
-    self.client:publish("device/" .. data.device_id .. "/action/response", data)
+    self.client:publish(topic .. "/response", data)
 end
 
 -- 注册设备信息
@@ -315,7 +323,7 @@ function Master:register()
 end
 
 -- 上报所有设备
-function Master:report_values(all)
+function Master:report_master_values(all)
     self:report_device_values(master.device, all)
 end
 
@@ -378,8 +386,8 @@ function Master:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self)) --TODO 后端修改要改成action操作
-    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self)) --TODO 后端修改要改成action操作
+    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self)) -- TODO 后端修改要改成action操作
+    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self)) -- TODO 后端修改要改成action操作
     self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Master.on_device_setting, self))
     self.client:subscribe("device/" .. self.id .. "/write", parse_json(Master.on_device_write, self))
     self.client:subscribe("device/" .. self.id .. "/read", parse_json(Master.on_device_read, self))
@@ -409,10 +417,10 @@ function Master:task()
             ticks = 0
 
             -- 上传网关设备数据
-            self:report_values(true)
+            self:report_master_values(true)
             self:report_devices_values(true)
         else
-            self:report_values()
+            self:report_master_values()
             self:report_devices_values()
         end
 

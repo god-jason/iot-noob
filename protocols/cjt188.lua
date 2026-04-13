@@ -222,18 +222,20 @@ function Cjt188Device:poll()
                 for _, point in ipairs(pt.points) do
 
                     if #data > point.address then
-                        local ret, value = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
+                        local ret, value, size = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
 
                         -- 仅BCD格式有单位
                         if point.hasUnit then
-                            local unit = data:byte(point.address + point.size + 1)
-                            log.info("data unit", point.name, value, units[unit])
+                            local unit = data:byte(point.address + size + 1)
+                            --log.info("data unit", point.name, value, units[unit])
                             value = unit_convert(unit, value)
                         end
 
                         if point.rate and point.rate ~= 0 and point.rate ~= 1 then
                             value = value * point.rate
                         end
+
+                        log.info("解析到数据", point.name, point.label, value)
 
                         -- 取位，布尔型
                         if point.bits ~= nil and #point.bits > 0 then
@@ -264,8 +266,6 @@ function Cjt188Device:poll()
 
     -- 存入设备
     if has then
-        -- 数据更新时间
-        self._updated = os.time()
         self:put_values(values)
         return true, values
     end
