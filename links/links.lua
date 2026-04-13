@@ -22,9 +22,9 @@ function links.create(clazz, opts)
         -- 注册到全局
         _links[opts.id] = link
     end
-    if opts.name and #opts.name > 0 then
-        _links[opts.name] = link
-    end
+    -- if opts.name and #opts.name > 0 then
+    --     _links[opts.name] = link
+    -- end
 
     local ret, info = link:open()
     if not ret then
