@@ -346,7 +346,7 @@ function Master:task()
     -- end
 
     -- 常亮网络灯（放这里不合适）
-    if components.led_net then
+    if components and components.led_net then
         components.led_net:turn_on()
     end
 
@@ -355,14 +355,14 @@ function Master:task()
 
     self.client:on_connect(function()
         -- 平台灯闪烁
-        if components.led_cloud then
+        if components and components.led_cloud then
             components.led_cloud:turn_on()
         end
     end)
 
     self.client:on_disconnect(function()
         -- 平台灯闪烁
-        if components.led_cloud then
+        if components and components.led_cloud then
             components.led_cloud:blink()
         end
     end)
@@ -378,8 +378,8 @@ function Master:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    -- self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self))
-    -- self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self)) --TODO 后端修改要改成action操作
+    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self)) --TODO 后端修改要改成action操作
     self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Master.on_device_setting, self))
     self.client:subscribe("device/" .. self.id .. "/write", parse_json(Master.on_device_write, self))
     self.client:subscribe("device/" .. self.id .. "/read", parse_json(Master.on_device_read, self))

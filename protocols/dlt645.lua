@@ -241,7 +241,7 @@ end
 -- 打开
 function DLT645Master:open()
     if self.opened then
-        return
+        return false
     end
 
     self.opened = true
@@ -260,6 +260,8 @@ function DLT645Master:open()
     if self.polling ~= false then
         iot.start(DLT645Master._polling, self)
     end
+
+    return true
 end
 
 -- 关闭

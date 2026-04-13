@@ -396,8 +396,7 @@ end
 ---打开主站
 function Cjt188Master:open()
     if self.opened then
-        log.error("already opened")
-        return
+        return false, "已经打开了"
     end
     self.opened = true
 
@@ -417,6 +416,8 @@ function Cjt188Master:open()
     if self.polling ~= false then
         iot.start(Cjt188Master._polling, self)
     end
+
+    return true
 end
 
 --- 关闭

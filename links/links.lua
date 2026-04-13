@@ -75,7 +75,7 @@ function links.create(clazz, opts)
 
         -- 打开协议
         ret, info = iot.xcall(instanse.open, instanse)
-        if not ret then
+        if ret == false then
             return false, info
         end
 
@@ -101,6 +101,6 @@ function links.open()
 end
 
 -- 做统一依赖
-boot.register("links", links, "serials", "splitters", "sockets", "settings")
+boot.register("links", links, "serials", "hub", "sockets", "settings")
 
 return links

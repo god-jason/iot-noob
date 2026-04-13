@@ -322,8 +322,7 @@ end
 ---打开主站
 function ModbusSlave:open()
     if self.opened then
-        log.error("已经打开")
-        return
+        return false, "已经打开了"
     end
     self.opened = true
 
@@ -342,6 +341,8 @@ function ModbusSlave:open()
     self.link:on("data", function(data)
         self:process(data)
     end)
+
+    return true
 end
 
 --- 轮询

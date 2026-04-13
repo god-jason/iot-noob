@@ -338,8 +338,7 @@ end
 ---打开主站
 function ModbusMaster:open()
     if self.opened then
-        log.error("已经打开")
-        return
+        return false, "已经打开了"
     end
     self.opened = true
 
@@ -357,6 +356,8 @@ function ModbusMaster:open()
 
     -- 开启轮询
     iot.start(ModbusMaster._polling, self)
+
+    return true
 end
 
 --- 关闭

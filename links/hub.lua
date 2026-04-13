@@ -35,10 +35,11 @@ function Hub:init()
 end
 
 function Hub:open()
+    log.info("打开集线器", self.name or self.id, "链接", self.link_id)
+
     self.link = links.get(self.link_id)
     if not self.link then
-        log.error("连接", self.link_id, "未打开")
-        return
+        return false, "连接未打开" .. self.link_id
     end
 
     self.cancel = self.link:on("data", function(data)
@@ -57,6 +58,8 @@ function Hub:open()
             self.timer = nil
         end
     end)
+
+    return true
 end
 
 function Hub:close()
@@ -106,13 +109,13 @@ function hub.open()
     local hubs = {
         hub1 = settings.hub1,
         hub2 = settings.hub2,
-        hub3 = settings.hub3,
+        hub3 = settings.hub3
     }
 
     for i, h in pairs(hubs) do
         if h and h.enable then
             local hb = Hub:new(h)
-            local ret, info = hub:open()
+            local ret, info = hb:open()
             if not ret then
                 log.error("连接集线器", i, h.name, " 出错:", info)
             else
@@ -142,7 +145,7 @@ function hub.close()
     _hubs = {}
 end
 
-boot.register("hub", hub, "settings", "links")
+boot.register("hub", hub, "settings", "serials")
 
 settings.register("hub1")
 settings.register("hub2")
