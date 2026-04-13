@@ -223,38 +223,41 @@ function Cjt188Device:poll()
 
                     if #data > point.address then
                         local ret, value, size = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
-
-                        -- 仅BCD格式有单位
-                        if point.hasUnit then
-                            local unit = data:byte(point.address + size + 1)
-                            --log.info("data unit", point.name, value, units[unit])
-                            value = unit_convert(unit, value)
-                        end
-
-                        if point.rate and point.rate ~= 0 and point.rate ~= 1 then
-                            value = value * point.rate
-                        end
-
-                        log.info("解析到数据", point.name, point.label, value)
-
-                        -- 取位，布尔型
-                        if point.bits ~= nil and #point.bits > 0 then
-                            for _, b in ipairs(point.bits) do
-                                local vv = (0x01 << b.bit) & value > 0
-                                -- 取反
-                                if b["not"] then
-                                    value = not value
-                                end
-                                -- self:put_value(point.name, vv)
-                                values[point.name] = vv
-                            end
+                        if not ret then
+                            log.error("解析数据失败", point.name, value)
                         else
-                            _, value = points.findEnumValue(point, value) -- 枚举
-                            -- self:put_value(point.name, value)
-                            values[point.name] = value
-                        end
+                            -- 仅BCD格式有单位
+                            if point.hasUnit then
+                                local unit = data:byte(point.address + size + 1)
+                                -- log.info("data unit", point.name, value, units[unit])
+                                value = unit_convert(unit, value)
+                            end
 
-                        has = true
+                            if point.rate and point.rate ~= 0 and point.rate ~= 1 then
+                                value = value * point.rate
+                            end
+
+                            log.info("解析到数据", point.name, point.label, value)
+
+                            -- 取位，布尔型
+                            if point.bits ~= nil and #point.bits > 0 then
+                                for _, b in ipairs(point.bits) do
+                                    local vv = (0x01 << b.bit) & value > 0
+                                    -- 取反
+                                    if b["not"] then
+                                        value = not value
+                                    end
+                                    -- self:put_value(point.name, vv)
+                                    values[point.name] = vv
+                                end
+                            else
+                                _, value = points.findEnumValue(point, value) -- 枚举
+                                -- self:put_value(point.name, value)
+                                values[point.name] = value
+                            end
+
+                            has = true
+                        end
                     end
                 end
 
@@ -374,7 +377,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:read(addr, type, code, di)
     log.info("read", addr, type, code, di)
-    --self.link:read() -- 清空接收区数据
+    -- self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, nil)
 end
 
@@ -388,7 +391,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:write(addr, type, code, di, data)
     log.info("write", addr, type, code, di, data)
-    --self.link:read() -- 清空接收区数据
+    -- self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, data)
 end
 
