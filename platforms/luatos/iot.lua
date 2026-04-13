@@ -679,6 +679,7 @@ function iot.uart(id, opts)
     }, UART)
 
     uart.on(id, "receive", function(id2, len)
+        log.info("UART", "receive", id2, len)
         -- 如果有回调，wait之后不能再read了
         if obj._on_data then
             iot.call(obj._on_data, uart.read(id2))

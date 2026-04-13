@@ -1,5 +1,5 @@
 -- 主程序入口
-PROJECT = "iot-os"
+PROJECT = "iot-noob"
 VERSION = "1.0.0"
 
 -- 引入系统适配层

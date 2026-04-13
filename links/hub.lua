@@ -50,6 +50,7 @@ function Hub:open()
 
         -- 转发到虚拟连接
         if self.child then
+            log.info("分发数据", self.id or self.name, "--->", self.child.name, self.child.id, "数据长度", #data)
             self.child:emit("data", data)
         end
 
@@ -76,11 +77,12 @@ function Hub:write(data, link)
     if not self.link then
         return false, "连接未打开"
     end
+    log.info("写入数据", self.id or self.name, "数据长度", #data, "<---", link.name, link.id)
 
     -- 重入锁，等待其他操作完成
     if self.child ~= link then
         while self.using do
-            log.info("集线器等待上一个数据处理完成", self.id, link.id)
+            log.info("等待上一个数据处理完成", self.id, self.child.id)
             iot.sleep(200)
         end
     end
@@ -114,6 +116,8 @@ function hub.open()
 
     for i, h in pairs(hubs) do
         if h and h.enable then
+            h.id = h.id or i -- 如果没有id，使用键名作为id
+
             local hb = Hub:new(h)
             local ret, info = hb:open()
             if not ret then

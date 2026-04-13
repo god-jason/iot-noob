@@ -39,10 +39,16 @@ function Request:request(request, want_len)
 
     -- 重入锁，等待其他操作完成
     while self.requesting do
-        log.info("等待解锁")
+        log.info("等待其他请求完成")
         iot.sleep(200)
     end
     self.requesting = true
+
+    -- 如果hub正在使用，等待解锁
+    while self.link.hub and self.link.hub.using do
+        log.info("等待HUB其他请求完成")
+        iot.sleep(200)
+    end
 
     -- log.info("ask", request, len)
     if request ~= nil and #request > 0 then
