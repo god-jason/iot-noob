@@ -161,4 +161,25 @@ function actions.database(data)
     end
 end
 
+-- 轮询全部设备
+function actions.polling(data)
+    if not links then
+        return false, "没有连接模块"
+    end
+
+    -- 如果未指定连接，则轮询全部连接
+    local lnks = links
+    if data.link_id and #data.link_id > 0 then
+        lnks = {links[data.link_id]}
+    end
+
+    for k, link in pairs(lnks) do
+        log.info("polling", link.id)
+        if link.protocol_instance and link.protocol_instance.polling_all then
+            iot.start(link.protocol_instance.polling_all, link.protocol_instance)
+        end
+    end
+    return true
+end
+
 return agent

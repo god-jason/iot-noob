@@ -256,7 +256,7 @@ function DLT645Master:open()
 
     -- 轮询
     if self.polling ~= false then
-        iot.start(DLT645Master._polling, self)
+        iot.start(DLT645Master.polling_task, self)
     end
 
     return true
@@ -269,9 +269,16 @@ function DLT645Master:close()
     self.devices = {}
 end
 
--- 轮询
 
-function DLT645Master:_polling()
+function DLT645Master:polling_all()
+    for _, dev in pairs(self.devices) do
+        iot.xcall(dev.poll, dev)
+        iot.sleep(500)
+    end
+end
+
+-- 轮询
+function DLT645Master:polling_task()
     log.info("polling thread start")
 
     local interval = (self.polling_interval or 60) * 1000
@@ -279,16 +286,7 @@ function DLT645Master:_polling()
     while self.opened do
         local start = mcu.ticks()
 
-        for _, dev in pairs(self.devices) do
-            iot.xcall(function()
-                if dev.points then
-                    for key, _ in pairs(dev.points) do
-                        dev:get(key)
-                        iot.sleep(200)
-                    end
-                end
-            end)
-        end
+        self:polling_all()
 
         local remain = interval - (mcu.ticks() - start)
         if remain > 0 then

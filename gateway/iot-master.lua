@@ -95,18 +95,18 @@ function Master:report_device_status(dev)
     -- 默认10分钟无数据离线
     if now - dev._updated > (self.sub_offline_timeout or 10) * 60 then
         st = "offline"
+        -- 在线变化为离线时，则上传
+        if dev._status and dev._status ~= st then
+            self.client:publish("device/" .. dev.id .. "/" .. st, nil)
+        end
     else
         st = "online"
+        -- 离线变为上传，或初次上线
+        if dev._status ~= st then
+            self.client:publish("device/" .. dev.id .. "/" .. st, nil)
+        end
     end
-
-    -- log.info("report_device_status", dev.id, now, dev._updated, now - dev._updated, st, (self.sub_offline_timeout or 10))
-
-    -- 状态变化才上传
-    -- 刚启动，默认在线，不上传状态
-    if dev._status and dev._status ~= st then
-        self.client:publish("device/" .. dev.id .. "/" .. st, nil)
-        dev._status = st
-    end
+    dev._status = st
 end
 
 -- 处理配置操作

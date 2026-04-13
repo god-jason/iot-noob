@@ -352,7 +352,7 @@ function ModbusMaster:open()
     end
 
     -- 开启轮询
-    iot.start(ModbusMaster._polling, self)
+    iot.start(ModbusMaster.polling_task, self)
 
     return true
 end
@@ -363,8 +363,20 @@ function ModbusMaster:close()
     self.devices = {}
 end
 
+
+function ModbusMaster:polling_all()
+    for _, dev in pairs(self.devices) do
+        local ret, result = iot.xcall(dev.poll, dev)
+        if not ret then
+            log.error(dev.id, "轮询错误", result)
+        end
+        -- 避免太快
+        iot.sleep(500)
+    end
+end
+
 --- 轮询
-function ModbusMaster:_polling()
+function ModbusMaster:polling_task()
     log.info("polling thread start")
 
     -- 轮询间隔
@@ -376,15 +388,7 @@ function ModbusMaster:_polling()
         local start = mcu.ticks()
 
         -- 轮询连接下面的所有设备
-        for _, dev in pairs(self.devices) do
-            local ret, result = iot.xcall(ModbusMasterDevice.poll, dev)
-            if not ret then
-                log.error(dev.id, "轮询错误", result)
-            end
-
-            -- 避免太快
-            iot.sleep(500)
-        end
+        self:polling_all()
 
         local finish = mcu.ticks()
         local remain = interval - (finish - start)

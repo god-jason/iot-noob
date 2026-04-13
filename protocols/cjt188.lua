@@ -414,7 +414,7 @@ function Cjt188Master:open()
 
     -- 开启轮询
     if self.polling ~= false then
-        iot.start(Cjt188Master._polling, self)
+        iot.start(Cjt188Master.polling_task, self)
     end
 
     return true
@@ -427,7 +427,20 @@ function Cjt188Master:close()
 end
 
 --- 轮询
-function Cjt188Master:_polling()
+function Cjt188Master:polling_all()
+    -- 轮询连接下面的所有设备
+    for _, dev in pairs(self.devices) do
+        local ret, result = iot.xcall(dev.poll, dev)
+        if not ret then
+            log.error(dev.id, "轮询错误", result)
+        end
+        -- 等待数据完成
+        iot.sleep(500)
+    end
+end
+
+--- 轮询
+function Cjt188Master:polling_task()
     log.info("polling thread start")
 
     -- 轮询间隔
@@ -441,12 +454,7 @@ function Cjt188Master:_polling()
         local start = mcu.ticks()
 
         -- 轮询连接下面的所有设备
-        for _, dev in pairs(self.devices) do
-            iot.xcall(dev.poll, dev)
-
-            -- 等待数据完成
-            iot.sleep(500)
-        end
+        self:polling_all()
 
         local finish = mcu.ticks()
         local remain = interval - (finish - start)
