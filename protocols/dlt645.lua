@@ -43,10 +43,10 @@ end
 function DLT645Device:get(key)
     log.info("get", self.id, key)
     if not self.model then
-        return false, "没有物模型"
+        return false, "没有物模型" .. self.product_id
     end
     if not self.model.content then
-        return false, "没有属性表"
+        return false, "没有属性表" .. self.product_id
     end
 
     for _, pt in pairs(self.model.content) do
@@ -227,14 +227,14 @@ end
 -- 读
 function DLT645Master:read(addr, di)
     log.info("read", addr, di)
-    self.link:read()
+    --self.link:read()
     return self:ask(addr, 0x11, di, nil)
 end
 
 -- 写
 function DLT645Master:write(addr, di, payload)
     log.info("write", addr, di)
-    self.link:read()
+    --self.link:read()
     return self:ask(addr, 0x14, di, payload)
 end
 
@@ -249,11 +249,9 @@ function DLT645Master:open()
     for _, d in ipairs(self.devices) do
         local dev = DLT645Device:new(d)
         dev.master = self
-
-        self.devices[d.id] = dev
-        devices.register(d.id, dev)
-
         dev:open()
+
+        devices.register(d.id, dev)
     end
 
     -- 轮询
@@ -274,6 +272,7 @@ end
 -- 轮询
 
 function DLT645Master:_polling()
+    log.info("polling thread start")
 
     local interval = (self.polling_interval or 60) * 1000
 

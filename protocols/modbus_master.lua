@@ -126,8 +126,7 @@ function ModbusMasterDevice:poll()
 
     -- 没有轮询器，直接返回
     if not self.mapper.pollers or #self.mapper.pollers == 0 then
-        log.info(self.id, self.product_id, "没有轮询器")
-        return false, "没有轮询器"
+        return false, "没有轮询器" .. self.product_id
     end
 
     -- 依次轮询
@@ -349,8 +348,6 @@ function ModbusMaster:open()
         dev.master = self
         dev:open() -- 设备也要打开
 
-        self.devices[i] = dev
-
         devices.register(d.id, dev)
     end
 
@@ -368,6 +365,7 @@ end
 
 --- 轮询
 function ModbusMaster:_polling()
+    log.info("polling thread start")
 
     -- 轮询间隔
     local interval = self.polling_interval or 60

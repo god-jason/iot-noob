@@ -191,12 +191,10 @@ end
 function Cjt188Device:poll()
     log.info("poll", self.id)
     if not self.model then
-        log.error("poll", self.id, "没有物模型")
-        return false, "没有物模型"
+        return false, "没有物模型" .. self.product_id
     end
     if not self.model.content then
-        log.error("poll", self.id, "没有属性表")
-        return false, "没有属性表"
+        return false, "没有属性表" .. self.product_id
     end
 
     local has = false
@@ -304,6 +302,7 @@ end
 -- @return boolean 成功与否
 -- @return string 只有数据
 function Cjt188Master:ask(addr, type, code, di, data)
+    log.info("ask", addr, type, code, di, data)
 
     local dl = 3
     if data and #data > 0 then
@@ -375,7 +374,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:read(addr, type, code, di)
     log.info("read", addr, type, code, di)
-    self.link:read() -- 清空接收区数据
+    --self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, nil)
 end
 
@@ -389,7 +388,7 @@ end
 -- @return string 只有数据
 function Cjt188Master:write(addr, type, code, di, data)
     log.info("write", addr, type, code, di, data)
-    self.link:read() -- 清空接收区数据
+    --self.link:read() -- 清空接收区数据
     return self:ask(addr, type, code, di, data)
 end
 
@@ -406,8 +405,6 @@ function Cjt188Master:open()
         local dev = Cjt188Device:new(d)
         dev.master = self
         dev:open()
-
-        self.devices[d.id] = dev
 
         devices.register(d.id, dev)
     end
@@ -428,6 +425,8 @@ end
 
 --- 轮询
 function Cjt188Master:_polling()
+    log.info("polling thread start")
+
     -- 轮询间隔
     local interval = self.polling_interval or 1800
     interval = interval * 1000 -- 毫秒

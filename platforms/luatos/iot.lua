@@ -645,7 +645,7 @@ end
 -- @return UART
 function iot.uart(id, opts)
     opts = opts or {}
-    log.info("UART", "setup", id, json.encode(opts))
+    -- log.info("UART", "setup", id, json.encode(opts))
 
     local baud_rate = opts.baud_rate or 9600
     local data_bits = opts.data_bits or 8
@@ -663,6 +663,9 @@ function iot.uart(id, opts)
     local rs485_gpio = opts.rs485_gpio or 0xffffffff
     local rs485_level = opts.rs485_level or 0
     local rs485_delay = opts.rs485_delay or 20000
+
+    log.info("UART", id, baud_rate, data_bits, stop_bits, partiy, bit_order, buff_size, rs485_gpio, rs485_level,
+        rs485_delay)
 
     local ret = uart.setup(id, baud_rate, data_bits, stop_bits, partiy, bit_order, buff_size, rs485_gpio, rs485_level,
         rs485_delay)
@@ -837,7 +840,7 @@ function iot.adc(id, opts)
     if not ret then
         return false, "ADC打开失败" .. id
     end
-    
+
     return true, setmetatable({
         id = id
     }, ADC)

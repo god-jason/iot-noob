@@ -49,6 +49,7 @@ function Serial:write(data)
     return self.uart:write(data)
 end
 
+
 --- 关闭串口
 function Serial:close()
     -- 关闭协议
