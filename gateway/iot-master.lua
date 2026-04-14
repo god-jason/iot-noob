@@ -96,7 +96,8 @@ function Master:report_device_status(dev)
     if now - dev._updated > (self.sub_offline_timeout or 10) * 60 then
         st = "offline"
         -- 在线变化为离线时，则上传
-        if dev._status and dev._status ~= st then
+        -- if dev._status and dev._status ~= st then
+        if dev._status ~= st then
             self.client:publish("device/" .. dev.id .. "/" .. st, nil)
         end
     else
@@ -106,6 +107,9 @@ function Master:report_device_status(dev)
             self.client:publish("device/" .. dev.id .. "/" .. st, nil)
         end
     end
+
+    log.info("check status", dev.id, dev._updated, st)
+
     dev._status = st
 end
 
@@ -223,7 +227,7 @@ end
 function Master:on_action(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
-        local ret, val = agent.execute(data.action, data.parameters or data.data)
+        local ret, val = agent.execute(data.action, data.parameters or data.data or {})
         if ret then
             data.result = val
         else
@@ -407,12 +411,11 @@ function Master:task()
     end
 
     local all_interval = 600 -- 10分钟传一次全部数据
-    local ticks = all_interval - 30 -- 开机30秒，先全部传一次
+    local ticks = all_interval - 30 -- 开机1分钟，先全部传一次
 
     while true do
 
         -- 上报数据
-        ticks = ticks + 1
         if ticks > all_interval then
             ticks = 0
 
@@ -430,11 +433,13 @@ function Master:task()
         -- 正在查看时，1秒上传一次
         if agent.watching then
             iot.sleep(1000)
+            ticks = ticks + 1
         else
             -- 避免首次等60秒
             for i = 1, (self.interval or 60), 1 do
                 if not agent.watching then
                     iot.sleep(1000)
+                    ticks = ticks + 1
                 end
             end
         end
@@ -479,7 +484,8 @@ end)
 iot.on("report", function(all)
     for i, c in ipairs(_masters) do
         if c.report then
-            c:report_values(all)
+            c:report_master_values(all)
+            -- c:report_devices_values(all) --子设备上传会不会太多了
         end
     end
 end)

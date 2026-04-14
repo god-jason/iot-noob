@@ -219,6 +219,9 @@ function Cjt188Device:poll()
             if ret then
                 log.info("poll parse", binary.encodeHex(data))
 
+                -- 即使没数据，至少说明读取成功了，设备还在线
+                self._updated = os.time()
+
                 for _, point in ipairs(pt.points) do
 
                     if #data > point.address then
@@ -260,9 +263,6 @@ function Cjt188Device:poll()
                         end
                     end
                 end
-
-                -- 即使没数据，至少说明读取成功了，设备还在线
-                self._updated = os.time()
             end
         end
     end

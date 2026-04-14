@@ -46,7 +46,7 @@ function agent.execute(name, data)
         return false, "找不到命令：" .. name
     end
 
-    return iot.xcall(cmd, data)
+    return iot.xcall(cmd, data or {})
 end
 
 agent.watching = false

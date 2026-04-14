@@ -43,7 +43,14 @@ function Hub:open()
     end
 
     self.cancel = self.link:on("data", function(data)
-        self.using = false -- 收到数据就解锁
+
+        -- 延时解锁，避免散包的问题
+        if self.unlockTimer then
+            iot.clearTimeout(self.unlockTimer)
+        end
+        self.unlockTimer = iot.setTimeout(function()
+            self.using = false -- 不能收到数据就解锁    
+        end, 200) -- TODO 参数化
 
         -- 发送
         self:emit("data", data)
@@ -54,9 +61,9 @@ function Hub:open()
             self.child:emit("data", data)
         end
 
-        if self.timer then
-            iot.clearTimeout(self.timer)
-            self.timer = nil
+        if self.lockTimer then
+            iot.clearTimeout(self.lockTimer)
+            self.lockTimer = nil
         end
     end)
 
@@ -83,7 +90,7 @@ function Hub:write(data, link)
     if self.child ~= link then
         while self.using do
             log.info("等待上一个数据处理完成", self.id, self.child.id)
-            iot.sleep(200)
+            iot.sleep(200) -- TODO 参数化
         end
     end
 
@@ -96,12 +103,12 @@ function Hub:write(data, link)
     end
 
     -- 设置超时，防止数据处理失败导致阻塞
-    if self.timer then
-        iot.clearTimeout(self.timer)
+    if self.lockTimer then
+        iot.clearTimeout(self.lockTimer)
     end
-    self.timer = iot.setTimeout(function()
+    self.lockTimer = iot.setTimeout(function()
         self.using = false
-        self.timer = nil
+        self.lockTimer = nil
     end, self.timeout or 1000)
 
     return true
