@@ -304,7 +304,9 @@ function ModbusMapper:parse(data, register, address, length)
                 if r then
                     -- self:put_value(point.name, v)
                     has = true
-                    values[point.name] = v
+                    if point.name and #point.name > 0 then
+                        values[point.name] = v    
+                    end
                 end
             end
         end
@@ -317,7 +319,9 @@ function ModbusMapper:parse(data, register, address, length)
                 if r then
                     -- self:put_value(point.name, v)
                     has = true
-                    values[point.name] = v
+                    if point.name and #point.name > 0 then
+                        values[point.name] = v    
+                    end
                 end
             end
         end
@@ -333,12 +337,16 @@ function ModbusMapper:parse(data, register, address, length)
                             local vv = (0x01 << b.bit) & v > 0
                             -- self:put_value(point.name, vv)
                             has = true
-                            values[point.name] = vv
+                            if b.name and #b.name > 0 then
+                                values[b.name] = vv    
+                            end
                         end
                     else
                         -- self:put_value(point.name, v)
                         has = true
-                        values[point.name] = v
+                        if point.name and #point.name > 0 then
+                            values[point.name] = v    
+                        end
                     end
                 end
             end
@@ -355,12 +363,16 @@ function ModbusMapper:parse(data, register, address, length)
                             local vv = (0x01 << b.bit) & v > 0
                             -- self:put_value(point.name, vv)
                             has = true
-                            values[point.name] = vv
+                            if b.name and #b.name > 0 then
+                                values[b.name] = vv    
+                            end
                         end
                     else
                         -- self:put_value(point.name, v)
                         has = true
-                        values[point.name] = v
+                        if point.name and #point.name > 0 then
+                            values[point.name] = v    
+                        end
                     end
                 end
             end

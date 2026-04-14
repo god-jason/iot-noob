@@ -251,12 +251,17 @@ function Cjt188Device:poll()
                                         value = not value
                                     end
                                     -- self:put_value(point.name, vv)
-                                    values[point.name] = vv
+                                    if b.name and #b.name > 0 then
+                                        values[b.name] = vv    
+                                    end
                                 end
                             else
                                 _, value = points.findEnumValue(point, value) -- 枚举
+
                                 -- self:put_value(point.name, value)
-                                values[point.name] = value
+                                if point.name and #point.name > 0 then
+                                    values[point.name] = value
+                                end
                             end
 
                             has = true
