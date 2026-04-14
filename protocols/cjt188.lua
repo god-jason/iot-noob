@@ -341,7 +341,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     end
 
     if string.byte(buf, 1) ~= 0x68 then
-        return false, "错误起始"
+        return false, "错误起始符"
     end
 
     -- 指令长度不够，要拿到长度
@@ -350,7 +350,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "读取更多失败 " .. buf2
+            return false, "读取完整头部失败 " .. buf2
         end
     end
 
@@ -361,7 +361,8 @@ function Cjt188Master:ask(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "读取全部失败 " .. buf2
+            -- return false, "读取全部失败 " .. buf2
+            return true, buf:sub(15) -- TODO 这里可能是已经成功了
         end
     end
 

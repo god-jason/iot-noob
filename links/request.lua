@@ -3,7 +3,7 @@
 local Request = {}
 Request.__index = Request
 
---local binary = require("binary")
+-- local binary = require("binary")
 
 local utils = require("utils")
 
@@ -22,8 +22,9 @@ function Request:new(link, timeout)
     request.link = link
     request.timeout = timeout or 1000
     request.requesting = false
-    request.topic = "REQUEST_DATA_"..request.id
+    request.topic = "REQUEST_DATA_" .. request.id
     request.cancel = link:on("data", function(data)
+        -- TODO 缓存历史，当没有wait
         iot.emit(request.topic, data)
     end)
     return request
@@ -45,7 +46,8 @@ function Request:request(request, want_len)
     self.requesting = true
 
     -- 如果hub正在使用，等待解锁
-    while self.link.hub and self.link.hub.using do
+    -- TODO 逻辑写这里有点丑，但是要避免request超时
+    while self.link.hub and self.link.hub.using and self.link.hub.child ~= self.link do
         log.info("等待HUB其他请求完成")
         iot.sleep(200)
     end

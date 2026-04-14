@@ -223,7 +223,7 @@ function MqttClient:publish(topic, payload, qos)
     end
 
     -- 太多消息，则不发送
-    if #self.pub_queue > 10 then
+    if #self.pub_queue > 100 then
         return false, "太多MQTT消息"
     end
 
