@@ -15,6 +15,7 @@ local MasterDevice = require("utils").class(require("device"))
 -- @return Device 设备实例
 function MasterDevice:init()
     -- log.info("MasterDevice:init")
+    self.is_master = true
 end
 
 ---  写值（重写Deivce:set，支持组件变量）

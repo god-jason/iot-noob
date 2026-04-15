@@ -2,7 +2,7 @@
 -- @module cloud
 local cloud = {}
 
-local log = iot.logger("cloud")
+local log = iot.logger("iot-master")
 
 local boot = require("boot")
 
