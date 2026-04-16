@@ -173,12 +173,13 @@ function actions.polling(data)
         lnks = {links[data.link_id]}
     end
 
-    for k, link in pairs(lnks) do
-        log.info("polling", link.id)
-        if link.protocol_instance and link.protocol_instance.polling_all then
-            iot.start(link.protocol_instance.polling_all, link.protocol_instance)
-        end
-    end
+    iot.start(function()
+        for k, link in pairs(lnks) do
+            if link.protocol_instance and link.protocol_instance.polling_all then
+                link.protocol_instance.polling_all()
+            end
+        end    
+    end)
     return true
 end
 
