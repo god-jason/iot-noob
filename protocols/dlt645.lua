@@ -263,7 +263,6 @@ function DLT645Master:open()
 end
 
 -- 关闭
-
 function DLT645Master:close()
     self.opened = false
     self.devices = {}
@@ -271,9 +270,21 @@ end
 
 
 function DLT645Master:polling_all()
+    -- 轮询连接下面的所有设备
     for _, dev in pairs(self.devices) do
-        iot.xcall(dev.poll, dev)
-        iot.sleep(500)
+
+        -- 至多轮询3次
+        for i = 1, 3, 1 do
+            local ret, result = iot.xcall(dev.poll, dev)
+            if ret then
+                break
+            else
+                log.error(dev.id, "轮询错误", result)
+            end
+        end
+
+        -- 等待数据完成
+        iot.sleep(1000)
     end
 end
 
@@ -281,14 +292,26 @@ end
 function DLT645Master:polling_task()
     log.info("polling thread start")
 
-    local interval = (self.polling_interval or 60) * 1000
+    local delay = self.polling_delay or 5
+    if delay > 0 then
+        iot.sleep(delay * 1000)
+    end
+
+    -- 轮询间隔
+    local interval = self.polling_interval or 1800
+    interval = interval * 1000 -- 毫秒
+
+    log.info("polling interval", interval)
 
     while self.opened do
+        log.info("polling start")
         local start = mcu.ticks()
 
+        -- 轮询连接下面的所有设备
         self:polling_all()
 
-        local remain = interval - (mcu.ticks() - start)
+        local finish = mcu.ticks()
+        local remain = interval - (finish - start)
         if remain > 0 then
             iot.sleep(remain)
         end

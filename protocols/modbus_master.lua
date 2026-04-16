@@ -351,8 +351,10 @@ function ModbusMaster:open()
         devices.register(d.id, dev)
     end
 
-    -- 开启轮询
-    iot.start(ModbusMaster.polling_task, self)
+    -- 轮询
+    if self.polling ~= false then
+        iot.start(DLT645Master.polling_task, self)
+    end
 
     return true
 end
@@ -365,10 +367,17 @@ end
 
 
 function ModbusMaster:polling_all()
+    -- 轮询连接下面的所有设备
     for _, dev in pairs(self.devices) do
-        local ret, result = iot.xcall(dev.poll, dev)
-        if not ret then
-            log.error(dev.id, "轮询错误", result)
+
+        -- 至多轮询3次
+        for i = 1, 3, 1 do
+            local ret, result = iot.xcall(dev.poll, dev)
+            if ret then
+                break
+            else
+                log.error(dev.id, "轮询错误", result)
+            end
         end
         -- 避免太快
         iot.sleep(500)
@@ -379,12 +388,19 @@ end
 function ModbusMaster:polling_task()
     log.info("polling thread start")
 
+    local delay = self.polling_delay or 5
+    if delay > 0 then
+        iot.sleep(delay * 1000)
+    end
+
     -- 轮询间隔
     local interval = self.polling_interval or 60
     interval = interval * 1000 -- 毫秒
 
+    log.info("polling interval", interval)
+
     while self.opened do
-        log.info("轮询开始")
+        log.info("polling start")
         local start = mcu.ticks()
 
         -- 轮询连接下面的所有设备
