@@ -270,6 +270,9 @@ function Cjt188Device:poll()
 
                             has = true
                         end
+                    else
+                        -- 热表返回长度不足时，不是有效数据，解析会出错
+                        return false, "长度不足" .. binary.encodeHex(data)
                     end
                 end
             end
