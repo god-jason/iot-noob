@@ -150,7 +150,7 @@ function DLT645Master:build_frame(addr, ctrl, data)
     frame = frame .. string.char(0x68)
 
     -- 地址（低位在前）
-    frame = frame .. binary.reverse(binary.decodeHex(addr))
+    frame = frame .. string.reverse(binary.decodeHex(addr))
 
     frame = frame .. string.char(0x68)
     frame = frame .. string.char(ctrl)
@@ -176,7 +176,7 @@ end
 function DLT645Master:ask(addr, ctrl, di, payload)
 
     -- DI 低位在前
-    local data = binary.reverse(binary.decodeHex(di))
+    local data = string.reverse(binary.decodeHex(di))
 
     if payload then
         data = data .. payload

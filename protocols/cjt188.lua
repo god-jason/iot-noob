@@ -172,8 +172,8 @@ function Cjt188Device:set(key, value)
                     local addr = pt.company .. self.address
                     -- 逆序表示的地址（阀门）
                     if pt.address_reverse then
-                        addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
-                        addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+                        addr = binary.encodeHex(string.reverse(binary.decodeHex(pt.company)))
+                        addr = addr .. binary.encodeHex(string.reverse(binary.decodeHex(self.address)))
                     end
 
                     return self.master:write(addr, pt.type, pt.code, pt.di, value)
@@ -209,8 +209,8 @@ function Cjt188Device:poll()
 
             -- 逆序表示的地址（阀门）
             if pt.address_reverse then
-                addr = binary.encodeHex(binary.reverse(binary.decodeHex(pt.company)))
-                addr = addr .. binary.encodeHex(binary.reverse(binary.decodeHex(self.address)))
+                addr = binary.encodeHex(string.reverse(binary.decodeHex(pt.company)))
+                addr = addr .. binary.encodeHex(string.reverse(binary.decodeHex(self.address)))
             end
 
             -- 读数据
@@ -252,7 +252,7 @@ function Cjt188Device:poll()
                                     end
                                     -- self:put_value(point.name, vv)
                                     if b.name and #b.name > 0 then
-                                        values[b.name] = vv    
+                                        values[b.name] = vv
                                     end
                                 end
                             else
@@ -318,9 +318,9 @@ function Cjt188Master:ask(addr, type, code, di, data)
     end
 
     local frame = string.char(0x68) .. binary.decodeHex(type or "20") -- 起始符，仪表类型
-    frame = frame .. binary.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
+    frame = frame .. string.reverse(binary.decodeHex(addr)) -- 地址 A0- A6
     frame = frame .. binary.decodeHex(code or "01") .. string.char(dl) -- 控制符，长度
-    frame = frame .. binary.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
+    frame = frame .. string.reverse(binary.decodeHex(di)) -- 数据标识, 2字节
     frame = frame .. iot.pack("b1", self.increment) -- 序号
     self.increment = (self.increment + 1) % 256
     if data and #data > 0 then
@@ -366,9 +366,16 @@ function Cjt188Master:ask(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
+            log.info("读取全部失败内容")
             -- return false, "读取全部失败 " .. buf2
             return true, buf:sub(15) -- TODO 这里可能是已经成功了
         end
+    end
+
+    -- 检查校验和
+    local cs = crypto.checksum(buf:sub(1, -2), 1)
+    if cs ~= string.byte(buf, -2) then
+        log.info("和校验错误")
     end
 
     return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符

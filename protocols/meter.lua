@@ -106,7 +106,7 @@ function meter.decode(data, type, reverse)
 
     local str = data:sub(1, fmt.size)
     if reverse == true and fmt.size > 1 then
-        str = binary.reverse(str)
+        str = string.reverse(str)
     end
 
     local value
