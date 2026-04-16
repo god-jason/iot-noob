@@ -199,6 +199,7 @@ function Cjt188Device:poll()
 
     local has = false
     local values = {}
+    local err
 
     for _, pt in pairs(self.model.content) do
         if not pt.writable then
@@ -216,7 +217,10 @@ function Cjt188Device:poll()
             -- 读数据
             local ret, data = self.master:read(addr, pt.type or "20", pt.code or "01", pt.di)
             log.info("poll read", ret, data)
-            if ret then
+            if not ret then
+                err = data
+                -- 此处不返回，直接进行下一次读取
+            else
                 log.info("poll parse", binary.encodeHex(data))
 
                 -- 即使没数据，至少说明读取成功了，设备还在线
@@ -278,7 +282,7 @@ function Cjt188Device:poll()
         return true, values
     end
 
-    return false, "没有读取到数据"
+    return false, err or "没有读取到有效数据"
 end
 
 ---Cjt188主站
@@ -346,7 +350,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     end
 
     if string.byte(buf, 1) ~= 0x68 then
-        return false, "错误起始符"
+        return false, "错误起始符" .. binary.encodeHex(buf)
     end
 
     -- 指令长度不够，要拿到长度
@@ -355,27 +359,32 @@ function Cjt188Master:ask(addr, type, code, di, data)
         if ret2 then
             buf = buf .. buf2
         else
-            return false, "读取完整头部失败 " .. buf2
+            return false, "读取完整头部失败 " .. buf2 .. binary.encodeHex(buf)
         end
+    end
+
+    if string.byte(buf, 10) & 0xF0 ~= 0x80 then
+        return false, "非正常应答" .. binary.encodeHex(buf)
     end
 
     -- 数据长度不足，则继续读
     local len = string.byte(buf, 11) -- 数据段长度
     if #buf < len + 12 then
-        local ret2, buf2 = self.request:request(nil, len + 12 - #buf) -- 继续读
+        local ret2, buf2 = self.request:request(nil, len + 13 - #buf) -- 继续读
         if ret2 then
             buf = buf .. buf2
         else
-            log.info("读取全部失败内容")
-            -- return false, "读取全部失败 " .. buf2
-            return true, buf:sub(15) -- TODO 这里可能是已经成功了
+            -- return true, buf:sub(15) -- 这里可能是已经成功了
+            -- log.info("读取全部失败内容")
+            return false, "读取全部失败 " .. buf2 .. binary.encodeHex(buf)
         end
     end
 
     -- 检查校验和
-    local cs = crypto.checksum(buf:sub(1, -2), 1)
+    local cs = crypto.checksum(buf:sub(1, -3), 1)
     if cs ~= string.byte(buf, -2) then
-        log.info("和校验错误")
+        -- log.info("和校验错误")
+        return false, "校验和错误" .. binary.encodeHex(buf)
     end
 
     return true, buf:sub(15, -3) -- 去掉包头，长度，数据标识，序号，校验和结束符

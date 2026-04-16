@@ -176,7 +176,7 @@ function actions.polling(data)
     iot.start(function()
         for k, link in pairs(lnks) do
             if link.protocol_instance and link.protocol_instance.polling_all then
-                link.protocol_instance.polling_all()
+                link.protocol_instance:polling_all()
             end
         end    
     end)

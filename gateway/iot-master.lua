@@ -189,14 +189,29 @@ function Master:on_device_write(topic, data)
     if dev then
         data.results = {}
         for k, v in pairs(data.values) do
-            local ret, info = dev:set(k, v)
+            -- 至多写入3次，保证生效
+            local ret, info
+            for i = 1, 3, 1 do
+                ret, info = dev:set(k, v)
+                if ret then
+                    break
+                end
+            end
+
+            -- 收集结果
             if ret then
-                data.results[k] = info
+                data.results[k] = true
             else
                 data.error = info
-                break
             end
         end
+
+        -- 写入成功之后，重新读数据，并上报
+        iot.start(function()
+            iot.sleep(5000)
+            dev:poll()
+            self:report_device_values(dev)
+        end)
     else
         data.error = "设备不存在"
     end
