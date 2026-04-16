@@ -49,15 +49,16 @@ function Hub:open()
             iot.clearTimeout(self.unlockTimer)
         end
         self.unlockTimer = iot.setTimeout(function()
-            self.using = false -- 不能收到数据就解锁    
-        end, 200) -- TODO 参数化
+            self.using = false -- 不能收到数据就立马解锁
+            self.unlockTimer = nil
+        end, self.timeout or 500)
 
         -- 发送
         self:emit("data", data)
 
         -- 转发到虚拟连接
         if self.child then
-            log.info("分发数据", self.id or self.name, "--->", self.child.name, self.child.id, "数据长度", #data)
+            -- log.info("分发数据", self.id or self.name, "--->", self.child.name, self.child.id, "数据长度", #data)
             self.child:emit("data", data)
         end
 
@@ -84,13 +85,13 @@ function Hub:write(data, link)
     if not self.link then
         return false, "连接未打开"
     end
-    log.info("写入数据", self.id or self.name, "数据长度", #data, "<---", link.name, link.id)
+    -- log.info("写入数据", self.id or self.name, "数据长度", #data, "<---", link.name, link.id)
 
     -- 重入锁，等待其他操作完成
     if self.child ~= link then
         while self.using do
             log.info("等待上一个数据处理完成", self.id, self.child.id)
-            iot.sleep(200) -- TODO 参数化
+            iot.sleep(self.timeout or 500)
         end
     end
 
@@ -109,7 +110,7 @@ function Hub:write(data, link)
     self.lockTimer = iot.setTimeout(function()
         self.using = false
         self.lockTimer = nil
-    end, self.timeout or 1000)
+    end, self.timeout or 500)
 
     return true
 end

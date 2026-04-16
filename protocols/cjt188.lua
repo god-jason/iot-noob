@@ -441,13 +441,18 @@ function Cjt188Master:polling_all()
             log.error(dev.id, "轮询错误", result)
         end
         -- 等待数据完成
-        iot.sleep(500)
+        iot.sleep(1000)
     end
 end
 
 --- 轮询
 function Cjt188Master:polling_task()
     log.info("polling thread start")
+
+    local delay = self.polling_delay or 5
+    if delay > 0 then
+        iot.sleep(delay * 1000)
+    end
 
     -- 轮询间隔
     local interval = self.polling_interval or 1800

@@ -108,7 +108,7 @@ function Master:report_device_status(dev)
         end
     end
 
-    log.info("check status", dev.id, dev._updated, st)
+    -- log.info("check status", dev.id, dev._updated, st)
 
     dev._status = st
 end

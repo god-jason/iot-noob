@@ -120,6 +120,7 @@ function MqttClient:open()
         -- log.info("event", event, client, topic, payload) 日志太多了
 
         if event == "recv" then
+            log.info("receive", topic, payload)
             table.insert(self.sub_queue, {
                 topic = topic,
                 payload = payload
@@ -177,6 +178,8 @@ function MqttClient:open()
             -- 先从队列中取
             while self.client:ready() and #self.pub_queue > 0 do
                 local m = table.remove(self.pub_queue, 1)
+                
+                log.info("publish", m.topic, m.payload, m.qos)
                 self.client:publish(m.topic, m.payload, m.qos)
             end
         end
@@ -223,7 +226,7 @@ function MqttClient:publish(topic, payload, qos)
     end
 
     -- 太多消息，则不发送
-    if #self.pub_queue > 100 then
+    if #self.pub_queue > (self.options.buffer_size or 50) then
         return false, "太多MQTT消息"
     end
 
@@ -235,7 +238,7 @@ function MqttClient:publish(topic, payload, qos)
             return false, err 
         end
     end
-    log.info("publish", topic, payload, qos)
+    --log.info("publish", topic, payload, qos)
 
     -- return true, self.client:publish(topic, payload, qos)
     -- 异步发送消息，避免拥堵
