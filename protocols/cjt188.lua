@@ -366,7 +366,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
         end
     end
 
-    if string.byte(buf, 10) & 0xF0 ~= 0x80 then
+    if string.byte(buf, 10) ~=  string.byte(binary.decodeHex(code or "01")) + 0x80 then
         return false, "非正常应答" .. binary.encodeHex(buf)
     end
 
