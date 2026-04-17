@@ -16,7 +16,9 @@ function Keeper:init()
     self.timeout = self.timeout or 300 -- 默认5分钟
 
     self._times = 0 -- 超时次数
-    self.fatal_times = self.fatal_times or 10
+    self.fatal_times = self.fatal_times or 0
+
+    self.adapter = self.adapter or "4G"
 
     -- 直接打开
     self:open()
@@ -44,9 +46,11 @@ function Keeper:open()
                 self._times = self._times + 1
 
                 -- 超时次数过多，使用更高级操作
-                if self._times > self.fatal_times then
-                    -- iot.reboot()
-                    self._times = 0
+                if self.fatal_times > 0 then
+                    if self._times > self.fatal_times then
+                        iot.reboot()
+                        self._times = 0
+                    end
                 end
 
                 -- 调用回调
@@ -72,11 +76,28 @@ end
 
 --- 重置网络
 function Keeper:reset()
-    mobile.flymode(0, true)
-    mobile.flymode(0, true)
-    iot.sleep(1000)
-    mobile.flymode(1, false)
-    mobile.flymode(1, false)
+    -- 区分
+    if self.adapter == "4G" or self.adapter == "5G" or self.adapter == "MOBILE" or self.adapter == "GPRS" then
+        -- 移动网络
+        mobile.flymode(0, true)
+        mobile.flymode(0, true)
+        iot.sleep(1000)
+        mobile.flymode(1, false)
+        mobile.flymode(1, false)
+    elseif self.adapter == "WIFI" or self.adapter == "WiFi" then
+        -- Wifi连接
+        wlan.disconnect()
+        iot.sleep(1000)
+        wlan.connect() -- 使用历史SSID和密码
+    elseif self.adapter == "ETH" then
+        -- 内置以太网
+
+    elseif self.adapter == "ETH0" then
+        -- 外置以太网
+        -- netdrv.setup(socket.LWIP_ETH, netdrv.CH390, {spi=0,cs=8})
+        -- netdrv.dhcp(socket.LWIP_ETH, true)
+
+    end
 end
 
 return Keeper
