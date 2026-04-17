@@ -12,6 +12,7 @@ local configs = require("configs")
 local MqttClient = require("mqtt_client")
 local database = require("database")
 local master = require("master")
+local Keeper = require("keeper")
 
 local _masters = {}
 
@@ -40,6 +41,16 @@ function Master:init()
     self.clientid = self.clientid or self.id
     self.username = self.username or self.id
     self.password = self.password or crypto.md5(self.id .. self.key)
+    self.keeper = Keeper:new({
+        timeout = 600, -- 10分钟连不上平台，则重置网络
+        callback = function()
+            mobile.flymode(0, true)
+            mobile.flymode(0, true)
+            iot.sleep(1000)
+            mobile.flymode(1, false)
+            mobile.flymode(1, false)
+        end
+    })
 
     -- 启动任务
     iot.start(Master.task, self)
@@ -394,6 +405,11 @@ function Master:task()
         end
     end)
 
+    self.client:on_pong(function()
+        -- 收到平台心跳，喂狗，超时重置网络
+        self.keeper:feed()
+    end)
+
     -- 打开
     local ret, err = self.client:open()
 
@@ -462,6 +478,7 @@ function Master:task()
 end
 
 function Master:close()
+    self.keeper:close()
     self.client:close()
 end
 

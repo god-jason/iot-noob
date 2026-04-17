@@ -137,16 +137,12 @@ function MqttClient:open()
                     client:subscribe(filter)
                 end
             end
+        elseif event == "pong" then
+            iot.emit("MQTT_PONG_" .. self.id)
+        elseif event == "error" then
 
-            if self.options.on_connect then
-                self.options.on_connect()
-            end
         elseif event == "disconnect" then
             iot.emit("MQTT_DISCONNECT_" .. self.id)
-
-            if self.options.on_disconnect then
-                self.options.on_disconnect()
-            end
         end
     end)
 
@@ -204,6 +200,11 @@ end
 -- 监听连接失败
 function MqttClient:on_disconnect(cb)
     iot.on("MQTT_DISCONNECT_" .. self.id, cb)
+end
+
+-- 监听心跳回复
+function MqttClient:on_pong(cb)
+    iot.on("MQTT_PONG_" .. self.id, cb)
 end
 
 --- 关闭平台（不太需要）
