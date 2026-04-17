@@ -11,15 +11,26 @@ function Keeper:init()
     self.msg = "KEEP_" .. self.id
     self.keeping = false
     self.timeout = self.timeout or 300 -- 默认5分钟
+end
+
+--- 打开看门狗
+function Keeper:open()
+    if self.keeping then
+        return
+    end
+    self.keeping = true
 
     iot.start(function()
         log.info("start", self.id, self.timeout)
         local tm = self.timeout * 1000
         while self.keeping do
-            log.info(self.id, "wait", self.tm)
+            log.info(self.id, "wait", tm)
+
+            -- 等待喂狗
             local ret = iot.wait(self.msg, tm)
             if not ret then
                 log.info(self.id, "timeout")
+                -- 调用回调
                 if self.callback then
                     iot.call(self.callback)
                 end

@@ -52,6 +52,9 @@ function Master:init()
         end
     })
 
+    -- 默认打开狗
+    self.keeper:open()
+
     -- 启动任务
     iot.start(Master.task, self)
 end
