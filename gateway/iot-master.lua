@@ -12,26 +12,8 @@ local configs = require("configs")
 local MqttClient = require("mqtt_client")
 local database = require("database")
 local master = require("master")
-local Keeper = require("keeper")
 
 local _masters = {}
-
--- 网络看门狗
-local keeper = Keeper:new({
-    timeout = 600, -- 10分钟连不上平台，则重置网络
-    on_timeout = function()
-        mobile.flymode(0, true)
-        mobile.flymode(0, true)
-        iot.sleep(1000)
-        mobile.flymode(1, false)
-        mobile.flymode(1, false)
-    end,
-    fatal_times = 12, -- 2小时连不上网，则重启
-    on_fatal = function()
-        -- TODO 此处有些粗暴了
-        -- iot.reboot()
-    end
-})
 
 -- 解析JSON
 local function parse_json(callback, self)
@@ -414,7 +396,9 @@ function Master:task()
 
     self.client:on_pong(function()
         -- 收到平台心跳，喂狗，超时重置网络
-        keeper:feed()
+        if components and components.keeper then
+            components.keeper:feed()
+        end
     end)
 
     -- 打开
@@ -566,18 +550,12 @@ function cloud.open()
             table.insert(_masters, c)
         end
     end
-
-    -- 打开狗
-    keeper:open()
 end
 
 function cloud.close()
     for i, v in ipairs(_masters) do
         v:close()
     end
-
-    -- 关闭狗
-    keeper:close()
 end
 
 boot.register("iot-master", cloud, "settings")
