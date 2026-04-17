@@ -16,6 +16,23 @@ local Keeper = require("keeper")
 
 local _masters = {}
 
+-- 网络看门狗
+local keeper = Keeper:new({
+    timeout = 600, -- 10分钟连不上平台，则重置网络
+    on_timeout = function()
+        mobile.flymode(0, true)
+        mobile.flymode(0, true)
+        iot.sleep(1000)
+        mobile.flymode(1, false)
+        mobile.flymode(1, false)
+    end,
+    fatal_times = 12, -- 2小时连不上网，则重启
+    on_fatal = function()
+        -- TODO 此处有些粗暴了
+        -- iot.reboot()
+    end
+})
+
 -- 解析JSON
 local function parse_json(callback, self)
     return function(topic, payload)
@@ -41,19 +58,6 @@ function Master:init()
     self.clientid = self.clientid or self.id
     self.username = self.username or self.id
     self.password = self.password or crypto.md5(self.id .. self.key)
-    self.keeper = Keeper:new({
-        timeout = 600, -- 10分钟连不上平台，则重置网络
-        callback = function()
-            mobile.flymode(0, true)
-            mobile.flymode(0, true)
-            iot.sleep(1000)
-            mobile.flymode(1, false)
-            mobile.flymode(1, false)
-        end
-    })
-
-    -- 默认打开狗
-    self.keeper:open()
 
     -- 启动任务
     iot.start(Master.task, self)
@@ -410,7 +414,7 @@ function Master:task()
 
     self.client:on_pong(function()
         -- 收到平台心跳，喂狗，超时重置网络
-        self.keeper:feed()
+        keeper:feed()
     end)
 
     -- 打开
@@ -481,7 +485,6 @@ function Master:task()
 end
 
 function Master:close()
-    self.keeper:close()
     self.client:close()
 end
 
@@ -563,12 +566,18 @@ function cloud.open()
             table.insert(_masters, c)
         end
     end
+
+    -- 打开狗
+    keeper:open()
 end
 
 function cloud.close()
     for i, v in ipairs(_masters) do
         v:close()
     end
+
+    -- 关闭狗
+    keeper:close()
 end
 
 boot.register("iot-master", cloud, "settings")
