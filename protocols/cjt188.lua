@@ -220,6 +220,11 @@ function Cjt188Device:poll()
             if not ret then
                 err = data
                 -- 此处不返回，直接进行下一次读取
+
+                -- 部分设备虽然异常返回，也是也 代表在线
+                if data ~= "读取超时" and data ~= "错误起始符" then
+                    self._updated = os.time()
+                end
             else
                 log.info("poll parse", binary.encodeHex(data))
 
@@ -336,7 +341,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
     frame = frame .. iot.pack("b1", crypto.checksum(frame, 1)) -- 和校验
     frame = frame .. iot.pack("b1", 0x16) -- 结束符
 
-    log.info("写入", binary.encodeHex(frame))
+    log.info("仪表请求", binary.encodeHex(frame))
 
     frame = binary.decodeHex("FEFEFEFE") .. frame -- 前导码
     local ret, buf = self.request:request(frame, 14) -- 先读12字节
@@ -344,16 +349,16 @@ function Cjt188Master:ask(addr, type, code, di, data)
         return false, buf or "无响应"
     end
 
-    log.info("读取", binary.encodeHex(buf))
+    log.info("仪表响应", binary.encodeHex(buf))
 
     -- 解析返回
     -- 去掉前导码
-    while #buf > 0 and string.byte(buf, 1) == 0xFE do
+    while #buf > 0 and (string.byte(buf, 1) == 0xFE or string.byte(buf, 1) == 0xFF) do
         buf = buf:sub(2)
     end
 
     if string.byte(buf, 1) ~= 0x68 then
-        return false, "错误起始符" .. binary.encodeHex(buf)
+        return false, "错误起始符" -- .. binary.encodeHex(buf)
     end
 
     -- 指令长度不够，要拿到长度

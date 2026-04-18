@@ -41,7 +41,7 @@ function Keeper:open()
             local ret = iot.wait(self.msg, tm)
             if not ret then
                 log.warn(self.id, "timeout")
-                self.emit("timeout")
+                self:emit("timeout")
 
                 self._times = self._times + 1
 
