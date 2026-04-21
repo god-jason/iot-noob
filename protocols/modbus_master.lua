@@ -353,7 +353,7 @@ function ModbusMaster:open()
 
     -- 轮询
     if self.polling ~= false then
-        iot.start(DLT645Master.polling_task, self)
+        iot.start(self.polling_task, self)
     end
 
     return true

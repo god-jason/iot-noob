@@ -178,7 +178,7 @@ function actions.polling(data)
             if link.protocol_instance and link.protocol_instance.polling_all then
                 link.protocol_instance:polling_all()
             end
-        end    
+        end
     end)
     return true
 end

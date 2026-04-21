@@ -60,8 +60,8 @@ function DLT645Device:get(key)
                 -- 去掉DI（前4字节）
                 data = data:sub(5)
 
-                local ret, value = meter.decode(data, point.type, point.reverse)
-                if not ret then
+                local res, value = meter.decode(data, point.type, point.reverse)
+                if not res then
                     log.error("poll", self.id, point.name, "解析失败", value)
                     return false, value
                 end
@@ -101,8 +101,8 @@ function DLT645Device:poll()
                 -- 去掉DI（前4字节）
                 data = data:sub(5)
 
-                local ret, value = meter.decode(data, point.type, point.reverse)
-                if not ret then
+                local res, value = meter.decode(data, point.type, point.reverse)
+                if not res then
                     log.error("poll", self.id, point.name, "解析失败", value)
                 else
                     -- 增加倍率转换（大部分不需要）
@@ -217,7 +217,7 @@ function DLT645Master:ask(addr, ctrl, di, payload)
     end
 
     -- 数据域
-    local data = buf:sub(11, 11 + len - 1)
+    data = buf:sub(11, 11 + len - 1)
 
     data = sub33(data)
 
@@ -227,14 +227,14 @@ end
 -- 读
 function DLT645Master:read(addr, di)
     log.info("read", addr, di)
-    --self.link:read()
+    -- self.link:read()
     return self:ask(addr, 0x11, di, nil)
 end
 
 -- 写
 function DLT645Master:write(addr, di, payload)
     log.info("write", addr, di)
-    --self.link:read()
+    -- self.link:read()
     return self:ask(addr, 0x14, di, payload)
 end
 
@@ -267,7 +267,6 @@ function DLT645Master:close()
     self.opened = false
     self.devices = {}
 end
-
 
 function DLT645Master:polling_all()
     -- 轮询连接下面的所有设备

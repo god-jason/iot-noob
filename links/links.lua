@@ -64,12 +64,12 @@ function links.create(clazz, opts)
     -- 打开协议
     if protocol and #protocol > 0 then
         -- 创建协议
-        local ret, instanse = protocols.create(protocol, {
+        local res, instanse = protocols.create(protocol, {
             link = link,
             devices = devices,
             options = protocol_options or {}
         })
-        if not ret then
+        if not res then
             return false, instanse
         end
 

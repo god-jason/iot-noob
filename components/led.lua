@@ -21,7 +21,7 @@ function Led:turn_on()
     self.blinking = false
 
     self:emit("change", {
-        state = state
+        state = true
     })
 end
 
@@ -32,7 +32,7 @@ function Led:turn_off()
     self.blinking = false
 
     self:emit("change", {
-        state = state
+        state = false
     })
 end
 

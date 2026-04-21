@@ -35,7 +35,7 @@ end
 -- 关闭
 function WatchDog:close()
     log.info("close")
-    
+
     iot.clearInterval(self.timer)
 
     self.gpio:set(1)

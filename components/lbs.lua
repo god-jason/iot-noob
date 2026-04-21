@@ -46,9 +46,9 @@ function LBS:amap()
     mobile.reqCellInfo(15)
     sys.waitUntil("CELL_INFO_UPDATE", 15000)
     local cells = mobile.getCellInfo()
-    for i, cell in ipairs(cells) do
-        local bts = table.concat({cell.mcc, cell.mnc, cell.tac, cell.cid, cell.rssi}, ",")
-        table.insert(nearbts, bts)
+    for i, c in ipairs(cells) do
+        local b = table.concat({c.mcc, c.mnc, c.tac, c.cid, c.rssi}, ",")
+        table.insert(nearbts, b)
     end
     nearbts = table.concat(nearbts, "|")
 

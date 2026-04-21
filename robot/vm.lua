@@ -7,11 +7,11 @@ function vm.stop(task, ctx, executor)
 end
 
 --- 恢复指令（需要实现）
-function vm.resume(task, ctx, executor)    
+function vm.resume(task, ctx, executor)
 end
 
 --- 暂停指令（需要实现）
-function vm.pause(task, ctx, executor)    
+function vm.pause(task, ctx, executor)
 end
 
 --- 等待指令

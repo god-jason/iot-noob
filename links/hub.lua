@@ -135,10 +135,10 @@ function hub.open()
 
                 -- 加载虚拟连接
                 local ls = database.find("hub_link", "hub_id", i)
-                for i, l in ipairs(ls) do
-                    local ret, link = links.create(HubLink, l)
-                    if not ret then
-                        log.error("连接虚拟连接", i, l.name, " 出错:", link)
+                for j, l in ipairs(ls) do
+                    local ret2, link = links.create(HubLink, l)
+                    if not ret2 then
+                        log.error("连接虚拟连接", j, l.name, " 出错:", link)
                     else
                         link.hub = hb
                     end

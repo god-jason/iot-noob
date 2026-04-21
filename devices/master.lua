@@ -38,9 +38,9 @@ function MasterDevice:set(key, value)
         if cmp.bindings then
             local com = components[cmp.name]
             if com and com.set then
-                for k, v in pairs(cmp.bindings) do
+                for j, v in pairs(cmp.bindings) do
                     if v == key then
-                        return com:set(k, value)
+                        return com:set(j, value)
                     end
                 end
             end
@@ -90,8 +90,8 @@ function master.open()
             com:on("change", function(values)
                 local has = false
                 local vs = {}
-                for k, v in pairs(values) do
-                    local key = cmp.bindings[k]
+                for j, v in pairs(values) do
+                    local key = cmp.bindings[j]
                     if key ~= nil then
                         vs[key] = v
                         has = true

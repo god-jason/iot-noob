@@ -412,8 +412,8 @@ function Master:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self)) -- TODO 后端修改要改成action操作
-    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self)) -- TODO 后端修改要改成action操作
+    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self))
     self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Master.on_device_setting, self))
     self.client:subscribe("device/" .. self.id .. "/write", parse_json(Master.on_device_write, self))
     self.client:subscribe("device/" .. self.id .. "/read", parse_json(Master.on_device_read, self))

@@ -35,16 +35,16 @@ function components.create(cmp)
 
     local fn = types[cmp.type]
     if not fn then
-        --log.error("未知类型组件")
+        -- log.error("未知类型组件")
         return false, "未知组件类型" .. cmp.type
     end
 
     local comp = fn:new(cmp)
 
     if cmp.name then
-    _components[cmp.name] = comp        
+        _components[cmp.name] = comp
     end
-    
+
     return true, comp
 end
 

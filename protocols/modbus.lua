@@ -86,7 +86,6 @@ function ModbusMapper:new(product_id)
     }, ModbusMapper)
 end
 
-
 function ModbusMapper:load()
     log.info("load", self.product_id)
     local mod = model.get(self.product_id)
@@ -137,7 +136,7 @@ function ModbusMapper:load()
     table.sort(self.holding_registers, sortPoint)
     table.sort(self.input_registers, sortPoint)
 
-    --log.info("before pollers", iot.json_encode(self.coils))
+    -- log.info("before pollers", iot.json_encode(self.coils))
 
     -- 间隔3个以内，视为连续地址
     local sep = 3
@@ -305,7 +304,7 @@ function ModbusMapper:parse(data, register, address, length)
                     -- self:put_value(point.name, v)
                     has = true
                     if point.name and #point.name > 0 then
-                        values[point.name] = v    
+                        values[point.name] = v
                     end
                 end
             end
@@ -320,7 +319,7 @@ function ModbusMapper:parse(data, register, address, length)
                     -- self:put_value(point.name, v)
                     has = true
                     if point.name and #point.name > 0 then
-                        values[point.name] = v    
+                        values[point.name] = v
                     end
                 end
             end
@@ -338,14 +337,14 @@ function ModbusMapper:parse(data, register, address, length)
                             -- self:put_value(point.name, vv)
                             has = true
                             if b.name and #b.name > 0 then
-                                values[b.name] = vv    
+                                values[b.name] = vv
                             end
                         end
                     else
                         -- self:put_value(point.name, v)
                         has = true
                         if point.name and #point.name > 0 then
-                            values[point.name] = v    
+                            values[point.name] = v
                         end
                     end
                 end
@@ -364,14 +363,14 @@ function ModbusMapper:parse(data, register, address, length)
                             -- self:put_value(point.name, vv)
                             has = true
                             if b.name and #b.name > 0 then
-                                values[b.name] = vv    
+                                values[b.name] = vv
                             end
                         end
                     else
                         -- self:put_value(point.name, v)
                         has = true
                         if point.name and #point.name > 0 then
-                            values[point.name] = v    
+                            values[point.name] = v
                         end
                     end
                 end
@@ -380,11 +379,11 @@ function ModbusMapper:parse(data, register, address, length)
         log.info("parse 4 ", iot.json_encode(values))
     else
         -- 暂不支持其他类型
+        return false, "不支持的寄存器类型"
     end
 
     return has, values
 end
-
 
 -- 加载地址映射
 function modbus.load_mapper(product_id)

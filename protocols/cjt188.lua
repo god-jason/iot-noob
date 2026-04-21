@@ -234,8 +234,8 @@ function Cjt188Device:poll()
                 for _, point in ipairs(pt.points) do
 
                     if #data > point.address then
-                        local ret, value, size = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
-                        if not ret then
+                        local res, value, size = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
+                        if not res then
                             log.error("解析数据失败", point.name, value)
                         else
                             -- 仅BCD格式有单位
@@ -371,7 +371,7 @@ function Cjt188Master:ask(addr, type, code, di, data)
         end
     end
 
-    if string.byte(buf, 10) ~=  string.byte(binary.decodeHex(code or "01")) + 0x80 then
+    if string.byte(buf, 10) ~= string.byte(binary.decodeHex(code or "01")) + 0x80 then
         return false, "非正常应答" .. binary.encodeHex(buf)
     end
 

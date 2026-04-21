@@ -42,7 +42,7 @@ function Complementary:_dt(dt)
         return 0
     end
 
-    local dt = now - self.last_time
+    dt = now - self.last_time
     self.last_time = now
     return dt
 end

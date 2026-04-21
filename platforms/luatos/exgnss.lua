@@ -117,26 +117,25 @@ local function gnss_state(event, ticks)
 end
 sys.subscribe("GNSS_STATE",gnss_state)
 
-]]
-local exgnss = {}
---gnss开启标志，true表示开启状态，false或者nil表示关闭状态
+]] local exgnss = {}
+-- gnss开启标志，true表示开启状态，false或者nil表示关闭状态
 local openFlag
---gnss定位标志，true表示，其余表示未定位
-local fixFlag=nil
+-- gnss定位标志，true表示，其余表示未定位
+local fixFlag = nil
 
---串口配置
+-- 串口配置
 local uart_baudrate = 115200
 local uart_id = 2
 
---gnss 的串口线程是否在工作；
-local taskFlag=false
+-- gnss 的串口线程是否在工作；
+local taskFlag = false
 
-local agpsFlag=false
+local agpsFlag = false
 
-local timeres=false
+local timeres = false
 
---保存经纬度到文件区
-local function save_loc(lat,lng)
+-- 保存经纬度到文件区
+local function save_loc(lat, lng)
     if not lat or not lng then
         if libgnss.isFix() then
             local rmc = libgnss.getRmc(0)
@@ -154,7 +153,7 @@ local function save_loc(lat,lng)
     if timeres then
         local now = os.time()
         io.writeFile("/hxxt_tm", tostring(now))
-        timeres=false
+        timeres = false
         -- log.info("now", now)
     end
 end
@@ -162,7 +161,7 @@ end
 local tid
 local timetid
 local function timer_fnc()
-    timeres=true
+    timeres = true
     local now = os.time()
     io.writeFile("/hxxt_tm", tostring(now))
 end
@@ -171,10 +170,10 @@ sys.subscribe("GNSS_STATE", function(event)
     -- log.info("libagps","libagps is "..event)
     if event == "FIXED" then
         save_loc()
-        tid=sys.timerLoopStart(save_loc,600000)
-        timetid=sys.timerStart(timer_fnc,10000)
+        tid = sys.timerLoopStart(save_loc, 600000)
+        timetid = sys.timerStart(timer_fnc, 10000)
         if exgnss.opts then
-            if exgnss.opts.rtc==true then
+            if exgnss.opts.rtc == true then
                 sys.publish("NTP_UPDATE")
             end
         end
@@ -185,26 +184,29 @@ sys.subscribe("GNSS_STATE", function(event)
     end
 end)
 
---agps操作，联网访问服务器获取星历数据
+-- agps操作，联网访问服务器获取星历数据
 local function agps()
     local lat, lng
 
-    --此逻辑在agps定位成功之后，还会继续开启10s-15s，
-    --原因是因为如果第一次冷启动之后，定位成功之后，
-    --如果直接关闭gnss会导致gnss芯片的星历没有解析完毕，会影响下一次的定位为冷启动
-    --如果对功耗有需求，需要定位快，可以每次都使用agps，不需要这句，直接屏蔽掉即可
-    --代价是每次定位都会进行基站定位，
-    if exgnss.opts.auto_open~= false then
-        log.info("libagps","libagps is open")
-        exgnss.open(exgnss.TIMER,{tag="libagps",val=20}) 
+    -- 此逻辑在agps定位成功之后，还会继续开启10s-15s，
+    -- 原因是因为如果第一次冷启动之后，定位成功之后，
+    -- 如果直接关闭gnss会导致gnss芯片的星历没有解析完毕，会影响下一次的定位为冷启动
+    -- 如果对功耗有需求，需要定位快，可以每次都使用agps，不需要这句，直接屏蔽掉即可
+    -- 代价是每次定位都会进行基站定位，
+    if exgnss.opts.auto_open ~= false then
+        log.info("libagps", "libagps is open")
+        exgnss.open(exgnss.TIMER, {
+            tag = "libagps",
+            val = 20
+        })
     else
 
     end
     -- 判断星历时间和下载星历   
     local now = os.time()
     local agps_time = tonumber(io.readFile("/hxxt_tm") or "0") or 0
-    log.info("os.time",now)
-    log.info("agps_time",agps_time)
+    log.info("os.time", now)
+    log.info("agps_time", agps_time)
     if now - agps_time > 3600 or io.fileSize("/hxxt.dat") < 1024 then
         local url = exgnss.opts.url
         if not exgnss.opts.url then
@@ -215,7 +217,9 @@ local function agps()
                 url = "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
             end
         end
-        local code = http.request("GET", url, nil, nil, {dst="/hxxt.dat"}).wait()
+        local code = http.request("GET", url, nil, nil, {
+            dst = "/hxxt.dat"
+        }).wait()
         if code and code == 200 then
             log.info("exgnss.opts", "下载星历成功", url)
             io.writeFile("/hxxt_tm", tostring(now))
@@ -225,7 +229,7 @@ local function agps()
     else
         log.info("exgnss.opts", "星历不需要更新", now - agps_time)
     end
-    --进行基站定位，给到gnss芯片一个大概的位置
+    -- 进行基站定位，给到gnss芯片一个大概的位置
     if mobile then
         local lbsLoc2 = require("lbsLoc2")
         lat, lng = lbsLoc2.request(5000)
@@ -236,8 +240,8 @@ local function agps()
             lng = tonumber(lng)
             log.info("lbsLoc2", lat, lng)
             -- 转换单位
-            local lat_dd,lat_mm = math.modf(lat)
-            local lng_dd,lng_mm = math.modf(lng)
+            local lat_dd, lat_mm = math.modf(lat)
+            local lng_dd, lng_mm = math.modf(lng)
             lat = lat_dd * 100 + lat_mm * 60
             lng = lng_dd * 100 + lng_mm * 60
         end
@@ -245,7 +249,7 @@ local function agps()
         -- wlan.scan()
         -- sys.waitUntil("WLAN_SCAN_DONE", 5000)
     end
-    --获取基站定位失败则使用本地之前保存的位置
+    -- 获取基站定位失败则使用本地之前保存的位置
     if not lat then
         -- 获取最后的本地位置
         local locStr = io.readFile("/hxxtloc")
@@ -263,7 +267,7 @@ local function agps()
     local agps_data = io.readFile("/hxxt.dat")
     if agps_data and #agps_data > 1024 then
         log.info("exgnss.opts", "写入星历数据", "长度", #agps_data)
-        for offset=1,#agps_data,512 do
+        for offset = 1, #agps_data, 512 do
             log.info("exgnss", "AGNSS", "write >>>", #agps_data:sub(offset, offset + 511))
             uart.write(gps_uart_id, agps_data:sub(offset, offset + 511))
             sys.wait(100) -- 等100ms反而更成功
@@ -274,15 +278,15 @@ local function agps()
         return
     end
     -- "lat":23.4068813,"min":27,"valid":true,"day":27,"lng":113.2317505
-    --如果没有经纬度的话，定位时间会变长，大概10-20s左右
+    -- 如果没有经纬度的话，定位时间会变长，大概10-20s左右
     if not lat or not lng then
         -- lat, lng = 23.4068813, 113.2317505
         log.info("exgnss.opts", "没有GPS坐标", lat, lng)
-        return --暂时不写入参考位置
+        return -- 暂时不写入参考位置
     else
         log.info("exgnss.opts", "写入GPS坐标", lat, lng)
     end
-    --写入时间
+    -- 写入时间
     local date = os.date("!*t")
     if date.year > 2023 then
         local str = string.format("$AIDTIME,%d,%d,%d,%d,%d,%d,000", date["year"], date["month"], date["day"],
@@ -292,23 +296,24 @@ local function agps()
         sys.wait(20)
     end
     -- 写入参考位置
-    local str = string.format("$AIDPOS,%.7f,%s,%.7f,%s,1.0\r\n",
-    lat > 0 and lat or (0 - lat), lat > 0 and 'N' or 'S',
-    lng > 0 and lng or (0 - lng), lng > 0 and 'E' or 'W')
+    local str = string.format("$AIDPOS,%.7f,%s,%.7f,%s,1.0\r\n", lat > 0 and lat or (0 - lat), lat > 0 and 'N' or 'S',
+        lng > 0 and lng or (0 - lng), lng > 0 and 'E' or 'W')
     log.info("exgnss.opts", "写入AGPS参考位置", str)
     uart.write(gps_uart_id, str)
 
     -- 结束
     exgnss.opts.agps_tm = now
-    agpsFlag=true
+    agpsFlag = true
 end
 
---执行agps操作判断
+-- 执行agps操作判断
 local function is_agps()
     -- 如果不是强制写入AGPS信息, 而且是已经定位成功的状态,那就没必要了
-    if libgnss.isFix() then return end
+    if libgnss.isFix() then
+        return
+    end
     -- 先判断一下时间
-    local num=0
+    local num = 0
     while not socket.adapter(socket.dft()) do
         -- log.warn("airlbs_multi_cells_wifi_func", "wait IP_READY", socket.dft())
         -- 在此处阻塞等待默认网卡连接成功的消息"IP_READY"
@@ -318,9 +323,9 @@ local function is_agps()
         -- 当exnetif.set_priority_order的调用时序和此处的socket.adapter(socket.dft())判断时序有可能不匹配
         -- 此处的1秒，能够保证，即使时序不匹配，也能1秒钟退出阻塞状态，再去判断socket.adapter(socket.dft())
         sys.waitUntil("IP_READY", 1000)
-        --如果30秒还没有IP_READY，说明网络有问题，直接结束函数不往下进行了，因为GNSS冷启动一般需要35秒，再去进行AGPS就没什么意义了
-        num=num+1
-        if num==30 then
+        -- 如果30秒还没有IP_READY，说明网络有问题，直接结束函数不往下进行了，因为GNSS冷启动一般需要35秒，再去进行AGPS就没什么意义了
+        num = num + 1
+        if num == 30 then
             log.warn("gnss_agps", "wait IP_READY timeout")
             return
         end
@@ -332,7 +337,7 @@ local function is_agps()
     local now = os.time()
     local agps_time = tonumber(io.readFile("/hxxt_tm") or "0") or 0
     -- if ((not exgnss.opts.agps_tm) and (now - agps_time > 300))  or  now - agps_time > 3600 then
-    if not exgnss.opts.agps_tm  or  now - agps_time > 3600 then
+    if not exgnss.opts.agps_tm or now - agps_time > 3600 then
         -- 执行AGPS
         log.info("exgnss.opts", "开始执行AGPS")
         sys.taskInit(agps)
@@ -341,98 +346,99 @@ local function is_agps()
     end
 end
 
-
---打开gnss，内部函数使用，不推荐给脚本层使用
+-- 打开gnss，内部函数使用，不推荐给脚本层使用
 local function fnc_open()
-    if openFlag then return end
+    if openFlag then
+        return
+    end
     libgnss.clear() -- 清空数据,兼初始化
     uart.setup(uart_id, uart_baudrate)
     if exgnss.opts.gnss_volgpio then
-        gpio.setup(exgnss.opts.gnss_volgpio,1)
+        gpio.setup(exgnss.opts.gnss_volgpio, 1)
     else
         pm.power(pm.GPS, true)
     end
     if exgnss.opts.hz then
         local hz
-        if exgnss.opts.hz==1 then
+        if exgnss.opts.hz == 1 then
             sys.timerStart(function()
-                uart.write(uart_id,"$CFGNAV,1000,1000\r\n")
-            end,500)
-        elseif exgnss.opts.hz==2 then
+                uart.write(uart_id, "$CFGNAV,1000,1000\r\n")
+            end, 500)
+        elseif exgnss.opts.hz == 2 then
             sys.timerStart(function()
-                uart.write(uart_id,"$CFGNAV,500,500\r\n")
-            end,500)
-        elseif exgnss.opts.hz==4 then
+                uart.write(uart_id, "$CFGNAV,500,500\r\n")
+            end, 500)
+        elseif exgnss.opts.hz == 4 then
             sys.timerStart(function()
-                uart.write(uart_id,"$CFGNAV,250,250\r\n")
-            end,500)
-        elseif exgnss.opts.hz==5 then
+                uart.write(uart_id, "$CFGNAV,250,250\r\n")
+            end, 500)
+        elseif exgnss.opts.hz == 5 then
             sys.timerStart(function()
-                uart.write(uart_id,"$CFGNAV,200,200\r\n")
-            end,500)
+                uart.write(uart_id, "$CFGNAV,200,200\r\n")
+            end, 500)
         end
     end
     openFlag = true
-    if exgnss.opts.gnssmode==1 then
-        --默认全开启
+    if exgnss.opts.gnssmode == 1 then
+        -- 默认全开启
         log.info("全卫星开启")
-        elseif exgnss.opts.gnssmode==2 then
-        --默认开启单北斗
+    elseif exgnss.opts.gnssmode == 2 then
+        -- 默认开启单北斗
         sys.timerStart(function()
             uart.write(uart_id, "$CFGSYS,h10\r\n")
-        end,200)
+        end, 200)
         log.info("单北斗开启")
     end
-    if exgnss.opts.debug==true then
+    if exgnss.opts.debug == true then
         log.info("debug开启")
         libgnss.debug(true)
     end
-    if type(exgnss.opts.bind)=="number"  then
+    if type(exgnss.opts.bind) == "number" then
         log.info("绑定bind事件")
-        libgnss.bind(uart_id,exgnss.opts.bind)
+        libgnss.bind(uart_id, exgnss.opts.bind)
     else
         libgnss.bind(uart_id)
     end
-    if exgnss.opts.rtc==true then
+    if exgnss.opts.rtc == true then
         log.info("rtc开启")
         libgnss.rtcAuto(true)
     end
-    if exgnss.opts.agps_enable==true then
+    if exgnss.opts.agps_enable == true then
         log.info("agps开启")
         sys.taskInit(is_agps)
     end
-    
 
-    --设置输出VTG内容
+    -- 设置输出VTG内容
     sys.timerStart(function()
-        uart.write(uart_id,"$CFGMSG,0,5,1,1\r\n")
-    end,800)
-     --设置输出ZDA内容
-     sys.timerStart(function()
-        uart.write(uart_id,"$CFGMSG,0,6,1,1\r\n")
-    end,900)
-    sys.publish("GNSS_STATE","OPEN")
+        uart.write(uart_id, "$CFGMSG,0,5,1,1\r\n")
+    end, 800)
+    -- 设置输出ZDA内容
+    sys.timerStart(function()
+        uart.write(uart_id, "$CFGMSG,0,6,1,1\r\n")
+    end, 900)
+    sys.publish("GNSS_STATE", "OPEN")
     log.info("exgnss._open")
 end
 
---关闭gnss，内部函数使用，不推荐给脚本层使用
+-- 关闭gnss，内部函数使用，不推荐给脚本层使用
 local function fnc_close()
-    if not openFlag then return end
+    if not openFlag then
+        return
+    end
     save_loc()
     if exgnss.opts.gnss_volgpio then
-        gpio.setup(exgnss.opts.gnss_volgpio,0)
+        gpio.setup(exgnss.opts.gnss_volgpio, 0)
     else
         pm.power(pm.GPS, false)
     end
     uart.close(uart_id)
     openFlag = false
     fixFlag = false
-    timeres=false
-    sys.publish("GNSS_STATE","CLOSE",fixFlag)    
+    timeres = false
+    sys.publish("GNSS_STATE", "CLOSE", fixFlag)
     log.info("exgnss._close")
     libgnss.clear()
 end
-
 
 --- gnss应用模式1.
 --
@@ -455,7 +461,7 @@ exgnss.TIMERORSUC = 2
 -- 打开gnss后，在自动关闭此“gnss应用”前，可以调用gnss.close或者gnss.close_all主动关闭此“gnss应用”，主动关闭时，即使有回调函数，也不会调用回调函数
 exgnss.TIMER = 3
 
---“gnss应用”表
+-- “gnss应用”表
 local tList = {}
 
 --[[
@@ -469,17 +475,16 @@ local tList = {}
             para.cb：回调函数
 返回值：无
 ]]
-local function delItem(mode,para)
-    for i=1,#tList do
-        --标志有效 并且 gnss应用模式相同 并且 “gnss应用”标记相同
-        if tList[i].flag and tList[i].mode==mode and tList[i].para.tag==para.tag then
-            --设置无效标志
-            tList[i].flag,tList[i].delay = false
+local function delItem(mode, para)
+    for i = 1, #tList do
+        -- 标志有效 并且 gnss应用模式相同 并且 “gnss应用”标记相同
+        if tList[i].flag and tList[i].mode == mode and tList[i].para.tag == para.tag then
+            -- 设置无效标志
+            tList[i].flag, tList[i].delay = false
             break
         end
     end
 end
-
 
 --[[
 函数名：addItem
@@ -492,68 +497,86 @@ end
             para.cb：回调函数
 返回值：无
 ]]
-local function addItem(mode,para)
-    --删除相同的“gnss应用”
-    delItem(mode,para)
-    local item,i,fnd = {flag=true, mode=mode, para=para}
-    --如果是TIMERORSUC或者TIMER模式，初始化gnss工作剩余时间
-    if mode==exgnss.TIMERORSUC or mode==exgnss.TIMER then item.para.remain = para.val end
-    for i=1,#tList do
-        --如果存在无效的“gnss应用”项，直接使用此位置
+local function addItem(mode, para)
+    -- 删除相同的“gnss应用”
+    delItem(mode, para)
+    local item, i, fnd = {
+        flag = true,
+        mode = mode,
+        para = para
+    }
+    -- 如果是TIMERORSUC或者TIMER模式，初始化gnss工作剩余时间
+    if mode == exgnss.TIMERORSUC or mode == exgnss.TIMER then
+        item.para.remain = para.val
+    end
+    for i = 1, #tList do
+        -- 如果存在无效的“gnss应用”项，直接使用此位置
         if not tList[i].flag then
             tList[i] = item
             fnd = true
             break
         end
     end
-    --新增一项
-    if not fnd then table.insert(tList,item) end
-end
-
---退出GNSS定时器
-local function existTimerItem()
-    for i=1,#tList do
-        if tList[i].flag and (tList[i].mode==exgnss.TIMERORSUC or tList[i].mode==exgnss.TIMER or tList[i].para.delay) then return true end
+    -- 新增一项
+    if not fnd then
+        table.insert(tList, item)
     end
 end
 
---GNSS定时器
-local function timerFnc()
-    for i=1,#tList do
-        if tList[i].flag then
-            log.info("exgnss.timerFnc@"..i,tList[i].mode,tList[i].para.tag,tList[i].para.val,tList[i].para.remain,tList[i].para.delay)
-            local rmn,dly,md,cb = tList[i].para.remain,tList[i].para.delay,tList[i].mode,tList[i].para.cb
+-- 退出GNSS定时器
+local function existTimerItem()
+    for i = 1, #tList do
+        if tList[i].flag and
+            (tList[i].mode == exgnss.TIMERORSUC or tList[i].mode == exgnss.TIMER or tList[i].para.delay) then
+            return true
+        end
+    end
+end
 
-            if rmn and rmn>0 then
-                tList[i].para.remain = rmn-1
+-- GNSS定时器
+local function timerFnc()
+    for i = 1, #tList do
+        if tList[i].flag then
+            log.info("exgnss.timerFnc@" .. i, tList[i].mode, tList[i].para.tag, tList[i].para.val, tList[i].para.remain,
+                tList[i].para.delay)
+            local rmn, dly, md, cb = tList[i].para.remain, tList[i].para.delay, tList[i].mode, tList[i].para.cb
+
+            if rmn and rmn > 0 then
+                tList[i].para.remain = rmn - 1
             end
-            if dly and dly>0 then
-                tList[i].para.delay = dly-1
+            if dly and dly > 0 then
+                tList[i].para.delay = dly - 1
             end
             rmn = tList[i].para.remain
 
-            if libgnss.isFix() and md==exgnss.TIMER and rmn==0 and not tList[i].para.delay then
+            if libgnss.isFix() and md == exgnss.TIMER and rmn == 0 and not tList[i].para.delay then
                 tList[i].para.delay = 1
             end
             dly = tList[i].para.delay
             if libgnss.isFix() then
-                if dly and dly==0 then
-                    if cb then cb(tList[i].para.tag) end
+                if dly and dly == 0 then
+                    if cb then
+                        cb(tList[i].para.tag)
+                    end
                     if md == exgnss.DEFAULT then
                         tList[i].para.delay = nil
                     else
-                        exgnss.close(md,tList[i].para)
+                        exgnss.close(md, tList[i].para)
                     end
                 end
             else
                 if rmn and rmn == 0 then
-                    if cb then cb(tList[i].para.tag) end
-                    exgnss.close(md,tList[i].para)
+                    if cb then
+                        cb(tList[i].para.tag)
+                    end
+                    exgnss.close(md, tList[i].para)
                 end
             end
         end
     end
-    if existTimerItem() then sys.timerStart(timerFnc,1000) end
+    if existTimerItem() then
+        sys.timerStart(timerFnc, 1000)
+    end
 end
 
 --[[
@@ -564,23 +587,25 @@ end
 返回值：无
 ]]
 local function statInd(evt)
-    --定位成功的消息
+    -- 定位成功的消息
     if evt == "FIXED" then
         fixFlag = true
-        for i=1,#tList do
-            log.info("exgnss.statInd@"..i,tList[i].flag,tList[i].mode,tList[i].para.tag,tList[i].para.val,tList[i].para.remain,tList[i].para.delay,tList[i].para.cb)
+        for i = 1, #tList do
+            log.info("exgnss.statInd@" .. i, tList[i].flag, tList[i].mode, tList[i].para.tag, tList[i].para.val,
+                tList[i].para.remain, tList[i].para.delay, tList[i].para.cb)
             if tList[i].flag then
                 if tList[i].mode ~= exgnss.TIMER then
                     tList[i].para.delay = 1
                     if tList[i].mode == exgnss.DEFAULT then
-                        if existTimerItem() then sys.timerStart(timerFnc,1000) end
+                        if existTimerItem() then
+                            sys.timerStart(timerFnc, 1000)
+                        end
                     end
                 end
             end
         end
     end
 end
-
 
 --[[
 设置gnss定位参数
@@ -611,22 +636,22 @@ local gnssotps={
     exgnss.setup(gnssotps)
 ]]
 function exgnss.setup(opts)
-    exgnss.opts=opts
+    exgnss.opts = opts
     if hmeta.model():find("780EGH") or hmeta.model():find("8000") then
-        uart_id=2
-        uart_baudrate=115200
+        uart_id = 2
+        uart_baudrate = 115200
     else
         if exgnss.opts.uart_id then
-            uart_id=exgnss.opts.uart_id
+            uart_id = exgnss.opts.uart_id
         else
-            uart_id=2    
+            uart_id = 2
         end
         if exgnss.opts.uartbaud then
-            uart_baudrate=exgnss.opts.uartbaud
+            uart_baudrate = exgnss.opts.uartbaud
         else
-            uart_baudrate=115200
+            uart_baudrate = 115200
         end
-    end   
+    end
 end
 
 --[[
@@ -653,26 +678,29 @@ exgnss.open(exgnss.TIMER,{tag="MODE1",val=60,cb=mode1_cb})
 exgnss.open(exgnss.DEFAULT,{tag="MODE2",cb=mode2_cb})
 exgnss.open(exgnss.TIMERORSUC,{tag="MODE3",val=60,cb=mode3_cb})
 ]]
-function exgnss.open(mode,para)
-    assert((para and type(para) == "table" and para.tag and type(para.tag) == "string"),"exgnss.open para invalid")
-    log.info("exgnss.open",mode,para.tag,para.val,para.cb)
-    --如果gnss定位成功
+function exgnss.open(mode, para)
+    assert((para and type(para) == "table" and para.tag and type(para.tag) == "string"), "exgnss.open para invalid")
+    log.info("exgnss.open", mode, para.tag, para.val, para.cb)
+    -- 如果gnss定位成功
     if libgnss.isFix() then
-        if mode~=exgnss.TIMER then
-            --执行回调函数
-            if para.cb then para.cb(para.tag) end
-            if mode==exgnss.TIMERORSUC then return end
+        if mode ~= exgnss.TIMER then
+            -- 执行回调函数
+            if para.cb then
+                para.cb(para.tag)
+            end
+            if mode == exgnss.TIMERORSUC then
+                return
+            end
         end
     end
-    addItem(mode,para)
-    --真正去打开gnss
+    addItem(mode, para)
+    -- 真正去打开gnss
     fnc_open()
-    --启动1秒的定时器
+    -- 启动1秒的定时器
     if existTimerItem() and not sys.timerIsActive(timerFnc) then
-        sys.timerStart(timerFnc,1000)
+        sys.timerStart(timerFnc, 1000)
     end
 end
-
 
 --[[
 关闭一个“gnss应用”，只是从逻辑上关闭一个gnss应用，并不一定真正关闭gnss，是有所有的gnss应用都处于关闭状态，才会去真正关闭gnss
@@ -684,19 +712,21 @@ end
 exgnss.open(exgnss.TIMER,{tag="MODE1",val=60,cb=mode1_cb})
 exgnss.close(exgnss.TIMER,{tag="MODE1"})
 ]]
-function exgnss.close(mode,para)
-    assert((para and type(para)=="table" and para.tag and type(para.tag)=="string"),"exgnss.close para invalid")
-    log.info("exgnss.close",mode,para.tag,para.val,para.cb)
-    --删除此“gnss应用”
-    delItem(mode,para)
-    local valid,i
-    for i=1,#tList do
+function exgnss.close(mode, para)
+    assert((para and type(para) == "table" and para.tag and type(para.tag) == "string"), "exgnss.close para invalid")
+    log.info("exgnss.close", mode, para.tag, para.val, para.cb)
+    -- 删除此“gnss应用”
+    delItem(mode, para)
+    local valid, i
+    for i = 1, #tList do
         if tList[i].flag then
             valid = true
         end
     end
-    --如果没有一个“gnss应用”有效，则关闭gnss
-    if not valid then fnc_close() end
+    -- 如果没有一个“gnss应用”有效，则关闭gnss
+    if not valid then
+        fnc_close()
+    end
 end
 
 --[[
@@ -710,9 +740,11 @@ exgnss.open(exgnss.TIMERORSUC,{tag="MODE3",val=60,cb=mode3_cb})
 exgnss.close_all()
 ]]
 function exgnss.close_all()
-    for i=1,#tList do
-        if tList[i].flag and tList[i].para.cb then tList[i].para.cb(tList[i].para.tag) end
-        exgnss.close(tList[i].mode,tList[i].para)
+    for i = 1, #tList do
+        if tList[i].flag and tList[i].para.cb then
+            tList[i].para.cb(tList[i].para.tag)
+        end
+        exgnss.close(tList[i].mode, tList[i].para)
     end
 end
 
@@ -730,15 +762,16 @@ log.info("gnss应用状态1",exgnss.is_active(exgnss.TIMER,{tag="MODE1"}))
 log.info("gnss应用状态2",exgnss.is_active(exgnss.DEFAULT,{tag="MODE2"}))
 log.info("gnss应用状态3",exgnss.is_active(exgnss.TIMERORSUC,{tag="MODE3"}))
 ]]
-function exgnss.is_active(mode,para)
-    assert((para and type(para)=="table" and para.tag and type(para.tag)=="string"),"exgnss.is_active para invalid")
-    for i=1,#tList do
-        if tList[i].flag and tList[i].mode==mode and tList[i].para.tag==para.tag then return true end
+function exgnss.is_active(mode, para)
+    assert((para and type(para) == "table" and para.tag and type(para.tag) == "string"), "exgnss.is_active para invalid")
+    for i = 1, #tList do
+        if tList[i].flag and tList[i].mode == mode and tList[i].para.tag == para.tag then
+            return true
+        end
     end
 end
 
-sys.subscribe("GNSS_STATE",statInd)
-
+sys.subscribe("GNSS_STATE", statInd)
 
 --[[
 当前是否已经定位成功
@@ -748,9 +781,8 @@ sys.subscribe("GNSS_STATE",statInd)
 log.info("nmea", "is_fix", exgnss.is_fix())
 ]]
 function exgnss.is_fix()
-   return libgnss.isFix()
+    return libgnss.isFix()
 end
-
 
 --[[
 获取number类型的位置和速度信息
@@ -778,7 +810,6 @@ log.info("nmea", "loc", exgnss.int_location(3))
 function exgnss.int_location(speed_type)
     return libgnss.getIntLocation(speed_type)
 end
-
 
 --[[
 获取RMC的信息，经纬度，时间，速度，航向，定位是否有效，磁偏角
@@ -852,10 +883,9 @@ log.info("nmea", "gsv", json.encode(exgnss.gsv()))
 --     ]
 -- }
 ]]
-function exgnss.gsv() 
-    return libgnss.getGsv() 
+function exgnss.gsv()
+    return libgnss.getGsv()
 end
-
 
 --[[
 获取原始GSA信息
@@ -890,7 +920,6 @@ function exgnss.gsa(data_mode)
     return libgnss.getGsa(data_mode)
 end
 
-
 --[[
 获取VTG速度信息
 @api exgnss.vtg(data_mode)
@@ -913,10 +942,10 @@ log.info("nmea", "vtg", exgnss.vtg(3))
 -- 提醒: 在速度<5km/h时, 不会返回方向角
 ]]
 function exgnss.vtg(data_mode)
-    return  libgnss.getVtg(data_mode)
+    return libgnss.getVtg(data_mode)
 end
 
---获取原始ZDA时间和日期信息
+-- 获取原始ZDA时间和日期信息
 --[[
 获取原始ZDA时间和日期信息
 @api exgnss.zda()
@@ -936,7 +965,7 @@ log.info("nmea", "zda", json.encode(exgnss.zda()))
 -- }
 ]]
 function exgnss.zda()
-    return  libgnss.getZda()
+    return libgnss.getZda()
 end
 
 --[[
@@ -987,7 +1016,7 @@ end
 $GNGGA,131241.000,3434.81372,N,11350.39930,E,1,05,4.924,165.5,M,-15.2,M,,*6D\r
 ]]
 function exgnss.gga(lnglat_mode)
-    return  libgnss.getGga(lnglat_mode)
+    return libgnss.getGga(lnglat_mode)
 end
 
 --[[
@@ -1034,7 +1063,7 @@ end
 {"longitude":114.3199081,"sec":14,"min":32,"mode":"A","hour":6,"us":0,"status":"A","latitude":34.7978172}
 ]]
 function exgnss.gll(data_mode)
-    return  libgnss.getGll(data_mode)
+    return libgnss.getGll(data_mode)
 end
 --[[
 获取最后的经纬度数据
@@ -1052,7 +1081,7 @@ function exgnss.last_loc()
     local locStr = io.readFile("/hxxtloc")
     if locStr then
         local jdata = json.decode(locStr)
-        return jdata 
+        return jdata
     end
 end
 return exgnss

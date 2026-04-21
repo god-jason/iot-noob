@@ -16,7 +16,7 @@ function Keeper:init()
     self.timeout = self.timeout or 300 -- 默认5分钟
 
     self._times = 0 -- 超时次数
-    self.fatal_times = self.fatal_times or 0
+    self.fatal_times = self.fatal_times or 12 -- 默认1小时无网，重启，实际项目需要谨慎
 
     self.adapter = self.adapter or "4G"
 
@@ -89,10 +89,11 @@ function Keeper:reset()
         wlan.disconnect()
         iot.sleep(1000)
         wlan.connect() -- 使用历史SSID和密码
-    elseif self.adapter == "ETH" then
+
+        -- elseif self.adapter == "ETH" then
         -- 内置以太网
 
-    elseif self.adapter == "ETH0" then
+        -- elseif self.adapter == "ETH0" then
         -- 外置以太网
         -- netdrv.setup(socket.LWIP_ETH, netdrv.CH390, {spi=0,cs=8})
         -- netdrv.dhcp(socket.LWIP_ETH, true)
