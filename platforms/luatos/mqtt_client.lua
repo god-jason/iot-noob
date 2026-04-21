@@ -139,8 +139,7 @@ function MqttClient:open()
             end
         elseif event == "pong" then
             iot.emit("MQTT_PONG_" .. self.id)
-        elseif event == "error" then
-
+            -- elseif event == "error" then
         elseif event == "disconnect" then
             iot.emit("MQTT_DISCONNECT_" .. self.id)
         end
@@ -174,7 +173,7 @@ function MqttClient:open()
             -- 先从队列中取
             while self.client:ready() and #self.pub_queue > 0 do
                 local m = table.remove(self.pub_queue, 1)
-                
+
                 log.info("publish", m.topic, m.payload, m.qos)
                 self.client:publish(m.topic, m.payload, m.qos)
             end
@@ -236,10 +235,10 @@ function MqttClient:publish(topic, payload, qos)
         local err
         payload, err = iot.json_encode(payload, "2f")
         if payload == nil then
-            return false, err 
+            return false, err
         end
     end
-    --log.info("publish", topic, payload, qos)
+    -- log.info("publish", topic, payload, qos)
 
     -- return true, self.client:publish(topic, payload, qos)
     -- 异步发送消息，避免拥堵

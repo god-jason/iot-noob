@@ -94,7 +94,7 @@ function splitters.open()
         return true, "三通未启用"
     end
 
-    local ret, info = splitters.create(t)
+    local ret, info = splitters.create(settings.splitter)
     if not ret then
         return ret, info
     end

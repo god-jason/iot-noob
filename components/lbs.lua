@@ -183,7 +183,6 @@ function LBS:set(key, value)
     else
         return false, "LBS组件不支持变量：" .. key
     end
-    return true
 end
 
 function LBS:get(key)

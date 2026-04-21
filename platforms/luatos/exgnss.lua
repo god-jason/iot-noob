@@ -40,7 +40,7 @@ exgnss.TIMER:
 -- 通俗点说就是设置规定时间打开，无论是否定位成功，到了时间都会自动关闭此应用，
 -- 和第二种的区别在于定位成功之后不会自动关闭，到时间之后才会自动关闭
 
-exgnss=require("exgnss")    
+exgnss=require("exgnss")
 
 local function mode1_cb(tag)
     log.info("TAGmode1_cb+++++++++",tag)
@@ -199,9 +199,9 @@ local function agps()
             tag = "libagps",
             val = 20
         })
-    else
-
+        -- else
     end
+
     -- 判断星历时间和下载星历   
     local now = os.time()
     local agps_time = tonumber(io.readFile("/hxxt_tm") or "0") or 0
@@ -245,7 +245,7 @@ local function agps()
             lat = lat_dd * 100 + lat_mm * 60
             lng = lng_dd * 100 + lng_mm * 60
         end
-    elseif wlan then
+        -- elseif wlan then
         -- wlan.scan()
         -- sys.waitUntil("WLAN_SCAN_DONE", 5000)
     end
@@ -480,7 +480,7 @@ local function delItem(mode, para)
         -- 标志有效 并且 gnss应用模式相同 并且 “gnss应用”标记相同
         if tList[i].flag and tList[i].mode == mode and tList[i].para.tag == para.tag then
             -- 设置无效标志
-            tList[i].flag, tList[i].delay = false
+            tList[i].flag, tList[i].delay = false, nil
             break
         end
     end
@@ -631,7 +631,7 @@ local gnssotps={
         ----芯片解析星历文件需要10-30s，默认GNSS会开启20s，该逻辑如果不执行，会导致下一次GNSS开启定位是冷启动，
         ----定位速度慢，大概35S左右，所以默认开启，如果可以接受下一次定位是冷启动，可以把auto_open设置成false
         ----需要注意的是热启动在定位成功之后，需要再开启3s左右才能保证本次的星历获取完成，如果对定位速度有要求，建议这么处理
-        -- auto_open=false 
+        -- auto_open=false
     }
     exgnss.setup(gnssotps)
 ]]
@@ -658,7 +658,9 @@ end
 打开一个“gnss应用”
 @api exgnss.open(mode,para)
 @number mode gnss应用模式，支持gnss.DEFAULT，gnss.TIMERORSUC，gnss.TIMER三种
-@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，回调函数的调用形式为para.cb(para.tag)；使用close接口时，不需要传入此参数
+@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，
+ mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，回调函数的调用形式为para.cb(para.tag)；
+ 使用close接口时，不需要传入此参数
 @return nil 无返回值
 @usage
 -- “gnss应用”：指的是使用gnss功能的一个应用
@@ -706,7 +708,9 @@ end
 关闭一个“gnss应用”，只是从逻辑上关闭一个gnss应用，并不一定真正关闭gnss，是有所有的gnss应用都处于关闭状态，才会去真正关闭gnss
 @api exgnss.close()
 @number mode gnss应用模式，支持gnss.DEFAULT，gnss.TIMERORSUC，gnss.TIMER三种
-@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，回调函数的调用形式为para.cb(para.tag)；使用close接口时，不需要传入此参数
+@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，
+mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，
+回调函数的调用形式为para.cb(para.tag)；使用close接口时，不需要传入此参数
 @return nil 无返回值
 @usage
 exgnss.open(exgnss.TIMER,{tag="MODE1",val=60,cb=mode1_cb})
@@ -717,7 +721,7 @@ function exgnss.close(mode, para)
     log.info("exgnss.close", mode, para.tag, para.val, para.cb)
     -- 删除此“gnss应用”
     delItem(mode, para)
-    local valid, i
+    local valid
     for i = 1, #tList do
         if tList[i].flag then
             valid = true
@@ -752,7 +756,10 @@ end
 判断一个“gnss应用”是否处于激活状态
 @api exgnss.is_active(mode,para)
 @number mode gnss应用模式，支持gnss.DEFAULT，gnss.TIMERORSUC，gnss.TIMER三种
-@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，回调函数的调用形式为para.cb(para.tag)；使用close接口时，不需要传入此参数,gnss应用模式和gnss应用标记唯一确定一个“gnss应用”，调用本接口查询状态时，mode和para.tag要和gnss.open打开一个“gnss应用”时传入的mode和para.tag保持一致
+@param para table类型，gnss应用参数,para.tag：string类型，gnss应用标记,para.val：number类型，gnss应用开启最大时长，单位：秒，
+mode参数为gnss.TIMERORSUC或者gnss.TIMER时，此值才有意义；使用close接口时，不需要传入此参数,para.cb：gnss应用结束时的回调函数，
+回调函数的调用形式为para.cb(para.tag)；使用close接口时，不需要传入此参数,gnss应用模式和gnss应用标记唯一确定一个“gnss应用”，
+调用本接口查询状态时，mode和para.tag要和gnss.open打开一个“gnss应用”时传入的mode和para.tag保持一致
 @return bool result，处于激活状态返回true，否则返回nil
 @usage
 exgnss.open(exgnss.TIMER,{tag="MODE1",val=60,cb=mode1_cb})
@@ -837,15 +844,18 @@ log.info("nmea", "rmc", json.encode(exgnss.rmc(2)))
 --模式0示例：
 --json.encode默认输出"7f"格式保留7位小数，可以根据自己需要的格式调整小数位，本示例保留5位小数
 log.info("nmea", "rmc0", json.encode(exgnss.rmc(0),"5f"))
-{"variation":0,"lat":3434.82666,"min":54,"valid":true,"day":17,"lng":11350.39746,"speed":0.21100,"year":2025,"month":7,"sec":30,"hour":11,"course":344.99200}
+{"variation":0,"lat":3434.82666,"min":54,"valid":true,"day":17,"lng":11350.39746,"speed":0.21100,
+"year":2025,"month":7,"sec":30,"hour":11,"course":344.99200}
 --模式1示例：
 --DDDDDDDDD格式是由DD.DDDDDDD*10000000转换而来，目的是作为整数，方便某些场景使用
 log.info("nmea", "rmc1", json.encode(exgnss.rmc(1)))
-{"variation":0,"lat":345804414,"min":54,"valid":true,"day":17,"lng":1138399500,"speed":0.2110000,"year":2025,"month":7,"sec":30,"hour":11,"course":344.9920044}
+{"variation":0,"lat":345804414,"min":54,"valid":true,"day":17,"lng":1138399500,"speed":0.2110000,
+"year":2025,"month":7,"sec":30,"hour":11,"course":344.9920044}
 --模式2示例：
 --json.encode默认输出"7f"格式保留7位小数，可以根据自己需要的格式调整小数位
 log.info("nmea", "rmc2", json.encode(exgnss.rmc(2)))
-{"variation":0,"lat":34.5804405,"min":54,"valid":true,"day":17,"lng":113.8399506,"speed":0.2110000,"year":2025,"month":7,"sec":30,"hour":11,"course":344.9920044}
+{"variation":0,"lat":34.5804405,"min":54,"valid":true,"day":17,"lng":113.8399506,"speed":0.2110000,
+"year":2025,"month":7,"sec":30,"hour":11,"course":344.9920044}
 --模式3示例：
 log.info("nmea", "rmc3", exgnss.rmc(3))
 $GNRMC,115430.000,A,3434.82649,N,11350.39700,E,0.211,344.992,170725,,,A,S*02\r
@@ -993,21 +1003,24 @@ local gga = exgnss.gga(0)
 if gga then
     log.info("GGA0", json.encode(gga, "5f"))
 end
-{"longitude":11419.19531,"dgps_age":0,"altitude":86.40000,"hdop":0.59400,"height":-13.70000,"fix_quality":1,"satellites_tracked":22,"latitude":3447.86914}
+{"longitude":11419.19531,"dgps_age":0,"altitude":86.40000,"hdop":0.59400,"height":-13.70000,"fix_quality":1,
+"satellites_tracked":22,"latitude":3447.86914}
 模式1示例：
 DDDDDDDDD格式是由DD.DDDDDDD*10000000转换而来，目的是作为整数，方便某些场景使用
 local gga1 = exgnss.gga(1)
 if gga1 then
     log.info("GGA1", json.encode(gga1))
 end
-{"longitude":1143199103,"dgps_age":0,"altitude":86.4000015,"hdop":0.5940000,"height":-13.6999998,"fix_quality":1,"satellites_tracked":22,"latitude":347978178}
+{"longitude":1143199103,"dgps_age":0,"altitude":86.4000015,"hdop":0.5940000,"height":-13.6999998,"fix_quality":1,
+"satellites_tracked":22,"latitude":347978178}
 模式2示例：
 json.encode默认输出"7f"格式保留7位小数，可以根据自己需要的格式调整小数位
 local gga2 = exgnss.gga(2)
 if gga2 then
     log.info("GGA2", json.encode(gga2))
 end
-{"longitude":114.3199081,"dgps_age":0,"altitude":86.4000015,"hdop":0.5940000,"height":-13.6999998,"fix_quality":1,"satellites_tracked":22,"latitude":34.7978172}
+{"longitude":114.3199081,"dgps_age":0,"altitude":86.4000015,"hdop":0.5940000,"height":-13.6999998,"fix_quality":1,
+"satellites_tracked":22,"latitude":34.7978172}
 模式3示例：
 local gga3 = exgnss.gga(3)
 if gga3 then
@@ -1068,7 +1081,8 @@ end
 --[[
 获取最后的经纬度数据
 @api exgnss.last_loc()
-@return table 经纬度数据，表里面的内容：{lat=ddmm.mmmmm0000,lng=ddmm.mmmmm0000},返回nil表示没有数据，此数据在定位成功，关闭gps时，会自动保存到文件系统中，定位成功之后每10分钟如果还处于定位成功状态会更新
+@return table 经纬度数据，表里面的内容：{lat=ddmm.mmmmm0000,lng=ddmm.mmmmm0000},返回nil表示没有数据，此数据在定位成功，
+关闭gps时，会自动保存到文件系统中，定位成功之后每10分钟如果还处于定位成功状态会更新
 @usage
 local loc= exgnss.last_loc()
 if loc then
