@@ -6,8 +6,6 @@ require("components").register("gnss", GNSS)
 
 local log = iot.logger("GNSS")
 
-local exgnss = require("exgnss")
-
 function GNSS:init()
     self.valid = false
 
@@ -17,6 +15,8 @@ function GNSS:init()
 end
 
 function GNSS:open()
+    local exgnss = require("exgnss")
+
     local opts = {
         gnssmode = 1, -- 1 GPS+BD 2 BD
         agps_enable = self.agps ~= false, -- 默认开启AGPS，定位更快
@@ -62,6 +62,8 @@ function GNSS:open()
 end
 
 function GNSS:close()
+    local exgnss = require("exgnss")
+
     exgnss.close(exgnss.TIMER, {
         tag = "TIMER"
     })
@@ -72,7 +74,6 @@ function GNSS:close()
         tag = "DEFAULT"
     })
 end
-
 
 --- 设置数据
 function GNSS:set(key, value)
