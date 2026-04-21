@@ -188,7 +188,7 @@ function Master:on_device_write(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
         data.results = {}
-        for k, v in pairs(data.values) do
+        for k, v in pairs(data.values or data.data or data.parameters) do
             -- 至多写入3次，保证生效
             local ret, info
             for i = 1, 3, 1 do
@@ -240,18 +240,30 @@ end
 
 -- 处理设备操作
 function Master:on_action(topic, data)
-    local dev = self:find_device(data.device_id)
-    if dev then
+
+    -- 主设备，执行action
+    if not data.device_id or data.device_id == self.id then
         local ret, val = agent.execute(data.action, data.parameters or data.data or {})
         if ret then
             data.result = val
         else
             data.error = val
         end
-    else
-        data.error = "设备不存在"
+        self.client:publish(topic .. "/response", data)
+        return
     end
-    self.client:publish(topic .. "/response", data)
+
+    -- 子设备操作
+    if data.action == "write" then
+        self:on_device_write(topic, data)
+    elseif data.action == "read" then
+        self:on_device_write(topic, data)
+    elseif data.action == "sync" then
+        self:on_device_write(topic, data)
+    else
+        data.error = "不支持的子设备操作"
+        self.client:publish(topic .. "/response", data)
+    end
 end
 
 -- 注册设备信息
@@ -412,8 +424,8 @@ function Master:task()
     log.info("平台连接成功")
 
     -- 订阅网关消息
-    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self))
-    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self))
+    self.client:subscribe("device/" .. self.id .. "/database/+/+", parse_json(Master.on_database_operators, self)) -- 冗余
+    self.client:subscribe("device/" .. self.id .. "/setting/+/+", parse_json(Master.on_setting_operators, self)) -- 冗余
     self.client:subscribe("device/" .. self.id .. "/setting", parse_json(Master.on_device_setting, self))
     self.client:subscribe("device/" .. self.id .. "/write", parse_json(Master.on_device_write, self))
     self.client:subscribe("device/" .. self.id .. "/read", parse_json(Master.on_device_read, self))
