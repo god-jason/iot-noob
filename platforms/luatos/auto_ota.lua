@@ -1,3 +1,5 @@
+--- 基于合宙的libfota2自动升级，4小时间隔
+-- @module auto_ota
 local libfota2 = require "libfota2"
 
 -- 固件升级结果回调函数
