@@ -202,7 +202,7 @@ local function agps()
         -- else
     end
 
-    -- 判断星历时间和下载星历   
+    -- 判断星历时间和下载星历
     local now = os.time()
     local agps_time = tonumber(io.readFile("/hxxt_tm") or "0") or 0
     log.info("os.time", now)
@@ -500,11 +500,11 @@ end
 local function addItem(mode, para)
     -- 删除相同的“gnss应用”
     delItem(mode, para)
-    local item, i, fnd = {
+    local item, fnd = {
         flag = true,
         mode = mode,
         para = para
-    }
+    }, false
     -- 如果是TIMERORSUC或者TIMER模式，初始化gnss工作剩余时间
     if mode == exgnss.TIMERORSUC or mode == exgnss.TIMER then
         item.para.remain = para.val

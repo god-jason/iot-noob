@@ -98,7 +98,7 @@ function splitters.open()
     if not ret then
         return ret, info
     end
-    
+
     table.insert(_splitters, info)
     return true
 end
