@@ -307,9 +307,7 @@ protocols.register("cjt188", Cjt188Master)
 function Cjt188Master:init()
     self.link = self.link
     self.devices = self.devices or {}
-    self.timeout = self.timeout or 1000
-    self.request = Request:new(self.link, self.timeout)
-    self.polling_interval = self.polling_interval or 1800 -- 默认半小时轮询一次
+    self.request = Request:new(self.link, self.options.timeout or 1000)
     self.increment = 0
 end
 
@@ -443,8 +441,8 @@ function Cjt188Master:open()
     end
 
     -- 开启轮询
-    if self.polling ~= false then
-        iot.start(Cjt188Master.polling_task, self)
+    if self.options.polling ~= false then
+        iot.start(self.polling_task, self)
     end
 
     return true
@@ -480,16 +478,16 @@ end
 function Cjt188Master:polling_task()
     log.info("polling thread start")
 
-    local delay = self.polling_delay or 5
+    local delay = self.options.polling_delay or 5
     if delay > 0 then
         iot.sleep(delay * 1000)
     end
 
     -- 轮询间隔
-    local interval = self.polling_interval or 1800
-    interval = interval * 1000 -- 毫秒
-
+    local interval = self.options.polling_interval or 1800
     log.info("polling interval", interval)
+
+    interval = interval * 1000 -- 毫秒
 
     while self.opened do
         log.info("polling start")

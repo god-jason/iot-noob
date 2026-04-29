@@ -160,10 +160,8 @@ protocols.register("modbus", ModbusMaster)
 function ModbusMaster:init()
     self.link = self.link
     self.devices = self.devices or {}
-    self.timeout = self.timeout or 1000 -- 1秒钟
-    self.request = Request:new(self.link, self.timeout)
-    self.polling_interval = self.polling_interval or 5 -- 5秒钟
-    self.tcp = self.tcp or false -- modbus tcp
+    self.request = Request:new(self.link, self.options.timeout or 1000)
+    self.tcp = self.options.tcp or false -- modbus tcp
     self.increment = 1 -- modbus-tcp序号
 end
 
@@ -351,8 +349,8 @@ function ModbusMaster:open()
         devices.register(d.id, dev)
     end
 
-    -- 轮询
-    if self.polling ~= false then
+    -- 开启轮询
+    if self.options.polling ~= false then
         iot.start(self.polling_task, self)
     end
 
@@ -388,16 +386,16 @@ end
 function ModbusMaster:polling_task()
     log.info("polling thread start")
 
-    local delay = self.polling_delay or 5
+    local delay = self.options.polling_delay or 5
     if delay > 0 then
         iot.sleep(delay * 1000)
     end
 
     -- 轮询间隔
-    local interval = self.polling_interval or 60
-    interval = interval * 1000 -- 毫秒
-
+    local interval = self.options.polling_interval or 60
     log.info("polling interval", interval)
+
+    interval = interval * 1000 -- 毫秒
 
     while self.opened do
         log.info("polling start")

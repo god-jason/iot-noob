@@ -137,9 +137,7 @@ protocols.register("dlt645", DLT645Master)
 function DLT645Master:init()
     self.link = self.link
     self.devices = self.devices or {}
-    self.timeout = self.timeout or 1000
-    self.request = Request:new(self.link, self.timeout)
-    self.polling_interval = self.polling_interval or 60
+    self.request = Request:new(self.link, self.options.timeout or 1000)
     self.opened = false
 end
 
@@ -254,9 +252,9 @@ function DLT645Master:open()
         devices.register(d.id, dev)
     end
 
-    -- 轮询
-    if self.polling ~= false then
-        iot.start(DLT645Master.polling_task, self)
+    -- 开启轮询
+    if self.options.polling ~= false then
+        iot.start(self.polling_task, self)
     end
 
     return true
@@ -291,16 +289,16 @@ end
 function DLT645Master:polling_task()
     log.info("polling thread start")
 
-    local delay = self.polling_delay or 5
+    local delay = self.options.polling_delay or 5
     if delay > 0 then
         iot.sleep(delay * 1000)
     end
 
     -- 轮询间隔
-    local interval = self.polling_interval or 1800
-    interval = interval * 1000 -- 毫秒
-
+    local interval = self.options.polling_interval or 1800
     log.info("polling interval", interval)
+
+    interval = interval * 1000 -- 毫秒
 
     while self.opened do
         log.info("polling start")
