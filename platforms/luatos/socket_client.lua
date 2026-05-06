@@ -62,9 +62,10 @@ function Socket:open()
                 iot.call(self._on_data, data)
             end
             -- socket.rx(ctrl, rxbuf)
+            socket.wait(ctrl) -- 等待新状态
         elseif event == socket.TX_OK then
             log.info(tag, "TX_OK", param)
-            -- socket.wait(ctrl) -- 等待新状态
+            socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
             log.info(tag, "CLOSED", param)
             iot.emit("SOCKET_CLOSE_" .. self.id)
@@ -132,8 +133,8 @@ function Socket:read()
     if not ok then
         return false
     end
-    local data = self.buff:toStr()
-    self.buff:clear()
+    local data = self.buff:toStr(0, len)
+    self.buff:del()
     return true, data
 end
 
