@@ -19,6 +19,7 @@ local Socket = require("utils").class(require("event"))
 --- 打开
 -- @return boolean 成功与否
 function Socket:open()
+    log.info("open", self.host, self.port)
     local sock = iot.socket(self)
 
     -- 监听数据
@@ -35,7 +36,8 @@ function Socket:open()
     end)
 
     self.sock = sock
-    return true
+    
+    return sock:open()
 end
 
 --- 写数据
@@ -56,6 +58,7 @@ end
 
 --- 关闭套接字
 function Socket:close()
+    log.info("close", self.host, self.port)
     -- 关闭协议
     if self.instanse ~= nil then
         self.instanse:close()

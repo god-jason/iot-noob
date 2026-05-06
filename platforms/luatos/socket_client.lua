@@ -78,10 +78,10 @@ function Socket:open()
         self.options.server_cert, self.options.client_cert, self.options.client_key, self.options.client_password)
 
     -- 连接服务器
-    local ok, ret = socket.connect(self.ctrl, self.host, self.port)
+    local ok, ret = socket.connect(self.ctrl, self.options.host, self.options.port)
     if not ok then
         socket.close()
-        return false
+        return false, ret or "连接服务器失败"
     end
     if ret then
         return true -- 连接成功
@@ -90,7 +90,7 @@ function Socket:open()
     -- 等待连接成功 ON_LINE消息
     local res = iot.wait("SOCKET_READY_" .. self.id, 5000)
     if not res then
-        return false
+        return false, "连接服务器超时"
     end
 
     return true
