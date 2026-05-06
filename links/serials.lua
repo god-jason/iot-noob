@@ -53,14 +53,15 @@ end
 -- @return boolean 成功与否
 function Serial:write(data)
     log.info("write", self.port, data:toHex())
-    if self.debug then
+    local ret, info = self.uart:write(data)
+    if ret and self.debug then
         iot.emit("link_debug", {
             id = self.id,
             type = "write",
             data = data
         })
     end
-    return self.uart:write(data)
+    return ret, info
 end
 
 --- 关闭串口

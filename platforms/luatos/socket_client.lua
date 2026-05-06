@@ -29,15 +29,19 @@ function Socket:open()
     self.buff:clear()
 
     -- 使用可用网络
-    if self.options.adapter == nil then
-        local ok, adapter = socket.adapter()
-        if ok then
-            self.options.adapter = adapter
-        end
+    local adapter = nil
+    if self.options.adapter == "4G" or self.options.adapter == "GPRS" then
+        adapter = socket.LWIP_GP -- 移动网络
+    elseif self.options.adapter == "WIFI" or self.options.adapter == "WiFi" then
+        adapter = socket.LWIP_STA -- Wifi连接
+    elseif self.options.adapter == "ETH" then
+        adapter = socket.LWIP_ETH -- 内置以太网
+    elseif self.options.adapter == "ETH0" then
+        adapter = socket.ETH0 -- 外置以太网
     end
 
     -- 创建socket
-    self.ctrl = socket.create(self.adapter or socket.ETH0, function(ctrl, event, param)
+    self.ctrl = socket.create(adapter, function(ctrl, event, param)
         if param ~= 0 then
             -- iot.emit("socket_disconnect")
             return
@@ -53,9 +57,12 @@ function Socket:open()
         elseif event == socket.EVENT then
             log.info(tag, "EVENT")
 
-            iot.emit("SOCKET_DATA_" .. self.id)
+            local ret, data = self:read()
+            if ret then
+                iot.call(self._on_data, data)
+            end
             -- socket.rx(ctrl, rxbuf)
-            -- socket.wait(ctrl)
+            socket.wait(ctrl)
         elseif event == socket.TX_OK then
             log.info(tag, "TX_OK")
             socket.wait(ctrl) -- 等待新状态
@@ -89,6 +96,10 @@ function Socket:open()
     return true
 end
 
+function Socket:on_data(cb)
+    self._on_data = cb
+end
+
 --- 写数据
 -- @param data string 数据
 -- @return boolean 成功与否
@@ -96,13 +107,6 @@ function Socket:write(data)
     -- return uart.write(self._id, data)
     local ok, full, ret = socket.tx(self.ctrl, data)
     return ok
-end
-
---- 等待数据
--- @param timeout integer 超时 ms
--- @return boolean 成功与否
-function Socket:wait(timeout)
-    return iot.wait("SOCKET_DATA_" .. self.id, timeout)
 end
 
 --- 读数据
