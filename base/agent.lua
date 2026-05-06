@@ -168,8 +168,17 @@ function actions.link(data)
     local link_id = data.id
 
     local link = links[link_id]
+    if not link then
+        return false, "找不到连接：" .. link_id
+    end
 
-    if op == "debug" then
+    if op == "open" then
+        link:close()
+        return link:open()
+    elseif op == "close" then
+        link:close()
+        return true
+    elseif op == "debug" then
         link.debug = true
         return true
     elseif op == "debug_stop" then
@@ -184,7 +193,7 @@ function actions.link(data)
     else
         return false, "未支持的连接操作"
     end
-    
+
 end
 
 -- 轮询全部设备
