@@ -552,6 +552,13 @@ iot.on("location", function(data)
     end
 end)
 
+-- 串口调试
+iot.on("link_debug", function(data)
+    for i, c in ipairs(_masters) do
+        c:publish("device/" .. c.id .. "/link/" .. data.id .. "/" .. data.type, data.data)
+    end
+end)
+
 function cloud.open()
     local clouds = {settings.master, settings.master1, settings.master2}
 

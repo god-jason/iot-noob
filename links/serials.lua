@@ -34,6 +34,13 @@ function Serial:open()
     -- 监听数据
     port:on_data(function(data)
         log.info("serial data", self.port, data:toHex())
+        if self.debug then
+            iot.emit("link_debug", {
+                id = self.id,
+                type = "read",
+                data = data
+            })
+        end
         self:emit("data", data)
     end)
 
@@ -46,9 +53,15 @@ end
 -- @return boolean 成功与否
 function Serial:write(data)
     log.info("write", self.port, data:toHex())
+    if self.debug then
+        iot.emit("link_debug", {
+            id = self.id,
+            type = "write",
+            data = data
+        })
+    end
     return self.uart:write(data)
 end
-
 
 --- 关闭串口
 function Serial:close()

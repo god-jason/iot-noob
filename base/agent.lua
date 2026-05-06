@@ -8,6 +8,7 @@ local configs = require("configs")
 local settings = require("settings")
 local database = require("database")
 local master = require("master")
+local binary = require("binary")
 
 local actions = {}
 
@@ -150,15 +151,40 @@ function actions.database(data)
         return database.insert(db, data.id, data.content or data.data)
     elseif op == "insertMany" then
         return database.insertMany(db, data.content or data.data)
-    elseif op == "insertArray" then
+    elseif op == "insertArray" or op == "write" then
         return database.insertArray(db, data.content or data.data)
     elseif op == "load" then
         return true, database.load(db)
-    elseif op == "find" then
+    elseif op == "find" or op == "read" then
         return true, database.find(db, unpack(data.query or {}))
     else
         return false, "未支持的数据库操作"
     end
+end
+
+-- 连接操作
+function actions.link(data)
+    local op = data.operator or data.op
+    local link_id = data.id
+
+    local link = links[link_id]
+
+    if op == "debug" then
+        link.debug = true
+        return true
+    elseif op == "debug_stop" then
+        link.debug = false
+        return true
+    elseif op == "write" then
+        local d = data.content or data.data
+        if data.type == "hex" then
+            d = binary.decodeHex(d)
+        end
+        return link:write(d)
+    else
+        return false, "未支持的连接操作"
+    end
+    
 end
 
 -- 轮询全部设备
