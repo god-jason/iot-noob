@@ -48,42 +48,54 @@ function Socket:open()
         end
 
         if event == socket.LINK then
-            log.info(tag, "LINK")
+            log.info(tag, "LINK", param)
         elseif event == socket.ON_LINE then
-            log.info(tag, "ON LINE")
+            log.info(tag, "ON LINE", param)
             -- 连接成功
             -- self.ready = true
             iot.emit("SOCKET_READY_" .. self.id)
         elseif event == socket.EVENT then
-            log.info(tag, "EVENT")
+            log.info(tag, "EVENT", param)
 
             local ret, data = self:read()
             if ret then
                 iot.call(self._on_data, data)
             end
             -- socket.rx(ctrl, rxbuf)
-            socket.wait(ctrl)
         elseif event == socket.TX_OK then
-            log.info(tag, "TX_OK")
-            socket.wait(ctrl) -- 等待新状态
+            log.info(tag, "TX_OK", param)
+            -- socket.wait(ctrl) -- 等待新状态
         elseif event == socket.CLOSED then
-            log.info(tag, "CLOSED")
+            log.info(tag, "CLOSED", param)
             iot.emit("SOCKET_CLOSE_" .. self.id)
         end
     end)
+
+    -- 一直接收新的事件
+    -- iot.start(function()
+    --     while self.ctrl do
+    --         socket.wait(self.ctrl) -- 等待事件
+    --         iot.sleep(1000) -- 避免死循环占用过多CPU
+    --         log.info(tag, "wait event", self.options.host, self.options.port)
+    --     end
+    -- end)
 
     -- socket.debug(self.ctrl, true)
     -- 开启TCP保活，防止长时间无数据交互被运营商断线
     socket.config(self.ctrl, self.options.local_port, self.options.is_udp, self.options.is_tls, 300, 5, 6,
         self.options.server_cert, self.options.client_cert, self.options.client_key, self.options.client_password)
 
+    -- 调试日志
+    socket.debug(self.ctrl, self.options.debug or false)
+
     -- 连接服务器
     local ok, ret = socket.connect(self.ctrl, self.options.host, self.options.port)
     if not ok then
-        socket.close()
-        return false, ret or "连接服务器失败"
+        socket.close(self.ctrl)
+        return false, "连接服务器失败"
     end
     if ret then
+        log.info(tag, "连接成功1", self.options.host, self.options.port)
         return true -- 连接成功
     end
 
@@ -92,6 +104,8 @@ function Socket:open()
     if not res then
         return false, "连接服务器超时"
     end
+
+    log.info(tag, "连接成功2", self.options.host, self.options.port)
 
     return true
 end
@@ -125,9 +139,11 @@ end
 
 --- 关闭
 function Socket:close()
-    socket.close(self.ctrl)
-    self.buff:free()
-    self.buff = nil
+    if self.ctrl then
+        socket.close(self.ctrl)
+        self.buff:free()
+        self.buff = nil
+    end
 end
 
 function Socket:ready()

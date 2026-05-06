@@ -70,15 +70,21 @@ end
 
 --- 加载
 function sockets.open()
-    local ss = database.find("socket")
-    for i, t in ipairs(ss) do
-        local ret, info = links.create(Socket, t)
-        if not ret then
-            log.error("连接套接字", t.host, t.port, " 出错:", info)
-        else
-            table.insert(_sockets, info)
-        end
-    end
+    
+    iot.start(function()
+        iot.wait("IP_READY", 10000)
+
+        local ss = database.find("socket")
+        for i, t in ipairs(ss) do
+            local ret, info = links.create(Socket, t)
+            if not ret then
+                log.error("连接套接字", t.host, t.port, " 出错:", info)
+            else
+                table.insert(_sockets, info)
+            end
+        end        
+    end)
+
     return true
 end
 
