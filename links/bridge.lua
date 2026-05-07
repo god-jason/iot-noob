@@ -16,30 +16,39 @@ local _bridges = {}
 local Bridge = require("utils").class()
 
 function Bridge:init()
-    self.topic = "BRIDGE_DATA_" .. self.id
+    self.topic = "BRIDGE_MSG_" .. self.id
+    self.messages = {}
 
     self.sub1 = self.l1:on("data", function(data)
-        iot.emit(self.topic, {
-            link = self.l2,
-            data = data
-        })
+        self:push(self.l2, data)
     end)
     self.sub2 = self.l2:on("data", function(data)
-        iot.emit(self.topic, {
-            link = self.l1,
-            data = data
-        })
+        self:push(self.l1, data)
     end)
 
     self.running = true
     iot.start(function()
         while self.running do
-            local ret, data = iot.wait(self.topic, 5000)
-            if ret and data then
-                data.link:write(data.data)
+            iot.wait(self.topic, 5000)
+
+            while #self.messages > 0 do
+                local msg = table.remove(self.messages, 1) -- 先进先出
+                msg.link:write(msg.data)
             end
         end
     end)
+end
+
+function Bridge:push(link, data)
+    if #self.messages > 100 then
+        log.warn("消息积压过多，丢弃数据", self.id)
+        return
+    end
+    table.insert(self.messages, {
+        link = link,
+        data = data
+    })
+    iot.emit(self.topic)    
 end
 
 --- 关闭
