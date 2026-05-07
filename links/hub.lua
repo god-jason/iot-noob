@@ -13,6 +13,10 @@ local _hubs = {}
 --- 集线器虚拟连接，继承Link
 local HubLink = require("utils").class(require("event"))
 
+function HubLink:init()
+    self.priority = self.priority or 5 -- 优先级，数值越大优先级越高
+end
+
 function HubLink:open()
     self.hub = _hubs[self.hub_id]
     if not self.hub then
@@ -49,7 +53,7 @@ function Hub:open()
             iot.clearTimeout(self.unlockTimer)
         end
         self.unlockTimer = iot.setTimeout(function()
-            self.using = false -- 不能收到数据就立马解锁
+            self.using = false -- 不能收到数据就立马解锁，低速总线有拆包问题
             self.unlockTimer = nil
         end, self.timeout or 500)
 
@@ -62,6 +66,7 @@ function Hub:open()
             self.child:emit("data", data)
         end
 
+        -- 删除锁
         if self.lockTimer then
             iot.clearTimeout(self.lockTimer)
             self.lockTimer = nil
@@ -91,6 +96,11 @@ function Hub:write(data, link)
     if self.child ~= link then
         while self.using do
             log.info("等待上一个数据处理完成", self.id, self.child.id)
+            if link.priority > self.child.priority then
+                self.child = link
+                log.info("直接切换优先级更高连接", link.id)
+                -- 这里不能直接break，让上一个操作完成，避免数据丢失
+            end
             iot.sleep(self.timeout or 500)
         end
     end
