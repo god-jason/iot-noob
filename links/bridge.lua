@@ -16,16 +16,37 @@ local _bridges = {}
 local Bridge = require("utils").class()
 
 function Bridge:init()
+    self.topic = "BRIDGE_DATA_" .. self.id
+
     self.sub1 = self.l1:on("data", function(data)
-        self.l2:write(data)
+        iot.emit(self.topic, {
+            link = self.l2,
+            data = data
+        })
     end)
     self.sub2 = self.l2:on("data", function(data)
-        self.l1:write(data)
+        iot.emit(self.topic, {
+            link = self.l1,
+            data = data
+        })
+    end)
+
+    self.running = true
+    iot.start(function()
+        while self.running do
+            local ret, data = iot.wait(self.topic, 5000)
+            if ret and data then
+                data.link:write(data.data)
+            end
+        end
     end)
 end
 
 --- 关闭
 function Bridge:close()
+    self.running = false
+    iot.emit(self.topic) -- 立即结束等待
+
     if self.sub1 then
         self.sub1()
         self.sub1 = nil
