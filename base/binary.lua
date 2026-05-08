@@ -210,6 +210,13 @@ function binary.decodeBCD(len, str)
         local b = str:byte(i)
         local h = (b >> 4) & 0x0F
         local l = b & 0x0F
+        -- BCD编码的每个字节只能表示0-99，如果超过了9则重置为0
+        if h > 9 then
+            h = 0
+        end
+        if l > 9 then
+            l = 0
+        end
         ret = ret * 100 + h * 10 + l
     end
     return ret

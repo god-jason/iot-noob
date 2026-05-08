@@ -96,7 +96,7 @@ function Hub:write(data, link)
     if self.child ~= link then
         while self.using do
             log.info("等待上一个数据处理完成", self.id, self.child.id)
-            if link.priority > self.child.priority then
+            if link.priority < self.child.priority then
                 self.child = link
                 log.info("直接切换优先级更高连接", link.id)
                 -- 这里不能直接break，让上一个操作完成，避免数据丢失
