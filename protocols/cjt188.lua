@@ -257,7 +257,7 @@ function Cjt188Device:poll()
                                     local vv = (0x01 << b.bit) & value > 0
                                     -- 取反
                                     if b["not"] then
-                                        value = not value
+                                        vv = not vv
                                     end
                                     -- self:put_value(point.name, vv)
                                     if b.name and #b.name > 0 then

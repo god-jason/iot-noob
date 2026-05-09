@@ -334,6 +334,10 @@ function ModbusMapper:parse(data, register, address, length)
                     if point.bits ~= nil and #point.bits > 0 then
                         for _, b in ipairs(point.bits) do
                             local vv = (0x01 << b.bit) & v > 0
+                            -- 取反
+                            if b["not"] then
+                                vv = not vv
+                            end
                             -- self:put_value(point.name, vv)
                             has = true
                             if b.name and #b.name > 0 then
@@ -360,6 +364,10 @@ function ModbusMapper:parse(data, register, address, length)
                     if point.bits ~= nil and #point.bits > 0 then
                         for _, b in ipairs(point.bits) do
                             local vv = (0x01 << b.bit) & v > 0
+                            -- 取反
+                            if b["not"] then
+                                vv = not vv
+                            end
                             -- self:put_value(point.name, vv)
                             has = true
                             if b.name and #b.name > 0 then
