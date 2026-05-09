@@ -243,12 +243,20 @@ function Master:on_action(topic, data)
 
     -- 主设备，执行action
     if not data.device_id or data.device_id == self.id then
-        local ret, val = agent.execute(data.action, data.parameters or data.data or {})
-        if ret then
-            data.result = val
+        if data.action == "register" then
+            self:register()
+        elseif data.action == "report" then            
+            self:report_master_values(true)
+            self:report_devices_values(true)
         else
-            data.error = val
+            local ret, val = agent.execute(data.action, data.parameters or data.data or {})
+            if ret then
+                data.result = val
+            else
+                data.error = val
+            end
         end
+
         self.client:publish(topic .. "/response", data)
         return
     end
@@ -257,9 +265,11 @@ function Master:on_action(topic, data)
     if data.action == "write" then
         self:on_device_write(topic, data)
     elseif data.action == "read" then
-        self:on_device_write(topic, data)
+        self:on_device_read(topic, data)
     elseif data.action == "sync" then
-        self:on_device_write(topic, data)
+        self:on_device_sync(topic, data)
+    elseif data.action == "report" then
+        self:on_device_sync(topic, data)
     else
         data.error = "不支持的子设备操作"
         self.client:publish(topic .. "/response", data)
