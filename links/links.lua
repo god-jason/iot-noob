@@ -36,6 +36,7 @@ function links.create(clazz, opts)
     -- 查找内联设备数据库
     local ds = database.find("inline", "link_id", opts.id)
     for i, d in ipairs(ds) do
+        d.inline = true
         table.insert(devices, d)
     end
 

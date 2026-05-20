@@ -86,6 +86,10 @@ function LBS:amap()
         return false, "高德定位错误：" .. data.info
     end
 
+    if not data.result then
+        return false, "高德定位结果错误"
+    end
+
     local ls = data.result.location:split(",")
     self.longitude, self.latitude = tonumber(ls[1]), tonumber(ls[2])
 

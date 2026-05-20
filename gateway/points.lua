@@ -203,6 +203,17 @@ function points.parseWord(point, data, address)
     local be = point.le and "<" or ">"
     local pk = feature.pack
     local buf = string.sub(data, cursor)
+
+    -- 字序，以支持CDAB的字序
+    if feature.word > 1 and point.swap then
+        local bs = {}
+        for i = #buf, 1, -2 do
+            table.insert(bs, string.sub(buf, i, i + 1))
+        end
+        buf = table.concat(bs)
+    end
+
+    -- 使用unpack解码数据
     local _, value = iot.unpack(buf, be .. pk)
 
     -- 枚举

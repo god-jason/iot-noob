@@ -189,7 +189,7 @@ function ModbusMapper:load()
 
             local feature = points.feature(last.type)
             if feature then
-                if self.holding_registers[i].address > last.address + feature.word + sep * 2 then
+                if self.holding_registers[i].address > last.address + feature.word + sep then
                     table.insert(self.pollers, {
                         register = 3,
                         address = begin.address,
@@ -218,7 +218,7 @@ function ModbusMapper:load()
 
             local feature = points.feature(last.type)
             if feature then
-                if self.input_registers[i].address > last.address + feature.word + sep * 2 then
+                if self.input_registers[i].address > last.address + feature.word + sep then
                     table.insert(self.pollers, {
                         register = 4,
                         address = begin.address,

@@ -62,10 +62,15 @@ function Fan:accelerate(start)
     -- 此处没有考虑降档，实测风机自然降档效果也可以
     while start < self.target_duty do
         start = start + self.smooth_step
-        self.pwm:setDuty(start)
+        if self.pwm then
+            self.pwm:setDuty(start)
+        end
+        
         iot.sleep(self.smooth_interval)
     end
-    self.pwm:setDuty(self.target_duty)
+    if self.pwm then
+        self.pwm:setDuty(self.target_duty)
+    end
 
     self.accelerating = false
 end
