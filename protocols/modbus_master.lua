@@ -247,6 +247,17 @@ function ModbusMaster:read(slave, func, addr, len)
         buf = buf .. d
     end
 
+
+    -- 返回CRC（低字节在前）
+    local crc_recv = iot.unpack(buf:sub(-2), "<H")
+
+    -- 计算CRC
+    local crc_calc = modbus.crc16(buf:sub(1, -3))
+    if crc_recv ~= crc_calc then
+        log.error("CRC校验失败", crc_recv, crc_calc)
+        return false, "CRC校验失败"
+    end
+
     return true, string.sub(buf, 4, len2 - 2)
 end
 
@@ -327,6 +338,16 @@ function ModbusMaster:write(slave, func, addr, data)
             log.error("错误码", code2)
             return false, "错误码" .. code2
         end
+    end
+
+    -- 返回CRC（低字节在前）
+    local crc_recv = iot.unpack(buf:sub(-2), "<H")
+
+    -- 计算CRC
+    local crc_calc = modbus.crc16(buf:sub(1, -3))
+    if crc_recv ~= crc_calc then
+        log.error("CRC校验失败", crc_recv, crc_calc)
+        return false, "CRC校验失败"
     end
 
     return true, buf
