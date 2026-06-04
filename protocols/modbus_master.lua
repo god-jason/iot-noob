@@ -2,7 +2,6 @@
 -- @module modbus_master_device
 local modbus_master = {}
 
-
 local log = iot.logger("modbus_master")
 
 local Request = require("request")
@@ -13,12 +12,12 @@ local points = require("points")
 local model = require("model")
 local modbus = require("modbus")
 local utils = require("utils")
+local scripts = require("scripts")
 
 --- Modbus设备
 -- @module modbus_master_device
 local ModbusMasterDevice = utils.class(require("device"))
 modbus_master.ModbusMasterDevice = ModbusMasterDevice
-
 
 ---打开设备
 function ModbusMasterDevice:open()
@@ -129,23 +128,47 @@ function ModbusMasterDevice:poll()
         return false, "没有轮询器" .. self.product_id
     end
 
+    local err
+    local has = false
+    local values = {}
+
     -- 依次轮询
     for _, poller in ipairs(self.mapper.pollers) do
         log.info("poll", self.slave, poller.register, poller.address, poller.length)
 
-        local res, data = self.master:read(self.slave, poller.register, poller.address, poller.length)
-        if res then
-            local ret, values = self.mapper:parse(data, poller.register, poller.address, poller.length)
-            if ret then
-                -- 存入数据
-                self:put_values(values)
+        local ret, data = self.master:read(self.slave, poller.register, poller.address, poller.length)
+        if ret then
+            local has2, values2 = self.mapper:parse(data, poller.register, poller.address, poller.length)
+            if has2 then
+                has = true
+                for k, v in ipairs(values2) do
+                    values[k] = v
+                end
             end
         else
+            err = data
             log.error("轮询失败", data)
         end
     end
 
-    return true
+    if has then
+        -- 脚本计算，数据后处理
+        scripts.execute("on_poll", {
+            device = self,
+            values = values
+        })
+        scripts.execute("on_modbus_poll", {
+            device = self,
+            values = values
+        })
+
+        -- 存入数据
+        self:put_values(values)
+
+        return true, values
+    end
+
+    return false, err or "没有读取到有效数据"
 end
 
 ---Modbus主站
@@ -246,7 +269,6 @@ function ModbusMaster:read(slave, func, addr, len)
         end
         buf = buf .. d
     end
-
 
     -- 返回CRC（低字节在前）
     local crc_recv = iot.unpack(buf:sub(-2), "<H")
@@ -383,7 +405,6 @@ function ModbusMaster:close()
     self.opened = false
     self.devices = {}
 end
-
 
 function ModbusMaster:polling_all()
     -- 轮询连接下面的所有设备

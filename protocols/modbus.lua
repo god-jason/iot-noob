@@ -391,7 +391,7 @@ function ModbusMapper:parse(data, register, address, length)
         log.info("parse 4 ", iot.json_encode(values))
     else
         -- 暂不支持其他类型
-        return false, "不支持的寄存器类型"
+        return false, values, "不支持的寄存器类型"
     end
 
     return has, values

@@ -11,6 +11,7 @@ local devices = require("devices")
 local protocols = require("protocols")
 local model = require("model")
 local meter = require("meter")
+local scripts = require("scripts")
 
 -- +0x33
 local function add33(data)
@@ -90,12 +91,14 @@ function DLT645Device:poll()
         return false, "没有属性表"
     end
 
+    local err
     local has = false
     local values = {}
     for _, pt in pairs(self.model.content) do
         for i, point in ipairs(pt.points) do
             local ret, data = self.master:read(self.address, point.di)
             if not ret then
+                err = data
                 log.error("poll", self.id, point.name, "读取失败", data)
             else
                 -- 去掉DI（前4字节）
@@ -121,11 +124,22 @@ function DLT645Device:poll()
     end
 
     if has then
+
+        -- 脚本计算，数据后处理
+        scripts.execute("on_poll", {
+            device = self,
+            values = values
+        })
+        scripts.execute("on_dlt645_poll", {
+            device = self,
+            values = values
+        })
+
         self:put_values(values)
-        return true
+        return true, values
     end
 
-    return false, "没有有效数据"
+    return false, err or "没有有效数据"
 end
 
 -- Master

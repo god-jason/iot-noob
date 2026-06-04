@@ -170,9 +170,11 @@ end
 function Master:on_device_sync(topic, data)
     local dev = self:find_device(data.device_id)
     if dev then
-        local ret, info = dev:poll()
+        local ret, values = dev:poll()
         if not ret then
-            data.error = info
+            data.error = values
+        else
+            data.values = values
         end
 
         -- 上传数据
@@ -245,7 +247,7 @@ function Master:on_action(topic, data)
     if not data.device_id or data.device_id == self.id then
         if data.action == "register" then
             self:register()
-        elseif data.action == "report" then            
+        elseif data.action == "report" then
             self:report_master_values(true)
             self:report_devices_values(true)
         else
@@ -355,7 +357,8 @@ function Master:register()
             inline = syncTable("inline"), -- 内联设备
             binding = syncTable("binding"), -- 设备绑定
             scene = syncTable("scene"), -- 智能场景
-            job = syncTable("job") -- 定时任务
+            job = syncTable("job"), -- 定时任务
+            script = syncTable("script") -- 脚本
         }
 
     end

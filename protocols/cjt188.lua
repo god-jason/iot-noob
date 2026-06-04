@@ -13,6 +13,7 @@ local points = require("points")
 local model = require("model")
 local utils = require("utils")
 local meter = require("meter")
+local scripts = require("scripts")
 
 -- 单位转换代码
 local units = {
@@ -286,6 +287,16 @@ function Cjt188Device:poll()
 
     -- 存入设备
     if has then
+        -- 脚本计算，数据后处理
+        scripts.execute("on_poll", {
+            device = self,
+            values = values
+        })
+        scripts.execute("on_cjt188_poll", {
+            device = self,
+            values = values
+        })
+
         self:put_values(values)
         return true, values
     end
