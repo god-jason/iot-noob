@@ -57,6 +57,10 @@ local mapper_cache = {}
 
 -- 升序排列
 local function sortPoint(pt1, pt2)
+    -- 避免空值导致排序失败
+    if not pt1.address or not pt2.address then
+        return true
+    end
     return pt1.address < pt2.address
 end
 
