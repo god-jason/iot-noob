@@ -8,6 +8,10 @@ local _scripts = {}
 
 -- 创建脚本
 function scripts.create(name, script)
+    if not script or #script == 0 then
+        return false, "脚本是空"
+    end
+
     -- 封装为闭包
     script = "return function(ctx)\n" .. script .. "\nend"
 
@@ -45,7 +49,7 @@ end
 function scripts.open()
     local ss = database.load("script")
     for k, s in pairs(ss) do
-        local ret, info = scripts.create(k, s)
+        local ret, info = scripts.create(k, s.content)
         if not ret then
             log.error("load script error", k, info)
         else
