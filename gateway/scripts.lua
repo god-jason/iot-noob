@@ -36,7 +36,6 @@ end
 function scripts.execute(name, ctx)
     local closure = _scripts[name]
     if not closure then
-        log.error("execute script error", name, "not found")
         return false, "脚本不存在"
     end
     local ret, info = iot.call(closure, ctx)

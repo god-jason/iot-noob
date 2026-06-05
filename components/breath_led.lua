@@ -107,7 +107,7 @@ function BreathLed:set(key, value)
     elseif key == "duty_min" then
         self.duty_min = value
     elseif key == "duty_max" then
-        self.duty_max = self.duty_max
+        self.duty_max = value
     else
         return false, "未支持的组件参数"
     end

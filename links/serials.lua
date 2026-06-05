@@ -67,8 +67,8 @@ end
 --- 关闭串口
 function Serial:close()
     -- 关闭协议
-    if self.instanse ~= nil then
-        self.instanse:close()
+    if self.instance ~= nil then
+        self.instance:close()
     end
     self.uart:close()
     self:emit("close")

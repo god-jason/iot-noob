@@ -60,8 +60,8 @@ end
 function Socket:close()
     log.info("close", self.host, self.port)
     -- 关闭协议
-    if self.instanse ~= nil then
-        self.instanse:close()
+    if self.instance ~= nil then
+        self.instance:close()
     end
     self.sock:close()
     self:emit("close")

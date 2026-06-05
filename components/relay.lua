@@ -38,7 +38,7 @@ end
 function Relay:toggle()
     log.info(self.pin, "toggle")
     self.gpio:toggle()
-    self.state = ~self.state
+    self.state = not self.state
     self:emit("change", {
         state = self.state
     })

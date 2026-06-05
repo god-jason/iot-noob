@@ -326,7 +326,7 @@ function binary.sum(str)
     end
     local ret = 0
     for i = 1, #str, 1 do
-        ret = ret + str:byte(1)
+        ret = ret + str:byte(i)
     end
     return ret
 end
@@ -340,7 +340,7 @@ function binary.xor(str)
     end
     local ret = 0x00 -- 默认0，有些异或检验初始为0xFF
     for i = 1, #str, 1 do
-        ret = ret ^ str:byte(1)
+        ret = ret ^ str:byte(i)
     end
     return ret
 end

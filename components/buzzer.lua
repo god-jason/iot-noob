@@ -107,7 +107,7 @@ end
 --- 设置值
 function Buzzer:set(key, value)
     if key == "ring" then
-        self:ring(key, value)
+        self:ring(value)
     elseif key == "duty" then
         self.duty = value
     elseif key == "freq" then

@@ -65,23 +65,23 @@ function links.create(clazz, opts)
     -- 打开协议
     if protocol and #protocol > 0 then
         -- 创建协议
-        local res, instanse = protocols.create(protocol, {
+        local res, instance = protocols.create(protocol, {
             link = link,
             devices = devices,
             options = protocol_options or {}
         })
         if not res then
-            return false, instanse
+            return false, instance
         end
 
         -- 打开协议
-        ret, info = iot.xcall(instanse.open, instanse)
+        ret, info = iot.xcall(instance.open, instance)
         if ret == false then
             return false, info
         end
 
         -- 协议的实例，比如Modbus主站
-        link.protocol_instance = instanse
+        link.protocol_instance = instance
     end
 
     return true, link
