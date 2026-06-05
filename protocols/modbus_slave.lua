@@ -86,7 +86,7 @@ end
 
 --- 读取线圈
 function ModbusSlaveDevice:read_coils(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
 
     local payload = {}
     for i = 0, len - 1 do
@@ -113,7 +113,7 @@ end
 
 --- 读取离散输入（只读，类似 coils）
 function ModbusSlaveDevice:read_discrete_inputs(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
 
     local payload = {}
     for i = 0, len - 1 do
@@ -139,7 +139,7 @@ end
 
 --- 读取保持寄存器
 function ModbusSlaveDevice:read_holding_registers(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
 
     local bytes = {}
     for i = 0, len - 1 do
@@ -152,7 +152,7 @@ end
 
 --- 读取输入寄存器
 function ModbusSlaveDevice:read_input_registers(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
 
     local bytes = {}
     for i = 0, len - 1 do
@@ -165,7 +165,7 @@ end
 
 --- 写单个线圈
 function ModbusSlaveDevice:write_coil(data)
-    local _, addr, val = iot.unpack("2>H", data, 3)
+    local _, addr, val = iot.unpack(">H2", data, 3)
     val = val ~= 0x0000
 
     if self.coils[addr] == nil then
@@ -213,7 +213,7 @@ end
 
 --- 写多个线圈
 function ModbusSlaveDevice:write_multiple_coils(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
     local byte_cnt = string.byte(data, 7)
     local coil_bytes = data:sub(8, 7 + byte_cnt)
 
@@ -242,7 +242,7 @@ end
 
 --- 写多个寄存器
 function ModbusSlaveDevice:write_multiple_registers(data)
-    local _, addr, len = iot.unpack("2>H", data, 3)
+    local _, addr, len = iot.unpack(">H2", data, 3)
     local byte_cnt = string.byte(data, 7)
     local reg_bytes = data:sub(8, 7 + byte_cnt)
 

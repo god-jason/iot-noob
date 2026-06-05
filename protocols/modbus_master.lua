@@ -141,7 +141,7 @@ function ModbusMasterDevice:poll()
             local has2, values2 = self.mapper:parse(data, poller.register, poller.address, poller.length)
             if has2 then
                 has = true
-                for k, v in ipairs(values2) do
+                for k, v in pairs(values2) do
                     values[k] = v
                 end
             end
@@ -271,7 +271,7 @@ function ModbusMaster:read(slave, func, addr, len)
     end
 
     -- 返回CRC（低字节在前）
-    local crc_recv = iot.unpack(buf:sub(-2), "<H")
+    local _, crc_recv = iot.unpack(buf:sub(-2), "<H")
 
     -- 计算CRC
     local crc_calc = modbus.crc16(buf:sub(1, -3))
@@ -363,7 +363,7 @@ function ModbusMaster:write(slave, func, addr, data)
     end
 
     -- 返回CRC（低字节在前）
-    local crc_recv = iot.unpack(buf:sub(-2), "<H")
+    local _, crc_recv = iot.unpack(buf:sub(-2), "<H")
 
     -- 计算CRC
     local crc_calc = modbus.crc16(buf:sub(1, -3))
