@@ -138,6 +138,11 @@ function actions.database(data)
     local op = data.operator or data.op
     local db = data.database or data.db
 
+    if op ~= "load" and op ~= "find" and op ~= "read" then
+        -- 数据库操作完成之后，重启设备，确保数据生效
+        iot.reboot(15)
+    end
+
     if op == "clear" then
         return database.clear(db)
     elseif op == "sync" then -- 同步数据库

@@ -157,6 +157,9 @@ function Master:on_database_operators(topic, data)
 
     -- TODO 数据库操作，没有规定 msg_id等统一字段，只能将错误信息原路返回
     self.client:publish(topic .. "/response", info or "成功")
+
+    -- 数据库操作完成之后，重启设备，确保数据生效
+    iot.reboot(15)
 end
 
 -- 远程下发配置
@@ -164,6 +167,9 @@ function Master:on_device_setting(topic, data)
     settings.update(data.name, data.content, data.version)
     -- 数据直接原路返回了
     self.client:publish(topic .. "/response", data)
+
+    -- 配置完成之后，重启设备，确保数据生效
+    iot.reboot(15)
 end
 
 -- 设备同步请求
