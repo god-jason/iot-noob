@@ -82,13 +82,13 @@ local features = {
         pack = "I"
     },
     int64 = {
-        byte = 4,
-        word = 2,
+        byte = 8,
+        word = 4,
         pack = "l"
     },
     uint64 = {
-        byte = 4,
-        word = 2,
+        byte = 8,
+        word = 4,
         pack = "L"
     },
     float = {
