@@ -234,15 +234,27 @@ function Cjt188Device:poll()
 
                 for _, point in ipairs(pt.points) do
                     if #data > point.address then
-                        local res, value, size = meter.decode(data:sub(point.address + 1), point.type, point.reverse)
+                        
+                        local addr = point.address + 1
+                        
+                        -- 单位前置
+                        if point.hasUnit and pt.unit_reverse then
+                            addr = addr + 1
+                        end
+
+                        local res, value, size = meter.decode(data:sub(addr), point.type, point.reverse)
                         if not res then
                             log.error("解析数据失败", point.name, value)
                         else
                             -- 仅BCD格式有单位
                             if point.hasUnit then
-                                local unit = data:byte(point.address + size + 1)
-                                -- log.info("data unit", point.name, value, units[unit])
-                                value = unit_convert(unit, value)
+                                if pt.unit_reverse then
+                                    local unit = data:byte(point.address + 1)
+                                    value = unit_convert(unit, value)
+                                else
+                                    local unit = data:byte(point.address + 1 + size)
+                                    value = unit_convert(unit, value)
+                                end
                             end
 
                             if point.rate and point.rate ~= 0 and point.rate ~= 1 then
